@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.venv/
+venv/
+
+# 執行輸出（每次可重新產生，不進版控）
+week*/**/*.csv
+week*/**/*.npz
+week*/**/*.npy
+week*/**/*.pt
+outputs/
+runs/
+
+# 大型資料集（請放外部，例如 Google Drive）
+data/
+
+# 系統檔
+.DS_Store
+Thumbs.db
