@@ -1,0 +1,561 @@
+<title>Git 速查手冊</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* 版面概念：單欄導覽加卡片格線；指令以等寬字呈現，每行可一鍵複製。 */
+:root {
+  --bg: #f5f4ef;
+  --surface: #ffffff;
+  --fg: #1c2230;
+  --muted: #5a6276;
+  --line: #e0ded5;
+  --accent: #a84b0c;
+  --accent-soft: #f6e6da;
+  --code-bg: #1c2230;
+  --code-fg: #eef0f4;
+  --ok: #2b7a4b;
+  --ok-soft: #e1f1e7;
+  --warn: #9a6100;
+  --warn-soft: #f8ecd2;
+  --danger: #a4262c;
+  --danger-soft: #f7dfe0;
+  --sans: "Noto Sans TC", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Consolas, "Courier New", monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11141b;
+    --surface: #1a1f2a;
+    --fg: #e6e8ee;
+    --muted: #9ba3b6;
+    --line: #2a3140;
+    --accent: #f0a062;
+    --accent-soft: #35261b;
+    --code-bg: #0b0e14;
+    --code-fg: #e6e8ee;
+    --ok: #7fd09c;
+    --ok-soft: #1d3327;
+    --warn: #f0c46a;
+    --warn-soft: #3a2f16;
+    --danger: #ff8a8f;
+    --danger-soft: #3d2022;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11141b;
+  --surface: #1a1f2a;
+  --fg: #e6e8ee;
+  --muted: #9ba3b6;
+  --line: #2a3140;
+  --accent: #f0a062;
+  --accent-soft: #35261b;
+  --code-bg: #0b0e14;
+  --code-fg: #e6e8ee;
+  --ok: #7fd09c;
+  --ok-soft: #1d3327;
+  --warn: #f0c46a;
+  --warn-soft: #3a2f16;
+  --danger: #ff8a8f;
+  --danger-soft: #3d2022;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--sans);
+  line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-top: 20px;
+  padding-bottom: 48px;
+}
+main { max-width: 1080px; margin: 0 auto; min-width: 0; }
+h1 { font-size: 28px; margin: 0 0 4px; letter-spacing: 0.01em; text-wrap: balance; }
+h2 { font-size: 19px; margin: 0 0 12px; text-wrap: balance; }
+h3 { font-size: 15px; margin: 0 0 8px; }
+p { margin: 0 0 8px; }
+.muted { color: var(--muted); }
+.lede { color: var(--muted); margin-bottom: 16px; }
+code, .mono { font-family: var(--mono); font-size: 13.5px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+/* 頂部列 */
+.top {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 5;
+  background: var(--bg);
+  padding: 10px 0 12px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 20px;
+}
+.search {
+  width: 100%;
+  font: inherit;
+  font-size: 15px;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--fg);
+  min-width: 0;
+}
+.nav { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.nav a {
+  font-size: 13px;
+  color: var(--muted);
+  text-decoration: none;
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+}
+.nav a:hover { color: var(--accent); border-color: var(--accent); }
+.empty { display: none; color: var(--muted); padding: 24px 0; }
+
+/* 區塊與卡片 */
+section { margin-bottom: 28px; min-width: 0; }
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 12px;
+  min-width: 0;
+}
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px;
+  min-width: 0;
+}
+.card[hidden] { display: none !important; }
+.tag {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 6px;
+  margin-right: 4px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.tag.ok { background: var(--ok-soft); color: var(--ok); }
+.tag.warn { background: var(--warn-soft); color: var(--warn); }
+.tag.danger { background: var(--danger-soft); color: var(--danger); }
+
+/* 指令列 */
+.cmd {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px dashed var(--line);
+}
+.cmd:last-child { border-bottom: 0; }
+.cmd[hidden] { display: none !important; }
+.cmd .desc { grid-column: 1 / -1; font-size: 13.5px; color: var(--muted); margin-top: -4px; }
+.code-line {
+  display: block;
+  background: var(--code-bg);
+  color: var(--code-fg);
+  font-family: var(--mono);
+  font-size: 13px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  overflow-x: auto;
+  white-space: pre;
+  min-width: 0;
+}
+.copy {
+  font: inherit;
+  font-size: 12px;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 5px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.copy:hover { color: var(--accent); border-color: var(--accent); }
+.copy.done { color: var(--ok); border-color: var(--ok); }
+
+/* 流程 */
+.flow {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  min-width: 0;
+}
+.flow li {
+  flex: 1 1 200px;
+  min-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+  position: relative;
+}
+.flow li .step {
+  font-size: 12px;
+  color: var(--accent);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.flow li .code-line { margin-top: 6px; }
+
+/* 分支示意 */
+.lanes {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px;
+  overflow-x: auto;
+}
+.lane { display: flex; align-items: center; gap: 0; min-width: 480px; margin: 6px 0; }
+.lane .name { width: 150px; font-family: var(--mono); font-size: 13px; color: var(--muted); flex: none; }
+.lane .track { flex: 1; height: 4px; background: var(--line); border-radius: 2px; position: relative; }
+.lane .dot {
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--accent); position: absolute; top: -4px; transform: translateX(-50%);
+}
+.lane.main .track { background: var(--ok); }
+.lane.main .dot { background: var(--ok); }
+.lane .lbl { font-size: 12px; color: var(--muted); position: absolute; top: 10px; transform: translateX(-50%); white-space: nowrap; }
+
+/* 表格 */
+.table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; min-width: 0; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; color: var(--muted); font-weight: 600; letter-spacing: 0.04em; }
+tr:last-child td { border-bottom: 0; }
+td code { word-break: break-word; }
+
+/* 提交格式 */
+.commit-tpl {
+  background: var(--code-bg);
+  color: var(--code-fg);
+  font-family: var(--mono);
+  font-size: 13px;
+  border-radius: 12px;
+  padding: 14px 16px;
+  overflow-x: auto;
+  white-space: pre;
+  margin: 0 0 12px;
+}
+.commit-tpl .k { color: var(--accent); }
+.commit-tpl .m { color: #8fa3c2; }
+
+/* 檢查清單 */
+.check { display: flex; gap: 10px; align-items: flex-start; padding: 6px 0; font-size: 14.5px; cursor: pointer; }
+.check input { margin-top: 5px; width: 16px; height: 16px; accent-color: var(--accent); flex: none; }
+
+.footer { color: var(--muted); font-size: 12.5px; margin-top: 32px; }
+[hidden] { display: none !important; }
+
+@media (max-width: 520px) {
+  h1 { font-size: 24px; }
+  .cmd { grid-template-columns: 1fr; }
+  .copy { justify-self: start; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<main>
+  <header class="top">
+    <h1>Git 速查手冊</h1>
+    <p class="lede">適用於 <span class="mono">sciml</span> repo，遠端 <span class="mono">origin</span>，主分支 <span class="mono">main</span>。點指令旁的「複製」即可貼到終端機。</p>
+    <input id="q" class="search" type="search" placeholder="搜尋指令或說明，例如 push、撤銷、衝突" aria-label="搜尋">
+    <nav class="nav" aria-label="章節">
+      <a href="#principles">原則</a>
+      <a href="#daily">每日</a>
+      <a href="#flow">新任務</a>
+      <a href="#branch">分支</a>
+      <a href="#commit">提交</a>
+      <a href="#undo">撤銷</a>
+      <a href="#sync">同步</a>
+      <a href="#find">查找</a>
+      <a href="#errors">錯誤</a>
+      <a href="#check">檢查</a>
+      <a href="#rescue">救急</a>
+    </nav>
+    <p id="empty" class="empty">找不到符合的內容。</p>
+  </header>
+
+  <section id="principles" data-section>
+    <h2>核心原則</h2>
+    <div class="grid">
+      <div class="card" data-s><h3>1. main 永遠可執行</h3><p class="muted">不直接在 main 上開發，所有變更透過分支與合併完成。</p></div>
+      <div class="card" data-s><h3>2. 小步提交</h3><p class="muted">一個 commit 只做一件事，訊息要能說明為什麼改。</p></div>
+      <div class="card" data-s><h3>3. 先看再做</h3><p class="muted">改動狀態的指令之前，先跑 <span class="mono">git status</span>。</p></div>
+      <div class="card" data-s><h3>4. 不改寫已推送的歷史</h3><p class="muted">已推送的 commit 不做 rebase 或 reset 後強制推送。</p></div>
+      <div class="card" data-s><h3>5. 不提交產物</h3><p class="muted">資料、輸出圖表、模型權重由 .gitignore 排除。</p></div>
+    </div>
+  </section>
+
+  <section id="daily" data-section>
+    <h2>每日必備</h2>
+    <div class="card" data-s>
+      <div class="cmd" data-s><code class="code-line">git status</code><button class="copy">複製</button><span class="desc">查看狀態</span></div>
+      <div class="cmd" data-s><code class="code-line">git diff --staged</code><button class="copy">複製</button><span class="desc">查看已暫存的變更（未暫存用 git diff）</span></div>
+      <div class="cmd" data-s><code class="code-line">git log --oneline --graph --decorate -20</code><button class="copy">複製</button><span class="desc">查看最近 20 筆歷史</span></div>
+      <div class="cmd" data-s><code class="code-line">git pull --rebase</code><button class="copy">複製</button><span class="desc">同步遠端最新內容</span></div>
+      <div class="cmd" data-s><code class="code-line">git push</code><button class="copy">複製</button><span class="desc">推送目前分支</span></div>
+      <div class="cmd" data-s><code class="code-line">git branch -vv</code><button class="copy">複製</button><span class="desc">查看分支與追蹤關係</span></div>
+      <div class="cmd" data-s><code class="code-line">git remote -v</code><button class="copy">複製</button><span class="desc">查看遠端網址</span></div>
+    </div>
+  </section>
+
+  <section id="flow" data-section>
+    <h2>開始一個新任務</h2>
+    <ol class="flow">
+      <li data-s><span class="step">STEP 1</span><p>同步最新 main</p><code class="code-line">git switch main
+git pull --rebase</code><button class="copy">複製</button></li>
+      <li data-s><span class="step">STEP 2</span><p>建立功能分支</p><code class="code-line">git switch -c feat/w02-batch</code><button class="copy">複製</button></li>
+      <li data-s><span class="step">STEP 3</span><p>逐段檢視後暫存</p><code class="code-line">git add -p</code><button class="copy">複製</button></li>
+      <li data-s><span class="step">STEP 4</span><p>依格式提交</p><code class="code-line">git commit</code><button class="copy">複製</button></li>
+      <li data-s><span class="step">STEP 5</span><p>第一次推送並設定追蹤</p><code class="code-line">git push -u origin feat/w02-batch</code><button class="copy">複製</button></li>
+      <li data-s><span class="step">STEP 6</span><p>在 GitHub 開 Pull Request，審閱後合併到 main</p></li>
+    </ol>
+  </section>
+
+  <section id="branch" data-section>
+    <h2>分支示意與命名</h2>
+    <div class="lanes" data-s>
+      <div class="lane main"><span class="name">main</span><div class="track"><span class="dot" style="left:0"></span><span class="dot" style="left:100%"></span></div></div>
+      <div class="lane"><span class="name">feat/w02-batch</span><div class="track" style="margin-left:18%;width:60%"><span class="dot" style="left:0"></span><span class="dot" style="left:50%"></span><span class="dot" style="left:100%"></span></div></div>
+      <p class="muted" style="margin:12px 0 0;font-size:13px">分支從 main 分出，完成後透過 Pull Request 合回 main。</p>
+    </div>
+    <div class="table-wrap" style="margin-top:12px" data-s>
+      <table>
+        <thead><tr><th>前綴</th><th>用途</th><th>範例</th></tr></thead>
+        <tbody>
+          <tr data-s><td><span class="tag">feat/</span></td><td>新功能或新練習</td><td><code>feat/w02-batch-script</code></td></tr>
+          <tr data-s><td><span class="tag">fix/</span></td><td>修正錯誤</td><td><code>fix/tide-resample</code></td></tr>
+          <tr data-s><td><span class="tag">docs/</span></td><td>文件</td><td><code>docs/venv-guide</code></td></tr>
+          <tr data-s><td><span class="tag warn">exp/</span></td><td>實驗，可能丟棄</td><td><code>exp/pinn-beta-sweep</code></td></tr>
+          <tr data-s><td><span class="tag ok">report/</span></td><td>失敗案例報告</td><td><code>report/w04-failure-1</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="muted" style="font-size:13px;margin-top:8px">命名用小寫與連字號，不含空白與中文。</p>
+  </section>
+
+  <section id="commit" data-section>
+    <h2>提交訊息格式（Conventional Commits）</h2>
+    <pre class="commit-tpl" data-s><span class="k">&lt;類型&gt;(&lt;範圍&gt;): &lt;摘要&gt;</span>   <span class="m"># 50 字內，命令式語氣</span>
+
+<span class="m">&lt;正文：為什麼改、改了什麼，每行 72 字內&gt;</span>
+
+<span class="m">&lt;頁尾：關聯議題&gt;</span></pre>
+    <div class="grid">
+      <div class="card" data-s><span class="tag ok">feat</span> 新增功能或練習</div>
+      <div class="card" data-s><span class="tag">fix</span> 修正錯誤</div>
+      <div class="card" data-s><span class="tag">docs</span> 文件</div>
+      <div class="card" data-s><span class="tag">refactor</span> 重構，行為不變</div>
+      <div class="card" data-s><span class="tag">test</span> 測試</div>
+      <div class="card" data-s><span class="tag">chore</span> 設定與依賴</div>
+    </div>
+    <div class="card" style="margin-top:12px" data-s>
+      <h3>範例</h3>
+      <code class="code-line">feat(w02): add argparse CLI for tide batch runs
+
+Allow varying M2 amplitude and noise level from the command line.
+
+Refs: week02/exercises.md Day 3</code>
+      <button class="copy" style="margin-top:8px">複製</button>
+    </div>
+  </section>
+
+  <section id="stage" data-section>
+    <h2>暫存與提交</h2>
+    <div class="card" data-s>
+      <div class="cmd" data-s><code class="code-line">git add 檔名</code><button class="copy">複製</button><span class="desc">暫存指定檔案</span></div>
+      <div class="cmd" data-s><code class="code-line">git add -p</code><button class="copy">複製</button><span class="desc">逐段暫存（推薦）</span></div>
+      <div class="cmd" data-s><code class="code-line">git restore --staged 檔名</code><button class="copy">複製</button><span class="desc">取消暫存，檔案內容保留</span></div>
+      <div class="cmd" data-s><code class="code-line">git commit --amend</code><button class="copy">複製</button><span class="desc">修改最近一次 commit 訊息（僅限未推送）</span></div>
+    </div>
+  </section>
+
+  <section id="undo" data-section>
+    <h2>撤銷與還原</h2>
+    <div class="grid">
+      <div class="card" data-s>
+        <span class="tag ok">安全</span>
+        <h3 style="margin-top:6px">取消暫存</h3>
+        <code class="code-line">git restore --staged 檔名</code><button class="copy" style="margin-top:6px">複製</button>
+      </div>
+      <div class="card" data-s>
+        <span class="tag danger">無法復原</span>
+        <h3 style="margin-top:6px">放棄未提交的修改</h3>
+        <code class="code-line">git restore 檔名</code><button class="copy" style="margin-top:6px">複製</button>
+      </div>
+      <div class="card" data-s>
+        <span class="tag ok">安全</span>
+        <h3 style="margin-top:6px">還原已推送的 commit</h3>
+        <p class="muted" style="font-size:13.5px">新增一個反向 commit，歷史保留。</p>
+        <code class="code-line">git revert 雜湊值</code><button class="copy" style="margin-top:6px">複製</button>
+      </div>
+      <div class="card" data-s>
+        <span class="tag warn">謹慎</span>
+        <h3 style="margin-top:6px">撤銷最近一次 commit，保留修改</h3>
+        <p class="muted" style="font-size:13.5px">僅限未推送。</p>
+        <code class="code-line">git reset --soft HEAD~1</code><button class="copy" style="margin-top:6px">複製</button>
+      </div>
+      <div class="card" data-s>
+        <span class="tag ok">安全</span>
+        <h3 style="margin-top:6px">暫存未完成的工作</h3>
+        <code class="code-line">git stash push -m "說明"</code><button class="copy" style="margin-top:6px">複製</button>
+        <p class="muted" style="font-size:13.5px;margin-top:6px">取回：<span class="mono">git stash pop</span></p>
+      </div>
+    </div>
+    <div class="card" style="margin-top:12px;border-color:var(--danger)" data-s>
+      <h3 style="color:var(--danger)">禁止（除非完全明白後果）</h3>
+      <ul class="muted" style="margin:0;padding-left:18px">
+        <li><span class="mono">git push --force</span> 推送到 main</li>
+        <li>有未提交工作時執行 <span class="mono">git reset --hard</span></li>
+        <li>已共享的分支強制推送；必要時改用 <span class="mono">git push --force-with-lease</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="sync" data-section>
+    <h2>同步與衝突</h2>
+    <div class="card" data-s>
+      <div class="cmd" data-s><code class="code-line">git pull --rebase</code><button class="copy">複製</button><span class="desc">把自己的 commit 接到遠端最新之後</span></div>
+      <div class="cmd" data-s><code class="code-line">git add 檔名 &amp;&amp; git rebase --continue</code><button class="copy">複製</button><span class="desc">解完衝突後，標記為已解決並繼續</span></div>
+      <div class="cmd" data-s><code class="code-line">git rebase --abort</code><button class="copy">複製</button><span class="desc">放棄本次 rebase，回到開始前的狀態</span></div>
+    </div>
+    <p class="muted" style="font-size:13.5px;margin-top:8px">衝突標記為 <span class="mono">&lt;&lt;&lt;&lt;&lt;&lt;&lt;</span>、<span class="mono">=======</span>、<span class="mono">&gt;&gt;&gt;&gt;&gt;&gt;&gt;</span>。保留正確內容並刪除標記後，再執行 <span class="mono">git add</span>。</p>
+  </section>
+
+  <section id="find" data-section>
+    <h2>查找問題</h2>
+    <div class="card" data-s>
+      <div class="cmd" data-s><code class="code-line">git blame 檔名</code><button class="copy">複製</button><span class="desc">查看每一行是誰、哪次 commit 改的</span></div>
+      <div class="cmd" data-s><code class="code-line">git log -S "關鍵字" --oneline</code><button class="copy">複製</button><span class="desc">搜尋歷史中新增或刪除該字串的 commit</span></div>
+      <div class="cmd" data-s><code class="code-line">git bisect start</code><button class="copy">複製</button><span class="desc">二分法找出造成錯誤的 commit（之後用 good／bad 標記）</span></div>
+      <div class="cmd" data-s><code class="code-line">git show 雜湊值</code><button class="copy">複製</button><span class="desc">查看某個 commit 的內容</span></div>
+      <div class="cmd" data-s><code class="code-line">git log main..feat/xxx --oneline</code><button class="copy">複製</button><span class="desc">列出分支上 main 沒有的 commit</span></div>
+    </div>
+  </section>
+
+  <section id="errors" data-section>
+    <h2>常見錯誤</h2>
+    <div class="table-wrap" data-s>
+      <table>
+        <thead><tr><th>錯誤訊息</th><th>原因</th><th>解法</th></tr></thead>
+        <tbody>
+          <tr data-s><td><code>repository moved</code></td><td>遠端網址已變更</td><td><code>git remote set-url origin 新網址</code></td></tr>
+          <tr data-s><td><code>rejected (non-fast-forward)</code></td><td>遠端有你沒有的 commit</td><td><code>git pull --rebase</code> 後再推送</td></tr>
+          <tr data-s><td><code>detached HEAD</code></td><td>直接切到某個 commit</td><td><code>git switch -c 新分支名</code> 保存工作</td></tr>
+          <tr data-s><td><code>Author identity unknown</code></td><td>未設定使用者資訊</td><td>設定 user.name 與 user.email</td></tr>
+          <tr data-s><td><code>Permission denied (publickey)</code></td><td>SSH 金鑰未設定</td><td>改用 HTTPS，或設定 SSH 金鑰</td></tr>
+          <tr data-s><td><code>CRLF will be replaced by LF</code></td><td>Windows 換行差異</td><td>正常警告，可忽略</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="setup" data-section>
+    <h2>一次性設定</h2>
+    <div class="card" data-s>
+      <code class="code-line">git config --global user.name "你的名字"
+git config --global user.email "你的 GitHub 信箱"
+git config --global init.defaultBranch main
+git config --global pull.rebase true
+git config --global push.autoSetupRemote true</code>
+      <button class="copy" style="margin-top:8px">複製</button>
+      <p class="muted" style="font-size:13.5px;margin-top:10px">Windows 建議加上 <span class="mono">git config --global core.autocrlf true</span>；Mac/Linux 用 <span class="mono">input</span>。</p>
+    </div>
+  </section>
+
+  <section id="check" data-section>
+    <h2>提交前檢查清單</h2>
+    <div class="card" data-s>
+      <label class="check"><input type="checkbox"> <span><code>git status</code> 確認只包含預期的檔案</span></label>
+      <label class="check"><input type="checkbox"> <span>沒有 .csv、.npz、.png 等產物，也沒有大型資料</span></label>
+      <label class="check"><input type="checkbox"> <span>沒有密碼、API 金鑰或個人路徑</span></label>
+      <label class="check"><input type="checkbox"> <span>訊息符合 Conventional Commits 格式</span></label>
+      <label class="check"><input type="checkbox"> <span>程式在 venv 中實際跑過</span></label>
+      <label class="check"><input type="checkbox"> <span>推送前已執行 <code>git pull --rebase</code></span></label>
+    </div>
+  </section>
+
+  <section id="rescue" data-section>
+    <h2>快速救急</h2>
+    <div class="grid">
+      <div class="card" data-s><h3>不確定自己做了什麼</h3><p class="muted">先看 <span class="mono">git status</span> 與 <span class="mono">git log --oneline -5</span>。</p></div>
+      <div class="card" data-s><h3>改壞了檔案</h3><p class="muted">未提交：<span class="mono">git restore 檔名</span>。已提交：<span class="mono">git revert</span>。</p></div>
+      <div class="card" data-s><h3>推送被拒絕</h3><p class="muted">先 <span class="mono">git pull --rebase</span>，再 <span class="mono">git push</span>。</p></div>
+      <div class="card" data-s><h3>誤刪了分支</h3><p class="muted">用 <span class="mono">git reflog</span> 找到最後的 commit，再 <span class="mono">git switch -c 分支名 雜湊值</span>。</p></div>
+      <div class="card" data-s><h3>想先離開</h3><p class="muted">用 <span class="mono">git stash push -m "說明"</span> 暫存。</p></div>
+    </div>
+  </section>
+
+  <p class="footer">清除未追蹤檔案前，先用 <span class="mono">git clean -nd</span> 預覽；<span class="mono">git clean -fd</span> 會永久刪除。</p>
+</main>
+
+<script>
+(function () {
+  // 複製：在點擊事件內呼叫 clipboard；失敗時退回選取文字
+  document.querySelectorAll('.copy').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var host = btn.closest('.cmd, .card, .flow li') || btn.parentElement;
+      var codeEl = host.querySelector('code, .commit-tpl');
+      var text = codeEl ? codeEl.innerText : '';
+      var done = function () {
+        var old = btn.textContent;
+        btn.textContent = '已複製';
+        btn.classList.add('done');
+        setTimeout(function () { btn.textContent = old; btn.classList.remove('done'); }, 1400);
+      };
+      var fallback = function () {
+        if (codeEl) {
+          var r = document.createRange();
+          r.selectNodeContents(codeEl);
+          var s = window.getSelection();
+          s.removeAllRanges();
+          s.addRange(r);
+        }
+        btn.textContent = '已選取';
+        setTimeout(function () { btn.textContent = '複製'; }, 1400);
+      };
+      try {
+        navigator.clipboard.writeText(text).then(done, fallback);
+      } catch (e) {
+        fallback();
+      }
+    });
+  });
+
+  // 搜尋：隱藏不符合的項目，空白時顯示全部
+  var q = document.getElementById('q');
+  var empty = document.getElementById('empty');
+  var items = Array.prototype.slice.call(document.querySelectorAll('[data-s]'));
+  var sections = Array.prototype.slice.call(document.querySelectorAll('[data-section]'));
+  function apply() {
+    var term = q.value.trim().toLowerCase();
+    items.forEach(function (el) {
+      var hit = !term || el.textContent.toLowerCase().indexOf(term) !== -1;
+      el.hidden = !hit;
+    });
+    // 章節內沒有可見項目時隱藏整節
+    var any = false;
+    sections.forEach(function (sec) {
+      var visible = Array.prototype.some.call(sec.querySelectorAll('[data-s]'), function (el) { return !el.hidden; });
+      sec.hidden = !visible;
+      if (visible) any = true;
+    });
+    empty.style.display = any ? 'none' : 'block';
+  }
+  q.addEventListener('input', apply);
+})();
+</script>

@@ -1,0 +1,493 @@
+<title>Git 團隊流轉動畫</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* 版面概念：上方是提交圖（分支與遠端的位置隨指令改變），下方是目前指令與說明。 */
+:root {
+  --bg: #f5f4ef;
+  --surface: #ffffff;
+  --fg: #1c2230;
+  --muted: #5a6276;
+  --line: #d9d7ce;
+  --accent: #a84b0c;
+  --accent-soft: #f6e6da;
+  --team: #8a5a00;
+  --gh: #2b7a4b;
+  --code-bg: #1c2230;
+  --code-fg: #eef0f4;
+  --sans: "Noto Sans TC", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Consolas, "Courier New", monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11141b;
+    --surface: #1a1f2a;
+    --fg: #e6e8ee;
+    --muted: #9ba3b6;
+    --line: #2a3140;
+    --accent: #f0a062;
+    --accent-soft: #35261b;
+    --team: #f0c46a;
+    --gh: #7fd09c;
+    --code-bg: #0b0e14;
+    --code-fg: #e6e8ee;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11141b;
+  --surface: #1a1f2a;
+  --fg: #e6e8ee;
+  --muted: #9ba3b6;
+  --line: #2a3140;
+  --accent: #f0a062;
+  --accent-soft: #35261b;
+  --team: #f0c46a;
+  --gh: #7fd09c;
+  --code-bg: #0b0e14;
+  --code-fg: #e6e8ee;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--sans);
+  line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-top: 20px;
+  padding-bottom: 40px;
+}
+main { max-width: 960px; margin: 0 auto; min-width: 0; }
+h1 { font-size: 26px; margin: 0 0 4px; text-wrap: balance; }
+.lede { color: var(--muted); margin: 0 0 16px; font-size: 14.5px; }
+.mono { font-family: var(--mono); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+.stage {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px 12px 8px;
+  min-width: 0;
+}
+.graph { width: 100%; height: auto; display: block; }
+.lane-label { font-family: var(--mono); font-size: 12px; fill: var(--muted); }
+.lane-line { stroke: var(--line); stroke-width: 1; stroke-dasharray: 4 4; }
+.edge { fill: none; stroke: var(--muted); stroke-width: 2; stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset .8s ease; }
+.edge.on { stroke-dashoffset: 0; }
+.node { opacity: 0; transition: opacity .5s ease; }
+.node.on { opacity: 1; }
+.node .dot { stroke-width: 2; transition: fill .4s, stroke-dasharray .4s; }
+.node.old .dot { fill: transparent !important; stroke-dasharray: 3 3; }
+.node.old text { opacity: .45; }
+.node.focus .ring { opacity: 1; }
+.ring { fill: none; stroke: var(--accent); stroke-width: 2; opacity: 0; transition: opacity .3s; }
+.node text { font-family: var(--sans); font-size: 11.5px; fill: var(--fg); }
+.c-you { fill: var(--accent); stroke: var(--accent); }
+.c-team { fill: var(--team); stroke: var(--team); }
+.c-gh { fill: var(--gh); stroke: var(--gh); }
+.c-base { fill: var(--muted); stroke: var(--muted); }
+.badge { opacity: 0; transition: opacity .4s; }
+.badge.on { opacity: 1; }
+.badge rect { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1; }
+.badge text { font-family: var(--mono); font-size: 11px; fill: var(--accent); }
+.packet { fill: var(--accent); opacity: 0; }
+.packet.on { opacity: 1; }
+.remote-tag { font-family: var(--mono); font-size: 11px; fill: var(--gh); }
+
+.panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 12px;
+  margin-top: 12px;
+  min-width: 0;
+}
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px;
+  min-width: 0;
+}
+.step-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.chip {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+}
+.chip.you { color: var(--accent); border-color: var(--accent); }
+.chip.team { color: var(--team); border-color: var(--team); }
+.chip.gh { color: var(--gh); border-color: var(--gh); }
+.counter { font-size: 12px; color: var(--muted); margin-left: auto; font-family: var(--mono); }
+.title { font-size: 17px; font-weight: 700; margin: 0 0 6px; }
+.note { font-size: 14.5px; color: var(--fg); margin: 0; min-height: 3.2em; }
+.term {
+  background: var(--code-bg);
+  color: var(--code-fg);
+  font-family: var(--mono);
+  font-size: 13.5px;
+  border-radius: 10px;
+  padding: 10px 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  min-height: 3.4em;
+  margin: 0;
+}
+.term .prompt { color: var(--accent); }
+.caret { display: inline-block; width: 7px; height: 14px; background: var(--code-fg); vertical-align: -2px; animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+
+.ptr-title { font-size: 12px; color: var(--muted); letter-spacing: .04em; margin: 0 0 8px; font-weight: 600; }
+.ptr { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.ptr li {
+  display: flex; justify-content: space-between; gap: 8px;
+  font-family: var(--mono); font-size: 12.5px;
+  padding: 6px 8px; border-radius: 8px; border: 1px solid var(--line);
+  min-width: 0;
+}
+.ptr li span:first-child { overflow-wrap: anywhere; }
+.ptr li span:last-child { color: var(--muted); white-space: nowrap; }
+
+.controls {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  margin-top: 12px;
+}
+button.btn {
+  font: inherit; font-size: 14px; color: var(--fg);
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: 10px; padding: 8px 14px; cursor: pointer;
+  min-height: 40px;
+}
+button.btn:hover { border-color: var(--accent); color: var(--accent); }
+button.btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.dots { display: flex; gap: 6px; flex-wrap: wrap; margin-left: auto; }
+.dots button {
+  width: 12px; height: 12px; border-radius: 50%; border: 1px solid var(--muted);
+  background: transparent; padding: 0; cursor: pointer;
+}
+.dots button[aria-current="step"] { background: var(--accent); border-color: var(--accent); }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); margin-top: 10px; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
+
+@media (max-width: 720px) {
+  .panel { grid-template-columns: minmax(0, 1fr); }
+  h1 { font-size: 22px; }
+  .dots { margin-left: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+</style>
+
+<main>
+  <h1>Git 團隊流轉動畫</h1>
+  <p class="lede">一個功能從本機到 GitHub、審查、合併、還原，每一步對應的指令與它改變的狀態。按「下一步」或讓它自動播放。</p>
+
+  <div class="stage">
+    <svg class="graph" viewBox="0 0 900 250" role="img" aria-label="提交圖：main 與 feat 分支隨指令變化">
+      <!-- 分支基線 -->
+      <line class="lane-line" x1="20" y1="70" x2="880" y2="70"></line>
+      <line class="lane-line" x1="20" y1="160" x2="880" y2="160"></line>
+      <text class="lane-label" x="14" y="66">main</text>
+      <text class="lane-label" x="14" y="156">feat/w02-batch</text>
+
+      <g id="edges"></g>
+      <g id="nodes"></g>
+      <g id="badges"></g>
+      <circle id="packet" class="packet" r="5" cx="0" cy="0"></circle>
+      <text class="remote-tag" x="842" y="164" id="origin-tag" opacity="0">origin ▸</text>
+    </svg>
+
+    <div class="controls">
+      <button class="btn" id="prev" type="button">上一步</button>
+      <button class="btn primary" id="play" type="button">暫停</button>
+      <button class="btn" id="next" type="button">下一步</button>
+      <div class="dots" id="dots" role="group" aria-label="步驟"></div>
+    </div>
+    <div class="legend">
+      <span><i class="c-you"></i>你</span>
+      <span><i class="c-team"></i>同事</span>
+      <span><i class="c-gh"></i>GitHub</span>
+      <span><i class="c-base"></i>初始內容</span>
+      <span>虛線圈＝已被改寫的舊 commit</span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="card">
+      <div class="step-meta">
+        <span class="chip" id="actor">你</span>
+        <span class="counter" id="counter"></span>
+      </div>
+      <p class="title" id="title"></p>
+      <pre class="term" id="term" aria-live="polite"></pre>
+      <p class="note" id="note" style="margin-top:10px"></p>
+    </div>
+    <div class="card">
+      <p class="ptr-title">各指標目前指向</p>
+      <ul class="ptr" id="ptr"></ul>
+    </div>
+  </div>
+</main>
+
+<script>
+(function () {
+  var NS = 'http://www.w3.org/2000/svg';
+  var PACKET_END = 880;
+
+  // 提交圖節點：at 為首次出現的步驟，old 為被改寫的步驟
+  var N = {
+    m1:  { x: 150, y: 70,  lab: 'a1b2 init',                    ly: -16, cls: 'c-base', at: 0 },
+    m2:  { x: 270, y: 70,  lab: 'c3d4 w01 範例',                  ly: -16, cls: 'c-base', at: 0 },
+    m3:  { x: 430, y: 70,  lab: 'e5f6 同事：修正 .gitignore',       ly: -16, cls: 'c-team', at: 6 },
+    f1:  { x: 340, y: 160, lab: 'g7h8 feat: batch CLI',          ly: 26,  cls: 'c-you',  at: 3, old: 7 },
+    f1p: { x: 540, y: 160, lab: 'k9l0 feat: batch CLI（rebase 後）', ly: 26,  cls: 'c-you',  at: 7 },
+    M:   { x: 660, y: 70,  lab: 'Merge PR #12',                  ly: -16, cls: 'c-gh',   at: 9 },
+    R:   { x: 780, y: 70,  lab: 'Revert 合併',                    ly: -16, cls: 'c-you',  at: 11 }
+  };
+  var EDGES = [['m1','m2'],['m2','m3'],['m2','f1'],['m3','f1p'],['f1p','M'],['m3','M'],['M','R']];
+
+  // 每一步：指令、執行者、說明、各指標位置、焦點節點、動畫或徽章
+  var STEPS = [
+    { actor: 'GitHub', chip: 'gh', cmd: '（起點）遠端 origin 的 main 已有兩筆 commit',
+      title: '起點', note: '團隊的 repo 在 GitHub 上。main 是唯一的正本，任何人都從這裡開始。',
+      ptr: [['origin/main', 'c3d4']] },
+    { actor: '你', chip: 'you', cmd: 'git clone https://github.com/archi9882/SciML.git',
+      title: '複製到本機', note: 'clone 把完整歷史複製到你的電腦，並自動建立名為 origin 的遠端連線。',
+      ptr: [['本機 main', 'c3d4'], ['origin/main', 'c3d4']], focus: 'm2' },
+    { actor: '你', chip: 'you', cmd: 'git switch -c feat/w02-batch',
+      title: '建立功能分支', note: '從 main 分出新分支。之後的修改只影響這條線，main 不受影響。',
+      ptr: [['本機 main', 'c3d4'], ['本機 feat/w02-batch', 'c3d4']] },
+    { actor: '你', chip: 'you', cmd: 'git add -p\ngit commit -m "feat: add batch CLI"',
+      title: '提交到本機', note: '逐段暫存後提交。這個 commit 只在你的電腦上，遠端看不到。',
+      ptr: [['本機 main', 'c3d4'], ['本機 feat/w02-batch', 'g7h8'], ['origin/main', 'c3d4']], focus: 'f1' },
+    { actor: '你', chip: 'you', cmd: 'git push -u origin feat/w02-batch',
+      title: '推送到遠端', note: 'GitHub 上建立同名分支。-u 會記下追蹤關係，之後 git push 與 git pull 就不需要再指定分支。',
+      ptr: [['本機 feat/w02-batch', 'g7h8'], ['origin/feat/w02-batch', 'g7h8']], packet: 'f1' },
+    { actor: '你', chip: 'you', cmd: '（在 GitHub 網頁開 Pull Request）',
+      title: '開啟審查', note: 'PR 不是 git 指令，而是 GitHub 上的審查入口。同事可以在這裡看 diff、留言、要求修改。',
+      ptr: [['本機 feat/w02-batch', 'g7h8'], ['origin/feat/w02-batch', 'g7h8']], badge: { node: 'f1', text: 'PR #12 · 待審' }, focus: 'f1' },
+    { actor: '同事', chip: 'team', cmd: '（同事合併另一個 PR 到 main）',
+      title: 'main 往前走', note: '同事的修正合進 main。你的分支還停在舊位置，main 與分支已經分岔。',
+      ptr: [['origin/main', 'e5f6'], ['本機 main', 'c3d4'], ['origin/feat/w02-batch', 'g7h8']], focus: 'm3' },
+    { actor: '你', chip: 'you', cmd: 'git fetch origin\ngit rebase origin/main',
+      title: '把分支接到最新 main', note: 'rebase 把你的 commit 搬到 main 最新處，產生新的雜湊值 k9l0。舊的 g7h8 不再屬於分支，只留在 reflog 中。',
+      ptr: [['本機 feat/w02-batch', 'k9l0'], ['origin/feat/w02-batch', 'g7h8'], ['origin/main', 'e5f6']], focus: 'f1p' },
+    { actor: '你', chip: 'you', cmd: 'git push --force-with-lease',
+      title: '更新遠端分支', note: '分支被改寫，普通 push 會被拒絕。--force-with-lease 只在遠端沒有別人新增 commit 時才覆寫，比 --force 安全。',
+      ptr: [['本機 feat/w02-batch', 'k9l0'], ['origin/feat/w02-batch', 'k9l0']], packet: 'f1p', badge: { node: 'f1p', text: 'PR #12 · 已更新' }, focus: 'f1p' },
+    { actor: 'GitHub', chip: 'gh', cmd: '（審查通過，按下 Merge）',
+      title: '合併進 main', note: '合併 commit 有兩個父節點：原本的 main 與你的分支。這一步才會真正改變 main。',
+      ptr: [['origin/main', 'M'], ['origin/feat/w02-batch', 'k9l0'], ['本機 main', 'c3d4']], focus: 'M' },
+    { actor: '你', chip: 'you', cmd: 'git switch main\ngit pull',
+      title: '更新本機 main', note: '本機 main 追上遠端。下一項任務從這裡重新開始，養成習慣。',
+      ptr: [['本機 main', 'M'], ['origin/main', 'M']], focus: 'M' },
+    { actor: '你', chip: 'you', cmd: 'git revert -m 1 M',
+      title: '發現問題，安全還原', note: 'revert 不改寫歷史，而是新增一個反向 commit。已推送的 main 用這個方式還原最安全。',
+      ptr: [['本機 main', 'R'], ['origin/main', 'M']], focus: 'R' }
+  ];
+
+  var TYPE_SPEED = 22;
+  var STEP_MS = 5200;
+  var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var nodesG = document.getElementById('nodes');
+  var edgesG = document.getElementById('edges');
+  var badgesG = document.getElementById('badges');
+  var packet = document.getElementById('packet');
+  var originTag = document.getElementById('origin-tag');
+  var termEl = document.getElementById('term');
+  var titleEl = document.getElementById('title');
+  var noteEl = document.getElementById('note');
+  var actorEl = document.getElementById('actor');
+  var counterEl = document.getElementById('counter');
+  var ptrEl = document.getElementById('ptr');
+  var dotsEl = document.getElementById('dots');
+  var playBtn = document.getElementById('play');
+
+  function el(name, attrs, parent) {
+    var e = document.createElementNS(NS, name);
+    Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+
+  // 建立節點
+  var nodeEls = {};
+  Object.keys(N).forEach(function (id) {
+    var n = N[id];
+    var g = el('g', { class: 'node', transform: 'translate(' + n.x + ',' + n.y + ')' }, nodesG);
+    el('circle', { class: 'ring', r: 15 }, g);
+    el('circle', { class: 'dot ' + n.cls, r: 8 }, g);
+    var t = el('text', { 'text-anchor': 'middle', y: n.ly }, g);
+    t.textContent = n.lab;
+    nodeEls[id] = g;
+  });
+
+  // 建立連線（分支用 S 型曲線）
+  var edgeEls = [];
+  EDGES.forEach(function (pair) {
+    var a = N[pair[0]], b = N[pair[1]];
+    var d;
+    if (a.y === b.y) {
+      d = 'M' + a.x + ' ' + a.y + ' L' + b.x + ' ' + b.y;
+    } else {
+      var mx = (a.x + b.x) / 2;
+      d = 'M' + a.x + ' ' + a.y + ' C' + mx + ' ' + a.y + ' ' + mx + ' ' + b.y + ' ' + b.x + ' ' + b.y;
+    }
+    var p = el('path', { class: 'edge', d: d, pathLength: 1 }, edgesG);
+    edgeEls.push({ pair: pair, el: p, at: Math.max(a.at, b.at) });
+  });
+
+  // 徽章
+  var badgeEl = el('g', { class: 'badge' }, badgesG);
+  el('rect', { x: 0, y: 0, width: 128, height: 22, rx: 11 }, badgeEl);
+  var badgeText = el('text', { x: 64, y: 15, 'text-anchor': 'middle' }, badgeEl);
+
+  function nodeAt(id) { return N[id].at; }
+
+  function placePacket(fromId, on) {
+    var n = N[fromId];
+    packet.style.transition = 'none';
+    packet.style.transform = 'translate(0px,0px)';
+    packet.setAttribute('cx', n.x);
+    packet.setAttribute('cy', n.y);
+    packet.classList.remove('on');
+    void packet.getBoundingClientRect();
+    if (!on) return;
+    packet.classList.add('on');
+    packet.style.transition = 'transform 1.2s ease';
+    packet.style.transform = 'translate(' + (PACKET_END - n.x) + 'px,0px)';
+    originTag.setAttribute('opacity', '1');
+  }
+
+  // 打字效果
+  var typeTimer = null;
+  function typeCmd(text) {
+    if (typeTimer) clearInterval(typeTimer);
+    var i = 0;
+    termEl.innerHTML = '<span class="prompt">$ </span><span class="typed"></span><span class="caret"></span>';
+    var out = termEl.querySelector('.typed');
+    if (reduced) { out.textContent = text; termEl.querySelector('.caret').remove(); return; }
+    typeTimer = setInterval(function () {
+      i++;
+      out.textContent = text.slice(0, i);
+      if (i >= text.length) {
+        clearInterval(typeTimer);
+        typeTimer = null;
+        var c = termEl.querySelector('.caret');
+        if (c) c.remove();
+      }
+    }, TYPE_SPEED);
+  }
+
+  var current = -1;
+  function show(i) {
+    if (i < 0) i = 0;
+    if (i >= STEPS.length) i = STEPS.length - 1;
+    current = i;
+    var s = STEPS[i];
+
+    Object.keys(N).forEach(function (id) {
+      var n = N[id];
+      var g = nodeEls[id];
+      g.classList.toggle('on', i >= n.at);
+      g.classList.toggle('old', n.old !== undefined && i >= n.old);
+      g.classList.toggle('focus', s.focus === id);
+    });
+    edgeEls.forEach(function (e) { e.el.classList.toggle('on', i >= e.at); });
+
+    if (s.badge) {
+      var bn = N[s.badge.node];
+      badgeEl.setAttribute('transform', 'translate(' + (bn.x - 64) + ',' + (bn.y + 34) + ')');
+      badgeText.textContent = s.badge.text;
+      badgeEl.classList.add('on');
+    } else {
+      badgeEl.classList.remove('on');
+    }
+
+    if (s.packet) {
+      placePacket(s.packet, true);
+    } else {
+      packet.classList.remove('on');
+      packet.style.transition = 'none';
+      packet.style.transform = 'translate(0px,0px)';
+      originTag.setAttribute('opacity', '0');
+    }
+
+    actorEl.textContent = s.actor;
+    actorEl.className = 'chip ' + s.chip;
+    counterEl.textContent = (i + 1) + ' / ' + STEPS.length;
+    titleEl.textContent = s.title;
+    noteEl.textContent = s.note;
+    typeCmd(s.cmd);
+
+    ptrEl.innerHTML = '';
+    s.ptr.forEach(function (p) {
+      var li = document.createElement('li');
+      var a = document.createElement('span');
+      a.textContent = p[0];
+      var b = document.createElement('span');
+      b.textContent = p[1];
+      li.appendChild(a); li.appendChild(b);
+      ptrEl.appendChild(li);
+    });
+
+    Array.prototype.forEach.call(dotsEl.children, function (d, k) {
+      if (k === i) d.setAttribute('aria-current', 'step'); else d.removeAttribute('aria-current');
+    });
+  }
+
+  // 步驟按鈕
+  STEPS.forEach(function (_, k) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.setAttribute('aria-label', '第 ' + (k + 1) + ' 步');
+    b.addEventListener('click', function () { stop(); show(k); });
+    dotsEl.appendChild(b);
+  });
+
+  // 自動播放
+  var timer = null;
+  var playing = false;
+  function schedule() {
+    clearTimeout(timer);
+    if (!playing) return;
+    timer = setTimeout(function () {
+      if (current >= STEPS.length - 1) { stop(); return; }
+      show(current + 1);
+      schedule();
+    }, STEP_MS);
+  }
+  function play() {
+    if (reduced) return;
+    playing = true;
+    playBtn.textContent = '暫停';
+    if (current >= STEPS.length - 1) show(0);
+    schedule();
+  }
+  function stop() {
+    playing = false;
+    clearTimeout(timer);
+    playBtn.textContent = '播放';
+  }
+
+  document.getElementById('prev').addEventListener('click', function () { stop(); show(current - 1); });
+  document.getElementById('next').addEventListener('click', function () { stop(); show(current + 1); });
+  playBtn.addEventListener('click', function () { if (playing) stop(); else play(); });
+
+  show(0);
+  if (reduced) {
+    playBtn.textContent = '播放';
+  } else {
+    play();
+  }
+})();
+</script>
