@@ -51,7 +51,7 @@ M2_AMP, M2_PERIOD = 1.00, 12.42   # 主太陰半日潮：振幅 [m]、週期 [hr
 S2_AMP, S2_PERIOD = 0.45, 12.00   # 主太陽半日潮：振幅 [m]、週期 [hr]（見上方說明）
 MEAN_SEA_LEVEL = 0.20     # 平均海水面 [m]
 NOISE_STD = 0.05          # 量測雜訊標準差 [m]
-SEED = 42                 # 亂數種子：固定它，每次跑出來的結果才會一樣（可重現性）
+SEED = 50                 # 亂數種子：固定它，每次跑出來的結果才會一樣（可重現性）
 
 OUT_DIR = Path(__file__).parent
 
@@ -59,10 +59,8 @@ OUT_DIR = Path(__file__).parent
 # ---------------------------------------------------------------------------
 # 1. 產生資料
 # ---------------------------------------------------------------------------
-def make_tide(start: str, days: int, freq: str, seed: int) -> pd.Series:
-    """回傳一條以時間為索引的潮位序列（單位 m）。"""
-    rng = np.random.default_rng(seed)
-
+def make_constituents(start: str, days: int, freq: str) -> pd.DataFrame:
+    """回傳 M2、S2 兩個分潮的時間序列（單位 m），欄位為 m2、s2。"""
     # pd.date_range 產生時間軸；periods = 總筆數
     n = days * 24
     time = pd.date_range(start=start, periods=n, freq=freq)
@@ -75,10 +73,18 @@ def make_tide(start: str, days: int, freq: str, seed: int) -> pd.Series:
     # 注意整條陣列一次運算，這叫「向量化」，是 numpy 快的原因。
     m2 = M2_AMP * np.cos(2 * np.pi * t / M2_PERIOD)
     s2 = S2_AMP * np.cos(2 * np.pi * t / S2_PERIOD)
-    noise = rng.normal(0.0, NOISE_STD, size=n)
+    return pd.DataFrame({"m2": m2, "s2": s2}, index=time)
 
-    eta = MEAN_SEA_LEVEL + m2 + s2 + noise
-    return pd.Series(eta, index=time, name="eta_m")
+def make_tide(start: str, days: int, freq: str, seed: int) -> pd.Series:
+    """回傳一條以時間為索引的潮位序列（單位 m）。"""
+    rng = np.random.default_rng(seed)
+
+    # 分潮改由 make_constituents 產生，畫圖時也能重複使用
+    comp = make_constituents(start, days, freq)
+    noise = rng.normal(0.0, NOISE_STD, size=len(comp))
+
+    eta = MEAN_SEA_LEVEL + comp["m2"] + comp["s2"] + noise
+    return pd.Series(eta.values, index=comp.index, name="eta_m")
 
 
 # ---------------------------------------------------------------------------
@@ -106,9 +112,9 @@ def theoretical_spring_neap_period() -> float:
 # ---------------------------------------------------------------------------
 # 3. 畫圖
 # ---------------------------------------------------------------------------
-def plot_overview(eta: pd.Series, daily: pd.DataFrame, path: Path) -> None:
-    # 一張圖兩個子圖，上下共用 x 軸（時間）
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 6), sharex=True)
+def plot_overview(eta: pd.Series, daily: pd.DataFrame, comp: pd.DataFrame, path: Path) -> None:
+    # 一張圖四個子圖，上下共用 x 軸（時間）；前兩列為原圖，後兩列為 M2、S2 分潮
+    fig, (ax1, ax2, ax3, ax4) = plt.subplots(4, 1, figsize=(10, 10), sharex=True)
 
     ax1.plot(eta.index, eta.values, lw=0.6, color="#1f5f8b", label="hourly")
     ax1.set_ylabel("Water level [m]")
@@ -118,8 +124,19 @@ def plot_overview(eta: pd.Series, daily: pd.DataFrame, path: Path) -> None:
 
     ax2.plot(daily.index, daily["range"], marker="o", ms=3, color="#c0392b")
     ax2.set_ylabel("Daily range [m]")
-    ax2.set_xlabel("Date")
     ax2.grid(alpha=0.3)
+
+    # M2 分潮時序圖
+    ax3.plot(comp.index, comp["m2"], lw=0.6, color="#2e8b57")
+    ax3.set_ylabel("M2 [m]")
+    ax3.grid(alpha=0.3)
+
+    # S2 分潮時序圖（只有最底下的子圖標示 x 軸）
+    ax4.plot(comp.index, comp["s2"], lw=0.6, color="#8e44ad")
+    ax4.set_ylabel("S2 [m]")
+    ax4.set_xlabel("Date")
+    ax4.set_ylim(-1.0, 1.0)
+    ax4.grid(alpha=0.3)
 
     fig.tight_layout()
     fig.savefig(path, dpi=150)
@@ -144,5 +161,6 @@ if __name__ == "__main__":
     print(f"理論大小潮週期：{theoretical_spring_neap_period():.2f} 天")
 
     daily.to_csv(OUT_DIR / "daily_stats.csv", float_format="%.4f")
-    plot_overview(eta, daily, OUT_DIR / "tide_overview.png")
+    comp = make_constituents(START, DAYS, FREQ)
+    plot_overview(eta, daily, comp, OUT_DIR / "tide_overview.png")
     print("\n已輸出 daily_stats.csv 與 tide_overview.png")
