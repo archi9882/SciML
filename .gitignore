@@ -19,3 +19,6 @@ data/
 # 系統檔
 .DS_Store
 Thumbs.db
+
+# 範例執行產生的圖（每次可重新產生）
+week*/**/*.png
