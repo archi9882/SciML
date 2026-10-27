@@ -4,16 +4,24 @@
 
 ## 0. 前置需求
 
-- Python 3.11 以上（`python --version` 或 `python3 --version` 可確認）
+- Python 3.11 以上（Mac/Linux 用 `python3 --version`，Windows 用 `py --version` 確認）
 - 已在 `sciml` 資料夾內（有 `requirements.txt` 的那層）
 
 ## 1. 建立 venv（只需做一次）
 
+Mac / Linux：
+
 ```bash
-python -m venv .venv
+python3 -m venv .venv
 ```
 
-成功後，資料夾內會出現 `.venv/`。
+Windows（PowerShell）：
+
+```powershell
+py -m venv .venv
+```
+
+成功後，資料夾內會出現 `.venv/`。Windows 上 `.venv` 是隱藏資料夾，要用 `Get-ChildItem -Force` 才會列出。
 
 ## 2. 激活 venv（每次開新終端機都要做）
 
@@ -63,6 +71,8 @@ deactivate
 ## 常見問題
 
 - **PowerShell 出現「無法載入…因為這個系統上已停用指令碼執行」**：以系統管理員身分執行一次 `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`，再重新激活。
+- **Windows 執行 `python` 沒有任何輸出**：通常是 Microsoft Store 的佔位程式，或電腦沒有安裝 Python。改用 `py`，並用 `py -0` 查看已安裝的版本。若 `py` 也不存在，到 python.org 安裝 3.11 以上版本，安裝時勾選 **Add python.exe to PATH**，然後重新開啟 PowerShell。
 - **`python` 指到錯的版本**：改用 `py -3.11 -m venv .venv`（Windows）或 `python3.11 -m venv .venv`（Mac/Linux）。
+- **執行後看不到 `.venv/`**：確認指令是在 `sciml` 資料夾內執行（用 `pwd` 或 `Get-Location` 檢查），並用 `Get-ChildItem -Force`（Windows）或 `ls -la`（Mac/Linux）列出隱藏資料夾。
 - **不確定有沒有激活**：看提示字元前面有沒有 `(.venv)`，或執行 `which python`（Windows 用 `where python`），路徑應指向 `.venv` 內。
 - **想重建 venv**：`deactivate` 後刪除 `.venv/` 資料夾，重新執行第 1–3 步。
