@@ -176,6 +176,60 @@ button.btn.primary { background: var(--accent); color: #fff; border-color: var(-
 .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); margin-top: 10px; }
 .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
 
+.kinds { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; font-size: 12.5px; color: var(--muted); margin: 12px 0 4px; }
+.kinds .tok { margin-right: 3px; }
+.args { margin-top: 8px; min-width: 0; }
+.args .arg { display: grid; grid-template-columns: minmax(0, 11em) minmax(0, 1fr); gap: 4px 12px; align-items: start; padding: 4px 0; font-size: 13.5px; }
+.args .n { color: var(--fg); min-width: 0; overflow-wrap: anywhere; }
+.args .sep { height: 1px; background: var(--line); margin: 6px 0; }
+.args .none { color: var(--muted); font-size: 13.5px; margin: 0; }
+.tok {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  background: transparent;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+  justify-self: start;
+}
+.tok.fixed { color: var(--muted); border-color: var(--line); }
+.tok.flag { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+.tok.name { color: var(--gh); border-color: var(--gh); }
+.tok.ref { color: var(--team); border-color: var(--team); }
+
+.side { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.comic-body { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.bub { display: flex; gap: 8px; align-items: flex-start; min-width: 0; transition: opacity .4s ease, transform .4s ease; }
+.bub.hide, .cap.hide { opacity: 0; transform: translateY(6px); }
+.bub .who {
+  flex: none; width: 32px; height: 32px; border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 11px; font-weight: 700; color: #fff; background: var(--muted);
+}
+.bub.you .who { background: var(--accent); }
+.bub.team .who { background: var(--team); }
+.bub.gh .who { background: var(--gh); }
+.bub p {
+  margin: 0; min-width: 0; position: relative;
+  background: var(--bg); color: var(--fg);
+  border: 2px solid var(--fg); border-radius: 14px;
+  padding: 8px 12px; font-size: 14px; line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.bub p::before {
+  content: ""; position: absolute; left: -9px; top: 10px;
+  border: 7px solid transparent; border-right-color: var(--fg); border-left: 0;
+}
+.cap {
+  margin: 0; font-size: 13px; line-height: 1.5; color: var(--fg);
+  background: var(--accent-soft); border-left: 4px solid var(--accent);
+  border-radius: 4px; padding: 6px 10px; overflow-wrap: anywhere;
+  transition: opacity .4s ease, transform .4s ease;
+}
+
 @media (max-width: 720px) {
   .panel { grid-template-columns: minmax(0, 1fr); }
   h1 { font-size: 22px; }
@@ -228,11 +282,24 @@ button.btn.primary { background: var(--accent); color: #fff; border-color: var(-
       </div>
       <p class="title" id="title"></p>
       <pre class="term" id="term" aria-live="polite"></pre>
+      <div class="kinds" aria-label="引數種類">
+        <span><span class="tok fixed">固定</span> 照寫</span>
+        <span><span class="tok flag">旗標</span> 改變行為</span>
+        <span><span class="tok name">自訂</span> 你決定名稱</span>
+        <span><span class="tok ref">既有</span> 必須已存在</span>
+      </div>
+      <div class="args" id="args"></div>
       <p class="note" id="note" style="margin-top:10px"></p>
     </div>
-    <div class="card">
-      <p class="ptr-title">各指標目前指向</p>
-      <ul class="ptr" id="ptr"></ul>
+    <div class="side">
+      <div class="card">
+        <p class="ptr-title">各指標目前指向</p>
+        <ul class="ptr" id="ptr"></ul>
+      </div>
+      <div class="card">
+        <p class="ptr-title">漫畫對話</p>
+        <div class="comic-body" id="comic" aria-live="polite"></div>
+      </div>
     </div>
   </div>
 </main>
@@ -289,10 +356,191 @@ button.btn.primary { background: var(--accent); color: #fff; border-color: var(-
     { actor: '你', chip: 'you', cmd: 'git switch main\ngit pull',
       title: '更新本機 main', note: '本機 main 追上遠端。下一項任務從這裡重新開始，養成習慣。',
       ptr: [['本機 main', 'M'], ['origin/main', 'M']], focus: 'M' },
-    { actor: '你', chip: 'you', cmd: 'git revert -m 1 M',
+    { actor: '你', chip: 'you', cmd: 'git revert -m 1 <合併 commit 雜湊值>',
       title: '發現問題，安全還原', note: 'revert 不改寫歷史，而是新增一個反向 commit。已推送的 main 用這個方式還原最安全。',
       ptr: [['本機 main', 'R'], ['origin/main', 'M']], focus: 'R' }
   ];
+
+  // 引數拆解：每行一組，每個引數為 [文字, 種類, 說明]
+  // 種類：fixed 固定照寫、flag 旗標、name 自訂、ref 必須已存在
+  var PARTS = {
+    1: [[
+      ['git', 'fixed', '程式名稱，固定不變'],
+      ['clone', 'fixed', '子指令，固定不變'],
+      ['https://github.com/archi9882/SciML.git', 'ref', '遠端網址由 repo 決定，不能自己取名'],
+      ['[資料夾]', 'name', '選填；省略時以 repo 名稱建立資料夾，可自訂']
+    ]],
+    2: [[
+      ['git', 'fixed', '程式名稱，固定不變'],
+      ['switch', 'fixed', '子指令：切換或建立分支'],
+      ['-c', 'flag', '建立新分支並切換過去；不加 -c 時，分支必須已存在'],
+      ['feat/w02-batch', 'name', '分支名稱可自訂；不能與既有分支重複，建議用 feat/ 前綴加小寫連字號']
+    ]],
+    3: [[
+      ['git', 'fixed', '程式名稱，固定不變'],
+      ['add', 'fixed', '子指令：暫存'],
+      ['-p', 'flag', '逐段互動式暫存，可決定每一段要不要放進下一個 commit']
+    ], [
+      ['git', 'fixed', '程式名稱，固定不變'],
+      ['commit', 'fixed', '子指令：提交'],
+      ['-m', 'flag', '直接在指令中帶入訊息；省略時會開啟編輯器'],
+      ['"feat: add batch CLI"', 'name', '訊息內容可自訂，建議依 Conventional Commits 格式']
+    ]],
+    4: [[
+      ['git', 'fixed', '程式名稱，固定不變'],
+      ['push', 'fixed', '子指令：推送'],
+      ['-u', 'flag', '設定追蹤關係；只需在第一次推送時加'],
+      ['origin', 'ref', '遠端名稱，clone 時自動建立，必須已存在'],
+      ['feat/w02-batch', 'name', '遠端分支名稱可自訂，建議與本機同名']
+    ]],
+    7: [[
+      ['git', 'fixed', '程式名稱，固定不變'],
+      ['fetch', 'fixed', '子指令：下載遠端最新內容，不改動本機分支'],
+      ['origin', 'ref', '遠端名稱，必須已存在']
+    ], [
+      ['git', 'fixed', '程式名稱，固定不變'],
+      ['rebase', 'fixed', '子指令：把目前分支接到指定基底之後'],
+      ['origin/main', 'ref', '基底必須是已存在的分支或引用；換成其他分支就會接到那裡']
+    ]],
+    8: [[
+      ['git', 'fixed', '程式名稱，固定不變'],
+      ['push', 'fixed', '子指令：推送'],
+      ['--force-with-lease', 'flag', '覆寫遠端前先檢查；遠端若有別人新增的 commit 就拒絕']
+    ]],
+    10: [[
+      ['git', 'fixed', '程式名稱，固定不變'],
+      ['switch', 'fixed', '子指令：切換分支'],
+      ['main', 'ref', '必須是已存在的分支，不能自己取名']
+    ], [
+      ['git', 'fixed', '程式名稱，固定不變'],
+      ['pull', 'fixed', '子指令：抓取遠端並合併到目前分支；不帶參數時使用追蹤的分支']
+    ]],
+    11: [[
+      ['git', 'fixed', '程式名稱，固定不變'],
+      ['revert', 'fixed', '子指令：新增一個反向 commit'],
+      ['-m', 'flag', '還原合併 commit 時必填，用來指定保留哪一側的父節點'],
+      ['1', 'name', '父節點編號；通常填 1，代表 main 那一側'],
+      ['<合併 commit 雜湊值>', 'ref', '從 git log 複製，必須是已存在的 commit']
+    ]]
+  };
+  var argsEl = document.getElementById('args');
+
+  // 漫畫對話：每一步的台詞（nar 為旁白）
+  var WHO = { you: '你', team: '同事', gh: 'GH', nar: '' };
+  var DIALOG = {
+    0: [
+      { w: 'gh', t: '我是遠端的 main，這裡的兩筆 commit 是團隊的正本。' },
+      { w: 'nar', t: '大家都從這裡開始工作。' }
+    ],
+    1: [
+      { w: 'you', t: '我要把整個專案搬到電腦上。' },
+      { w: 'gh', t: '拿去吧，歷史也一起給你。' },
+      { w: 'nar', t: 'clone 會自動把遠端命名為 origin。' }
+    ],
+    2: [
+      { w: 'you', t: '我先開一條自己的路，不直接動 main。' },
+      { w: 'nar', t: '-c 代表「建立新分支」，名字是你取的。' }
+    ],
+    3: [
+      { w: 'you', t: '改好了，存成一個 commit。' },
+      { w: 'nar', t: '這個 commit 只存在我的電腦上，GitHub 還不知道。' }
+    ],
+    4: [
+      { w: 'you', t: '上傳到 GitHub，之後直接 git push 就行了。' },
+      { w: 'gh', t: '收到，我幫你建了同名的遠端分支。' }
+    ],
+    5: [
+      { w: 'gh', t: '發一個 PR 讓同事看看吧，diff 都在這裡。' },
+      { w: 'you', t: '好，請 Amy 幫忙審查。' }
+    ],
+    6: [
+      { w: 'team', t: '我的 .gitignore 修正已經合進 main 了。' },
+      { w: 'you', t: '那我的分支還停在舊位置……' },
+      { w: 'nar', t: 'main 往前走了，分支就跟它分岔。' }
+    ],
+    7: [
+      { w: 'you', t: '先 fetch 拿到最新的 main，再把我的 commit 接到後面。' },
+      { w: 'nar', t: 'rebase 會重新產生 commit，所以雜湊值會變。' }
+    ],
+    8: [
+      { w: 'you', t: '分支被我改寫了，普通 push 會被拒絕。' },
+      { w: 'gh', t: '用 --force-with-lease 吧，我會先確認沒人動過。' }
+    ],
+    9: [
+      { w: 'gh', t: '審查通過，按下 Merge！' },
+      { w: 'team', t: '合併 commit 會記住兩個父節點，歷史看得清楚。' }
+    ],
+    10: [
+      { w: 'you', t: '切回 main，把最新的拿下來。' },
+      { w: 'nar', t: '以後每項任務都從 main 重新開始。' }
+    ],
+    11: [
+      { w: 'you', t: '合併後發現有問題，我要還原。' },
+      { w: 'team', t: '用 revert 吧，它加一筆反向 commit，歷史不會被抹掉。' },
+      { w: 'nar', t: '舊紀錄留著，之後也比較好查。' }
+    ]
+  };
+  var comicEl = document.getElementById('comic');
+  var comicTimers = [];
+
+  function renderComic(i) {
+    comicTimers.forEach(clearTimeout);
+    comicTimers = [];
+    comicEl.innerHTML = '';
+    (DIALOG[i] || []).forEach(function (ln, k) {
+      var b;
+      if (ln.w === 'nar') {
+        b = document.createElement('p');
+        b.className = 'cap hide';
+        b.textContent = ln.t;
+      } else {
+        b = document.createElement('div');
+        b.className = 'bub hide ' + ln.w;
+        var who = document.createElement('span');
+        who.className = 'who';
+        who.textContent = WHO[ln.w];
+        var txt = document.createElement('p');
+        txt.textContent = ln.t;
+        b.appendChild(who);
+        b.appendChild(txt);
+      }
+      comicEl.appendChild(b);
+      var delay = reduced ? 0 : k * 900 + 200;
+      comicTimers.push(setTimeout(function () { b.classList.remove('hide'); }, delay));
+    });
+  }
+
+  function renderArgs(i) {
+    argsEl.innerHTML = '';
+    var lines = PARTS[i];
+    if (!lines) {
+      var p = document.createElement('p');
+      p.className = 'none';
+      p.textContent = '這一步不是 git 指令，發生在 GitHub 網頁或同事的電腦上。';
+      argsEl.appendChild(p);
+      return;
+    }
+    lines.forEach(function (line, li) {
+      if (li > 0) {
+        var sep = document.createElement('div');
+        sep.className = 'sep';
+        argsEl.appendChild(sep);
+      }
+      line.forEach(function (t) {
+        var row = document.createElement('div');
+        row.className = 'arg';
+        var chip = document.createElement('span');
+        chip.className = 'tok ' + t[1];
+        chip.textContent = t[0];
+        var note = document.createElement('span');
+        note.className = 'n';
+        note.textContent = t[2];
+        row.appendChild(chip);
+        row.appendChild(note);
+        argsEl.appendChild(row);
+      });
+    });
+  }
 
   var TYPE_SPEED = 22;
   var STEP_MS = 5200;
@@ -428,6 +676,8 @@ button.btn.primary { background: var(--accent); color: #fff; border-color: var(-
     titleEl.textContent = s.title;
     noteEl.textContent = s.note;
     typeCmd(s.cmd);
+    renderArgs(i);
+    renderComic(i);
 
     ptrEl.innerHTML = '';
     s.ptr.forEach(function (p) {
