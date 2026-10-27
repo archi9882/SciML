@@ -28,7 +28,7 @@
 - **進度追蹤頁**：https://claude.ai/artifact/Vq3vHXDt4AjtTW9tTbeGQL
   - db：collection `data/users/me`，doc `progress`。欄位：`start`、`track`（選修專題 id）、`done`（key 格式 `w{週}d{日}c` 練習、`w{週}d{日}p` 論文）、`notes`（`w{週}` → `{paper, fail}`）。
   - 讀取：ArtifactData `get`，url 如上，collection `data/users/me`，doc_id `progress`。
-- 開始日 2026-11-02（週一）。週一到週五練習＋論文，週六本週產出，週日休息。
+- 開始日 2026-10-27（提前開始，原排程為週一到週五練習＋論文，週六本週產出，週日休息；之後幾週可依此順移）。
 
 ## 20 週大綱
 | 階段 | 週 | 主題 | 論文 |
@@ -76,3 +76,4 @@ cfd 與 ocean 資料量大，建議 Colab。20 週後可再選第二個專題。
 - 2026-10-27：計畫建立，第 1 週範例（tide_example.py、exercises.md）已交付。
 - 2026-10-27：第 18–19 週改為五選一選修專題（追蹤頁 v2）；學習者選擇生成式設計。
 - 2026-10-27：建立 GitHub repo archi9882/SciML 作為正本。
+- 2026-10-27：開始日提前至當天，追蹤頁與本文件同步更新。
