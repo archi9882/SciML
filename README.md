@@ -26,6 +26,19 @@
 | F 選修專題 | 18–19 | 生成式設計：拓樸最佳化 | |
 | | 20 | 作品集與論文導讀 | |
 
+## 讀論文的步驟
+
+詳細規則與提示詞見 [papers/GRILL.md](papers/GRILL.md)。
+
+1. 把 PDF 放進 `papers/input/`，檔名 `年份_第一作者.pdf`，例如 `2019_kratzert.pdf`。
+2. 執行 `python papers/check.py`，確認這篇出現在「待開始」。
+3. 自己先讀。需要查符號、資料、名詞時，請 agent 讀指定的 PDF（每次最多 20 頁，長論文請指定頁碼範圍）；摘要由自己寫，不讓 agent 代寫。
+4. 複製 `papers/output/TEMPLATE.md` 為 `papers/output/年份_第一作者.md`，填 5 行摘要與「我還不懂的地方」，並填入 `output_started`（YYYY-MM-DD）。**21 天的討論期限從這天開始計算。**
+5. 寫完第一版，開一個新 session，貼上 `papers/GRILL.md` 的提示詞，讓 agent 持續提問直到弄懂。
+6. 每次討論後，把修正寫進 output 的「Grill 之後的修正」。
+7. 弄懂了就把 `status` 改成 `done`；超過 21 天則結束討論，未弄懂的點帶去導讀時問大家。
+8. 隨時用 `python papers/check.py` 查看各篇的剩餘天數。
+
 ## 執行環境
 
 ```bash
