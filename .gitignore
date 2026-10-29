@@ -25,3 +25,7 @@ week*/**/*.png
 
 # 論文原始 PDF（只存摘要 .md，原始檔請留在本機或雲端硬碟）
 papers/*.pdf
+
+# pyflow 網頁建置輸出
+pyflow/_site/
+*.egg-info/

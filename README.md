@@ -13,6 +13,7 @@
 | `reports/` | 失敗案例報告：現行方法在哪裡預測不準、原因與佐證（格式見 `reports/TEMPLATE.md`） |
 | `backups/` | 進度追蹤頁的勾選與筆記備份 |
 | `PLAN.md` | 20 週計畫與交接摘要 |
+| `pyflow/` | 獨立作品：Python 傳遞關係視覺化工具（見 `pyflow/README.zh-TW.md`） |
 
 ## 進度
 
