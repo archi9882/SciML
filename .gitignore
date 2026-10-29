@@ -29,3 +29,4 @@ papers/*.pdf
 # pyflow 網頁建置輸出
 pyflow/_site/
 *.egg-info/
+.vendor-cache/
