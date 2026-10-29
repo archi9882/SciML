@@ -9,7 +9,7 @@
 | 資料夾 | 內容 |
 |---|---|
 | `week01/` … `week20/` | 每週範例程式、練習題（`exercises.md`）與自己的練習 |
-| `papers/` | 每週論文的 5 行摘要（格式見 `papers/TEMPLATE.md`） |
+| `papers/` | `input/` 放論文 PDF，`output/` 放自己的反芻（模板 `output/TEMPLATE.md`）；流程與提示詞見 `papers/GRILL.md`，期限檢查用 `python papers/check.py` |
 | `reports/` | 失敗案例報告：現行方法在哪裡預測不準、原因與佐證（格式見 `reports/TEMPLATE.md`） |
 | `backups/` | 進度追蹤頁的勾選與筆記備份 |
 | `PLAN.md` | 20 週計畫與交接摘要 |
