@@ -1,0 +1,20 @@
+{
+  // Opens a second VS Code window with the pyflow extension loaded from source.
+  // Not a launch.json debug config: starting through the debugger crashed the
+  // extension host (exit code 134) on this machine, while a plain launch works.
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "pyflow extension",
+      "type": "shell",
+      "command": "code",
+      "args": [
+        "--new-window",
+        "--extensionDevelopmentPath=${workspaceFolder}/pyflow/vscode",
+        "${workspaceFolder}/pyflow"
+      ],
+      "presentation": { "reveal": "silent" },
+      "problemMatcher": []
+    }
+  ]
+}
