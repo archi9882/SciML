@@ -1,5 +1,6 @@
 ---
 paper: 年份_第一作者
+week: 
 output_started: 
 status: grilling
 ---
@@ -8,6 +9,7 @@ status: grilling
 
 檔名：`年份_第一作者.md`，例如 `2019_kratzert.md`；對應的原文放 `papers/input/` 同名 PDF。
 
+`week` 填這篇對應第幾週的練習（1–20 的整數），`check.py` 會依它排序並顯示。
 開始撰寫此檔的那一天，填入上面的 `output_started`（格式 `YYYY-MM-DD`）。
 與 agent 的討論期限為這一天起 21 天（三週），逾期即結束，不延長。
 真正弄懂後，把 `status` 改成 `done`。
@@ -18,7 +20,6 @@ status: grilling
 
 - 作者／年份／出處：
 - 連結：
-- 對應週次：第 N 週
 
 ## 5 行摘要（寫給非本領域的同事）
 
