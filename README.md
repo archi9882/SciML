@@ -9,7 +9,7 @@
 | 資料夾 | 內容 |
 |---|---|
 | `week01/` … `week20/` | 每週範例程式、練習題（`exercises.md`）與自己的練習 |
-| `papers/` | `input/` 放論文 PDF，`output/` 放自己的反芻（模板 `output/TEMPLATE.md`）；流程與提示詞見 `papers/GRILL.md`，期限檢查用 `python papers/check.py` |
+| `papers/` | `input/` 放論文 PDF，`output/` 放自己的反芻（模板 `output/TEMPLATE.md`）；流程見 `.claude/skills/verifying-paper-comprehension/SKILL.md`，期限檢查用 `python papers/check.py` |
 | `reports/` | 失敗案例報告：現行方法在哪裡預測不準、原因與佐證（格式見 `reports/TEMPLATE.md`） |
 | `backups/` | 進度追蹤頁的勾選與筆記備份 |
 | `PLAN.md` | 20 週計畫與交接摘要 |
@@ -29,13 +29,13 @@
 
 ## 讀論文的步驟
 
-詳細規則與提示詞見 [papers/GRILL.md](papers/GRILL.md)。
+詳細規則見 [verifying-paper-comprehension skill](.claude/skills/verifying-paper-comprehension/SKILL.md)。
 
 1. 把 PDF 放進 `papers/input/`，檔名 `年份_第一作者.pdf`，例如 `2019_kratzert.pdf`。
 2. 執行 `python papers/check.py`，確認這篇出現在「待開始」。
 3. 自己先讀。需要查符號、資料、名詞時，請 agent 讀指定的 PDF（每次最多 20 頁，長論文請指定頁碼範圍）；摘要由自己寫，不讓 agent 代寫。
-4. 複製 `papers/output/TEMPLATE.md` 為 `papers/output/年份_第一作者.md`，填 5 行摘要與「我還不懂的地方」，並填入 `output_started`（YYYY-MM-DD）。**21 天的討論期限從這天開始計算。**
-5. 寫完第一版，開一個新 session，貼上 `papers/GRILL.md` 的提示詞，讓 agent 持續提問直到弄懂。
+4. 複製 `papers/output/TEMPLATE.md` 為 `papers/output/年份_第一作者.md`，填 5 行摘要與「我還不懂的地方」，並填入 `week`（對應第幾週，1–20）與 `output_started`（YYYY-MM-DD）。**21 天的討論期限從這天開始計算。**
+5. 寫完第一版，開一個新 session，說「grill 這篇」並給檔名（會觸發上述 skill），讓 agent 持續提問直到弄懂。
 6. 每次討論後，把修正寫進 output 的「Grill 之後的修正」。
 7. 弄懂了就把 `status` 改成 `done`；超過 21 天則結束討論，未弄懂的點帶去導讀時問大家。
 8. 隨時用 `python papers/check.py` 查看各篇的剩餘天數。
