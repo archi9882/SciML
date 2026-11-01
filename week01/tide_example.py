@@ -148,7 +148,7 @@ def plot_overview(eta: pd.Series, daily: pd.DataFrame, comp: pd.DataFrame, path:
 #    （被別的檔案 import 時不會跑，這樣函式可以重複使用）
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":
-    eta = make_tide(START, DAYS, FREQ, SEED)
+    eta =   make_tide(START, DAYS, FREQ, SEED)
     daily = daily_stats(eta)
 
     print("前 5 筆資料：")

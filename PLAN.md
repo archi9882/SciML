@@ -32,7 +32,8 @@
 ## 存放位置
 - **GitHub repo（正本）**：https://github.com/archi9882/SciML
   - `weekNN/`：範例程式與 exercises.md（Claude 放）＋學習者的練習
-  - `papers/`：論文 5 行摘要（學習者寫，模板 `papers/TEMPLATE.md`）
+  - `papers/input/`：論文 PDF（不進版控）；`papers/output/`：論文反芻（學習者寫，模板 `papers/output/TEMPLATE.md`）
+  - 反芻後需開新 session 讓 agent grill 到弄懂，期限為 `output_started` 起 21 天，不延長；流程見 `papers/GRILL.md`，`python papers/check.py` 列出剩餘天數
   - `reports/`：失敗案例報告（學習者寫，模板 `reports/TEMPLATE.md`）
   - `backups/progress.md`：追蹤頁備份（Claude 每週交接時更新）
   - `PLAN.md`：本文件
