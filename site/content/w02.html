@@ -62,7 +62,7 @@ def already_done(folder: Path, params: dict) -> bool:
         return False
     old = json.loads(cfg.read_text(encoding="utf-8"))
     return all(old.get(k) == v for k, v in params.items())</code></pre></div>
-  <div class="callout term"><b>名詞：冪等性（idempotency）</b><p>做一次或做很多次，結果都一樣。批次跑到一半當掉，直接重跑就好，不會重複計算，也不會產生兩份互相矛盾的結果。第 12 週的 ETL、第 21 週的流程編排都要求這個性質。</p></div>
+  <div class="callout term"><b>名詞：冪等性（idempotency）</b><p>做一次或做很多次，結果都一樣。批次跑到一半當掉，直接重跑就好，不會重複計算，也不會產生兩份互相矛盾的結果。第 13 週的 ETL、第 22 週的流程編排都要求這個性質。</p></div>
   <div class="callout trap"><b>為什麼要比對設定，而不只是檢查檔案存在</b><p>如果只看 <code>metrics.json</code> 在不在，你改了預設雜訊再重跑，舊結果會被當成新結果沿用，整份彙整悄悄混了兩種設定。比對 config 才能防住這種錯。</p></div>
 </section>
 
@@ -93,7 +93,7 @@ def already_done(folder: Path, params: dict) -> bool:
     <tr><td><code>cat runs/*/config.json | grep seed | sort | uniq -c</code></td><td>統計每個 seed 出現幾次</td></tr>
     <tr><td><code>echo $?</code>（PowerShell：<code>$LASTEXITCODE</code>）</td><td>看上一個指令的結束碼</td></tr>
   </tbody></table></div>
-  <p>Windows 上用 Git Bash 或 WSL 執行。這些指令先自己查用法，不要讓 AI 直接給答案。第 15 週架 Linux 服務時，看日誌、找錯都靠這幾招。</p>
+  <p>Windows 上用 Git Bash 或 WSL 執行。這些指令先自己查用法，不要讓 AI 直接給答案。第 16 週架 Linux 服務時，看日誌、找錯都靠這幾招。</p>
 </section>
 
 <section data-day="6">
@@ -103,5 +103,6 @@ def already_done(folder: Path, params: dict) -> bool:
     <li>寫本週閱讀的 5 行摘要：<code>papers/output/2023_shen.md</code>。閱讀時特別留意作者如何區分 physics-based、data-driven 與 hybrid，這是職缺 Must Have 1 的判斷題。</li>
     <li>回到本頁勾選，push。</li>
   </ol>
+  <div class="callout job"><b>下週預告：AI 成品交付</b><p>第 3 週你會拿到一套由 AI 寫好、能從頭跑到尾的潮汐監測系統 TideWatch。這兩週學的「讀程式、看單位、檢查結束碼、用理論對答案」，就是之後逐塊審查它的基本功。</p></div>
   <div class="callout term"><b>加分題</b><p>讓 <code>batch.py</code> 在某一組失敗時繼續跑完其他組，最後回報失敗清單。想想看：失敗的那組，應該出現在 <code>summary.csv</code> 裡嗎？出現的話要怎麼標記？</p></div>
 </section>

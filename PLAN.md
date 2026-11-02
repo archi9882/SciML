@@ -9,6 +9,7 @@
   Q1 的說法可再精確：除了 t 的單位，`n = days * 24` 也寫死了，30min 取樣時只模擬 30 天。學習站第 1 週講解已補上。
 - **學習者自行做的事**：把 `make_tide()` 拆成 `make_constituents()` + `make_tide()`，圖上加了 M2、S2 子圖；`SEED` 目前是 50。
 - **追蹤頁勾選落後**：db 只勾了 `w1d1c`，Day 2 實際已完成但未勾。
+- **下一個里程碑**：第 2 週交接時產生 TideWatch 成品與 `sealed-answer-key`（見下方）。
 - **還沒做**：第 1 週 Day 3–6；第 2 週範例與講解已提前交付（`week02/`、學習站第 2 週）。
 
 ## 學習者背景
@@ -48,49 +49,63 @@
   - `backups/progress.md`：學習站進度備份
 - 開始日 2026-10-27。每週 6 天練習＋閱讀（第 6 天為本週產出），第 7 天休息。
 
-## 26 週大綱（2026-11-02 第二版：壓縮拖沓單元，省下的 3 週補 Must Have 深度）
-| 階段 | 週 | 主題 | 閱讀 |
-|---|---|---|---|
-| A 打底 | 1 | 讀懂資料處理程式：潮位時間序列（Day 3–4 合併，新增「讓 AI 改程式再抓錯」） | Kratzert 2019 HESS（經典） |
-| | 2 | 命令列參數與第一個批次工作 | Shen 2023 Nat Rev Earth Env |
-| B 數值方法與物理判斷 | 3 | FDM 1D 擴散：穩定性、收斂、批次掃描 Δx/Δt | Karniadakis 2021 Nat Rev Phys |
-| | 4 | 對流與 Burgers＋可重現實驗框架（併入原第 5 週）；失敗報告 #1 | Raissi 2019 PINN（經典） |
-| | 5 | **新增**：模式驗證 V&V，用實測潮位檢驗模型、誤差預算 | Oberkampf & Trucano 2002（經典） |
-| | 6 | PyTorch autograd 與神經網路訓練 | Cuomo 2022 PINN 綜述 |
-| | 7 | PINN 解擴散與對流，β 掃描；失敗報告 #2 | Krishnapriyan 2021 NeurIPS |
-| B2 神經網路與 hybrid | 8 | 神經運算元入門：最小版 FNO 代理模型 | Li 2021 FNO |
-| | 9 | **新增**：Hybrid，物理模型＋ML 殘差修正，三種做法比較 | Willard 2022 ACM CSUR |
-| C 空間資訊與地理統計 | 10 | 計算幾何、拓撲、座標系統、mesh（原第 9、10 週合併） | SciPy spatial、Shapely 官方文件 |
-| | 11 | 空間內插（IDW、克利金、spline）與假設 | Li & Heap 2014 EMS |
-| D ETL 與資料工程 | 12 | 異質多源資料 ETL | pandas time series 官方文件 |
-| | 13 | 資料品質監控與統計前提；失敗報告 #3 | Breck 2019 MLSys |
-| V AI 協作與驗證 | 14 | **新增**：系統性指揮與否證 AI，錯誤案例庫與驗證檢查表 | Zhang 2024 LLM 程式幻覺 |
-| E 自有基礎建設 | 15 | Linux 服務＋Docker 容器化（原第 14、15 週合併） | Docker 官方文件、MIT Missing Semester |
-| | 16 | docker compose 多服務；PaaS/CaaS/FaaS 決策 | The Twelve-Factor App |
-| | 17 | 審查 Kubernetes manifest；10 倍擴展評估；失敗報告 #4 | Kubernetes config best practices |
-| F REST API 與模型服務 | 18 | FastAPI 格網查詢 API | FastAPI 官方教學 |
-| | 19 | 模型服務化、pytest、GitHub Actions CI/CD | GitHub Actions 官方文件 |
-| G MLOps 工具鏈 | 20 | MLflow 實驗追蹤與模型註冊、DVC | Sculley 2015 NeurIPS（經典） |
-| | 21 | Prefect 編排、監控、漂移偵測 | Rabanser 2019 NeurIPS |
-| H Legacy 科學程式碼 | 22 | 讀 Fortran 求解器、AI 翻譯審查、OpenMP | fortran-lang 官方教學 |
-| I 最佳化回顧 | 23 | pymoo NSGA-II＋Optuna | Deb 2002 NSGA-II（經典） |
-| J 選修：生成式設計 | 24 | SIMP 拓樸最佳化資料集 | Mazé & Ahmed 2023 AAAI |
-| | 25 | 生成模型與物理檢驗；失敗報告 #5 | Giannone 2023 |
-| K 作品集與面試 | 26 | 作品集、對照職缺準備實例、模擬面試 | Rules of ML（Google） |
+## 26 週大綱（2026-11-03 第三版：AI 先交成品，再逐塊拆解）
 
+**方法**：第 1–2 週打底；第 3 週由 Claude 交付一套完整、能從頭跑到尾的潮汐監測系統 **TideWatch**（AI 原版）。
+之後每個單元固定四步：學理論 → 審查成品的對應模組、找錯並寫證據 → 換成學習者自己驗證過的版本 → 確認整套系統仍能跑。
+第 26 週把 AI 原版與最終版並排，附錯誤紀錄與抓錯率，作為作品集主軸。原第 23 週「最佳化回顧」拿掉以維持 26 週：Optuna 併入第 21 週，NSGA-II 併入第 24 週（拓樸最佳化的多目標權衡）。
+
+| 階段 | 週 | 主題 | 審查成品的模組 | 閱讀 |
+|---|---|---|---|---|
+| A 打底 | 1 | 讀懂資料處理程式：潮位時間序列 | — | Kratzert 2019 HESS（經典） |
+| | 2 | 命令列參數與第一個批次工作 | — | Shen 2023 Nat Rev Earth Env |
+| S AI 成品交付 | 3 | 跑起來、畫架構圖、建立 `audit_log.md` | 全系統（只看輸入輸出） | Sculley 2015 NeurIPS（經典） |
+| B 數值方法與物理判斷 | 4 | FDM 1D 擴散：穩定性、收斂、批次掃描 | transport（穩定條件） | Karniadakis 2021 Nat Rev Phys |
+| | 5 | 對流與 Burgers＋可重現實驗框架；失敗報告 #1 | transport（數值擴散、邊界）→ **替換** | Raissi 2019 PINN（經典） |
+| | 6 | 模式驗證 V&V：實測潮位、誤差預算 | harmonic → **替換** | Oberkampf & Trucano 2002（經典） |
+| | 7 | PyTorch autograd 與神經網路訓練 | ml（訓練迴圈、資料洩漏） | Cuomo 2022 PINN 綜述 |
+| | 8 | PINN 解擴散與對流，β 掃描；失敗報告 #2 | 判斷題：成品為何不用 PINN | Krishnapriyan 2021 NeurIPS |
+| B2 神經網路與 hybrid | 9 | 神經運算元入門：最小版 FNO 代理模型 | ml（代理模型評估） | Li 2021 FNO |
+| | 10 | Hybrid：物理模型＋ML 殘差修正 | ml → **替換** | Willard 2022 ACM CSUR |
+| C 空間資訊與地理統計 | 11 | 計算幾何、拓撲、座標系統、mesh | spatial（座標、分割） | SciPy spatial、Shapely 官方文件 |
+| | 12 | 空間內插（IDW、克利金、spline）與假設 | spatial → **替換** | Li & Heap 2014 EMS |
+| D ETL 與資料工程 | 13 | 異質多源資料 ETL | ingest → **替換** | pandas time series 官方文件 |
+| | 14 | 資料品質監控與統計前提；失敗報告 #3 | quality → **替換** | Breck 2019 MLSys |
+| V AI 協作與驗證 | 15 | 系統性否證 AI：錯誤分類、性質測試、檢查表 | 全系統掃描 | Zhang 2024 LLM 程式幻覺 |
+| E 自有基礎建設 | 16 | Linux 服務＋Docker 容器化 | deploy（Dockerfile） | Docker 官方文件、MIT Missing Semester |
+| | 17 | docker compose 多服務；PaaS/CaaS/FaaS 決策 | deploy（compose、架構選擇） | The Twelve-Factor App |
+| | 18 | Kubernetes manifest、10 倍擴展；失敗報告 #4 | deploy → **替換** | Kubernetes config best practices |
+| F REST API 與模型服務 | 19 | FastAPI 格網查詢 API | api（介面、錯誤處理） | FastAPI 官方教學 |
+| | 20 | 模型服務化、pytest、GitHub Actions CI/CD | api、ops（CI）→ api **替換** | GitHub Actions 官方文件 |
+| G MLOps 工具鏈 | 21 | MLflow、DVC、Optuna 調參 | ops（實驗追蹤） | MLflow 官方文件、Akiba 2019 Optuna |
+| | 22 | Prefect 編排、監控、漂移偵測 | ops → **替換** | Rabanser 2019 NeurIPS |
+| H Legacy 科學程式碼 | 23 | 讀 Fortran 求解器、OpenMP | legacy（AI 翻譯）→ **替換** | fortran-lang 官方教學 |
+| J 選修：生成式設計 | 24 | SIMP 拓樸最佳化資料集＋NSGA-II 多目標權衡 | — | Mazé & Ahmed 2023 AAAI、Deb 2002 |
+| | 25 | 生成模型與物理檢驗；失敗報告 #5 | — | Giannone 2023 |
+| K 作品集與面試 | 26 | AI 原版 vs 最終版、抓錯率、模擬面試 | 全系統比較 | Rules of ML（Google） |
+
+成品模組、審查週與替換週的對照寫在 `site/index.html` 的 `MODS` 與 `AUD`。
 單元之間的依賴（哪些週要用到前面的成果）畫在學習站首頁的「單元連動圖」，資料在 `site/index.html` 的 `DEPS`。
 每週的每日任務、目標、職缺對照標籤寫在 `site/index.html` 的 `W` 陣列，以學習站為準。
+
+## TideWatch 成品與答案保管
+- **交付時機**：第 2 週交接時由 Claude 產生，放在 repo 的 `tidewatch/`、`deploy/`、`legacy/`、`.github/`（成品的 CI），附 README 與 `audit_log.md` 模板。
+- **錯誤來源**：AI 自然寫錯的地方＋刻意埋的錯（單位、時區、投影、穩定條件、資料洩漏、統計前提、Dockerfile／manifest 地雷、Fortran 翻譯錯等），難度由淺到深，對應各審查週。
+- **答案保管**：埋錯清單**不得**寫進 repo、PLAN.md、專案文件或任何學習者會打開的檔案。存在學習站 db：collection `data/users/me`，doc `sealed-answer-key`（頁面不讀取、不顯示）。用 ArtifactData `get` 讀取。
+- **批改**：交接時學習者先交出 `audit_log.md` 裡找到的錯，Claude 再讀答案、只公布該週模組的部分，記錄抓錯率（已找到／該模組埋錯數，另計 AI 自然錯誤）。
 
 ## 每週交接流程
 1. 學習者在新對話說「第 N 週進度」。
 2. 讀學習站 db 的勾選與筆記；pull repo，看 `weekNN/notes.md`、`papers/output/`、`reports/`；給回饋。
-3. 產出第 N+1 週（若尚未產出）：`weekNN/` 範例程式＋`exercises.md`（每日任務、先預測再執行、讓 AI 出錯的題目、週六產出），以及 `site/content/wNN.html` 講解（理論、程式導讀、必要時新增動畫），重新發布學習站。
-4. 更新 `backups/progress.md`、本文件「目前待辦」與「進度紀錄」，同步到專案文件。
+3. 若本週有審查模組：先收學習者的 `audit_log.md`，再讀 `sealed-answer-key` 只公布該模組答案並記錄抓錯率。
+4. 產出第 N+1 週（若尚未產出）：`weekNN/` 範例程式＋`exercises.md`（每日任務、先預測再執行、讓 AI 出錯的題目、週六產出），以及 `site/content/wNN.html` 講解（理論、程式導讀、必要時新增動畫），重新發布學習站。
+5. 更新 `backups/progress.md`、本文件「目前待辦」與「進度紀錄」，同步到專案文件。
 
 ## 進度紀錄
 - 2026-10-27：計畫建立，第 1 週範例（tide_example.py、exercises.md）已交付。
 - 2026-10-27：建立 GitHub repo archi9882/SciML 作為正本；開始日提前至當天。
 - 2026-10-28：追蹤頁加入「本週管制熱圖」。第 1 週 Day 2 Q1、Q2 完成；`papers/*.pdf` 加入 .gitignore。
 - 2026-11-02：目標職缺改為安瑟樂威（`jobs/anselorway-energy.md`），計畫由 20 週改為 26 週；保留數值方法、PINN、神經網路基礎、生成式設計，新增空間資訊、ETL、自有基礎建設、REST API、MLOps、legacy 程式碼。
+- 2026-11-03：計畫第三版：改為「AI 先交成品、逐塊拆解」。新增第 3 週 TideWatch 交付，其後各單元加入審查與替換；拿掉原第 23 週最佳化回顧（Optuna 併入 W21、NSGA-II 併入 W24），維持 26 週。學習站首頁新增成品模組卡，審查週頁面顯示「本週審查成品」。
 - 2026-11-02：計畫第二版：W1 Day 3–4 合併、原 W5 併入 W4、原 W9–10 合併、原 W14–15 合併；省下 3 週新增 W5 模式驗證、W9 Hybrid、W14 系統性驗證 AI。學習站首頁加入單元連動圖，參考來源收在頁末。
 - 2026-11-02：追蹤頁改版為「SciML 半年學習站」（同一網址、進度保留），原始碼放 `site/`；第 1、2 週講解與 7 個動畫上線。第 2 週範例 `week02/tide_cli.py`、`batch.py`、`exercises.md` 提前交付。
