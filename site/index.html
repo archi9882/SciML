@@ -1,0 +1,704 @@
+<meta charset="utf-8">
+<title>SciML 半年學習站</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;900&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: field logbook. Sticky gauge bar; left rail lists 26 weeks by phase; main column shows either the home map or one week (control heatmap, daily tasks, lesson with animations, reading, notes). */
+:root{
+  --bg:#f3f6f7; --paper:#ffffff; --ink:#14232b; --muted:#5b6d76; --line:#d5dfe3;
+  --sea:#0e5a73; --sea-soft:#dcebf0; --kelp:#2f7d5b; --kelp-soft:#ddefe5; --buoy:#d9822b; --buoy-soft:#fbead6;
+  --miss:#b5452f; --miss-soft:#f8ddd5;
+  --code-bg:#eef3f5; --code-ink:#1b2f38; --tok-kw:#8a3ffc; --tok-str:#2f7d5b; --tok-num:#b5452f; --tok-com:#6f838c; --tok-fn:#0e5a73;
+  --font-display:"Noto Serif TC","Songti TC",serif;
+  --font-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0d171c; --paper:#14222a; --ink:#e3ecef; --muted:#93a6ae; --line:#26363e;
+  --sea:#5fb3cf; --sea-soft:#173543; --kelp:#6cc49b; --kelp-soft:#173528; --buoy:#f0a65a; --buoy-soft:#3a2a17;
+  --miss:#f0847a; --miss-soft:#3a2420;
+  --code-bg:#0f1c22; --code-ink:#d6e3e8; --tok-kw:#c4a7ff; --tok-str:#8fd6b0; --tok-num:#f3a291; --tok-com:#7d939b; --tok-fn:#7cc6de; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d171c; --paper:#14222a; --ink:#e3ecef; --muted:#93a6ae; --line:#26363e;
+  --sea:#5fb3cf; --sea-soft:#173543; --kelp:#6cc49b; --kelp-soft:#173528; --buoy:#f0a65a; --buoy-soft:#3a2a17;
+  --miss:#f0847a; --miss-soft:#3a2420;
+  --code-bg:#0f1c22; --code-ink:#d6e3e8; --tok-kw:#c4a7ff; --tok-str:#8fd6b0; --tok-num:#f3a291; --tok-com:#7d939b; --tok-fn:#7cc6de; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.7;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+h1,h2,h3{font-family:var(--font-display);text-wrap:balance;margin:0;line-height:1.35}
+h1{font-size:1.6rem;font-weight:900}
+h2{font-size:1.3rem;font-weight:900}
+h3{font-size:1.05rem;font-weight:600}
+a{color:var(--sea)}
+button,input,textarea,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--buoy);outline-offset:2px}
+.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.label{font-size:.72rem;letter-spacing:.08em;color:var(--muted);font-family:var(--font-mono)}
+.app{max-width:1180px;margin:0 auto}
+
+/* header */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:6;background:var(--bg);padding-block:12px;border-bottom:1px solid var(--line);
+  display:flex;flex-wrap:wrap;gap:10px 24px;align-items:center}
+.bar .title{display:flex;flex-direction:column;min-width:0;flex:1 1 240px}
+.bar .title a{color:inherit;text-decoration:none}
+.stats{display:flex;gap:20px;flex-wrap:wrap}
+.stat b{display:block;font-family:var(--font-mono);font-size:1.15rem;font-variant-numeric:tabular-nums}
+.stat span{font-size:.72rem;color:var(--muted)}
+.save{font-size:.72rem;font-family:var(--font-mono);color:var(--muted)}
+.weeksel{display:none;width:100%;border:1px solid var(--line);border-radius:6px;background:var(--paper);padding:6px 8px}
+
+/* layout */
+.layout{display:grid;grid-template-columns:232px minmax(0,1fr);gap:28px;padding-block:20px 72px}
+.side{position:sticky;top:96px;align-self:start;max-height:calc(100vh - 110px);overflow:auto;display:grid;gap:14px;padding-right:4px}
+.side .ph{display:grid;gap:2px}
+.side .ph-name{font-size:.72rem;color:var(--muted);font-family:var(--font-mono);letter-spacing:.04em;padding:0 8px 2px}
+.side a{display:flex;gap:8px;align-items:center;text-decoration:none;color:var(--ink);font-size:.86rem;padding:4px 8px;border-radius:5px;min-width:0}
+.side a:hover{background:var(--paper)}
+.side a[aria-current="page"]{background:var(--sea-soft);color:var(--sea);font-weight:500}
+.side a .n{font-family:var(--font-mono);font-size:.72rem;color:var(--muted);flex:0 0 26px}
+.side a .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.side a .dot{flex:0 0 8px;height:8px;border-radius:50%;border:1px solid var(--line)}
+.side a .dot.half{background:var(--buoy-soft);border-color:var(--buoy)}
+.side a .dot.full{background:var(--kelp);border-color:var(--kelp)}
+.side a .now{font-size:.62rem;color:var(--buoy);font-family:var(--font-mono)}
+.side .home-link{font-weight:500}
+main{min-width:0;display:grid;gap:26px;align-content:start}
+main > *,.card > *,.wk-head > *,.lesson > *,.lesson section > *,.day > *,.anim > *{min-width:0}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr)}.side{display:none}.weeksel{display:block}}
+
+/* cards */
+.card{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:18px;display:grid;gap:12px;min-width:0}
+.today{border-left:4px solid var(--buoy)}
+.row{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:baseline;justify-content:space-between}
+.tag{display:inline-block;font-size:.7rem;font-family:var(--font-mono);padding:1px 8px;border-radius:999px;background:var(--sea-soft);color:var(--sea);margin:0 4px 4px 0}
+.tag.classic{background:var(--buoy-soft);color:var(--buoy)}
+.tag.ok{background:var(--kelp-soft);color:var(--kelp)}
+.tag.doc{background:var(--kelp-soft);color:var(--kelp)}
+.btn{border:1px solid var(--line);background:var(--paper);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:.86rem;text-decoration:none;color:var(--ink);display:inline-flex;align-items:center;gap:6px}
+.btn:hover{border-color:var(--sea)}
+.btn.primary{background:var(--sea);border-color:var(--sea);color:var(--paper)}
+.btn:disabled{opacity:.45;cursor:default}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+
+/* checkboxes */
+.chk{appearance:none;flex:0 0 20px;width:20px;height:20px;border:2px solid var(--muted);border-radius:4px;margin-top:3px;cursor:pointer;display:grid;place-content:center;background:var(--paper)}
+.chk:checked{background:var(--kelp);border-color:var(--kelp)}
+.chk:checked::after{content:"";width:5px;height:10px;border:solid var(--paper);border-width:0 2px 2px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.done-text{text-decoration:line-through;color:var(--muted)}
+.task{display:flex;gap:10px;align-items:flex-start;min-width:0}
+.task .kind{font-size:.7rem;font-family:var(--font-mono);color:var(--muted);display:block}
+
+/* home map */
+.map{display:grid;grid-template-columns:repeat(26,1fr);gap:3px;align-items:end}
+.map a{display:flex;flex-direction:column;align-items:center;gap:3px;text-decoration:none}
+.map .col{width:100%;height:56px;border-radius:3px;background:var(--sea-soft);position:relative;overflow:hidden}
+.map .fill{position:absolute;left:0;right:0;bottom:0;background:var(--sea)}
+.map .n{font-family:var(--font-mono);font-size:.6rem;color:var(--muted)}
+.map a.cur .col{outline:2px solid var(--buoy);outline-offset:1px}
+.map a.cur .n{color:var(--buoy);font-weight:600}
+.phases{display:grid;grid-template-columns:repeat(26,1fr);gap:3px}
+.phases div{font-size:.62rem;color:var(--muted);border-top:2px solid var(--line);padding-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:640px){.map,.phases{grid-template-columns:repeat(13,1fr)}.phases{display:none}.map .col{height:40px}}
+.legend-phases{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:6px 14px;font-size:.82rem}
+.legend-phases span b{font-family:var(--font-mono);color:var(--sea);margin-right:6px}
+
+/* tables */
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--paper)}
+table{border-collapse:collapse;width:100%;font-size:.88rem}
+th,td{text-align:left;padding:8px 12px;border-top:1px solid var(--line);vertical-align:top}
+th{border-top:0;font-weight:500;color:var(--muted);font-size:.75rem;font-family:var(--font-mono)}
+.tbl.wide table{min-width:620px}
+
+/* week header */
+.wk-head{display:grid;gap:6px}
+.goal{max-width:68ch;margin:0}
+
+/* heatmap */
+.heat-grid{display:grid;grid-template-columns:48px repeat(6,1fr);gap:5px;min-width:0}
+.heat-grid .hd{font-family:var(--font-mono);font-size:.66rem;color:var(--muted);text-align:center}
+.heat-grid .rl{font-size:.76rem;color:var(--muted);display:flex;align-items:center}
+.hm{all:unset;cursor:pointer;height:32px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:.66rem;color:var(--muted);background:var(--bg);border:1px solid var(--line);min-width:0}
+.hm.off{cursor:default;background:transparent;border-style:dashed;opacity:.5}
+.hm.done{background:var(--kelp);border-color:var(--kelp);color:var(--paper)}
+.hm.missed{background:var(--miss-soft);border-color:var(--miss);color:var(--miss)}
+.hm.today{box-shadow:0 0 0 2px var(--buoy) inset;border-color:var(--buoy)}
+.hm:hover:not(.off){border-color:var(--sea)}
+.hm:focus-visible{outline:2px solid var(--buoy);outline-offset:1px}
+.heat-legend{display:flex;gap:12px;flex-wrap:wrap;font-size:.72rem;color:var(--muted)}
+.heat-legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px;border:1px solid var(--line)}
+.heat-legend i.done{background:var(--kelp);border-color:var(--kelp)}
+.heat-legend i.missed{background:var(--miss-soft);border-color:var(--miss)}
+.heat-legend i.today{box-shadow:0 0 0 2px var(--buoy) inset}
+
+/* day tasks */
+.days{border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.day{display:grid;grid-template-columns:70px minmax(0,1fr) minmax(0,1fr) auto;gap:10px 14px;padding:10px 12px;border-top:1px solid var(--line);align-items:start}
+.day:first-child{border-top:0}
+.day.is-today{background:var(--buoy-soft)}
+.day .when{font-family:var(--font-mono);font-size:.76rem;color:var(--muted);line-height:1.4}
+.day .when b{display:block;color:var(--ink);font-size:.84rem}
+.day .go{font-size:.76rem;white-space:nowrap}
+@media (max-width:700px){.day{grid-template-columns:minmax(0,1fr)}}
+
+/* lesson prose */
+.lesson{display:grid;gap:22px}
+.lesson section{display:grid;gap:12px;scroll-margin-top:96px}
+.lesson h2{font-size:1.25rem}
+.lesson h3{font-size:1.02rem;margin-top:4px}
+.lesson p,.lesson li{max-width:70ch}
+.lesson p{margin:0}
+.lesson ul,.lesson ol{margin:0;padding-left:1.3em;display:grid;gap:4px}
+.lesson .eq{font-family:var(--font-mono);background:var(--code-bg);color:var(--code-ink);border-radius:6px;padding:10px 14px;overflow-x:auto;white-space:pre;font-size:.86rem}
+.lesson code:not(pre code){font-family:var(--font-mono);font-size:.86em;background:var(--code-bg);color:var(--code-ink);padding:1px 5px;border-radius:4px}
+.callout{border-radius:6px;padding:12px 14px;display:grid;gap:6px;border:1px solid var(--line);background:var(--bg)}
+.callout > b:first-child{font-size:.78rem;font-family:var(--font-mono);letter-spacing:.04em}
+.callout.term{border-left:4px solid var(--sea)}
+.callout.term > b:first-child{color:var(--sea)}
+.callout.predict{border-left:4px solid var(--buoy)}
+.callout.predict > b:first-child{color:var(--buoy)}
+.callout.trap{border-left:4px solid var(--miss)}
+.callout.trap > b:first-child{color:var(--miss)}
+.callout.job{border-left:4px solid var(--kelp)}
+.callout.job > b:first-child{color:var(--kelp)}
+.day-mark{font-family:var(--font-mono);font-size:.72rem;color:var(--paper);background:var(--sea);border-radius:4px;padding:1px 7px;margin-right:8px;vertical-align:2px}
+
+/* code */
+.code{position:relative;min-width:0}
+.code pre{margin:0;background:var(--code-bg);color:var(--code-ink);border-radius:6px;padding:14px 16px;overflow-x:auto;font-size:.82rem;line-height:1.6}
+.code pre code{font-family:var(--font-mono);background:none;padding:0}
+.code .file{font-family:var(--font-mono);font-size:.72rem;color:var(--muted);margin-bottom:4px;display:block}
+.code .cp{position:absolute;top:26px;right:8px;font-size:.7rem;padding:2px 8px;border-radius:4px;border:1px solid var(--line);background:var(--paper);cursor:pointer;color:var(--muted)}
+.code .cp:hover{color:var(--sea);border-color:var(--sea)}
+.hljs-keyword,.hljs-built_in,.hljs-literal{color:var(--tok-kw)}
+.hljs-string{color:var(--tok-str)}
+.hljs-number{color:var(--tok-num)}
+.hljs-comment{color:var(--tok-com);font-style:italic}
+.hljs-title,.hljs-title.function_{color:var(--tok-fn)}
+.hljs-meta,.hljs-attr{color:var(--tok-fn)}
+
+/* animations */
+.anim{border:1px solid var(--line);border-radius:8px;background:var(--paper);padding:14px;display:grid;gap:10px;min-width:0}
+.anim .a-title{font-weight:700;font-size:.92rem}
+.anim .ctl{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;font-size:.84rem}
+.anim .ctl label{display:inline-flex;gap:6px;align-items:center}
+.anim input[type=range]{accent-color:var(--sea);width:160px;max-width:100%}
+.anim input[type=checkbox]{accent-color:var(--sea)}
+.anim .seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.anim .seg button{border:0;background:var(--paper);padding:4px 10px;cursor:pointer;font-size:.8rem}
+.anim .seg button[aria-pressed="true"]{background:var(--sea);color:var(--paper)}
+.anim .read{font-size:.84rem;font-family:var(--font-mono);font-variant-numeric:tabular-nums;color:var(--ink);display:flex;flex-wrap:wrap;gap:4px 18px}
+.anim .read .bad{color:var(--miss)}
+.anim .read .good{color:var(--kelp)}
+.anim .cap{font-size:.84rem;color:var(--muted)}
+.anim .plots{display:flex;flex-wrap:wrap;gap:12px;align-items:stretch}
+.anim .plots > div{flex:1 1 300px;min-width:0}
+.anim .plots > .phasor{flex:0 0 170px}
+.jobs{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}
+.job{border:1px solid var(--line);border-radius:6px;padding:6px 8px;font-family:var(--font-mono);font-size:.72rem;display:grid;gap:2px;transition:background .25s,border-color .25s}
+.job .st{font-size:.68rem;color:var(--muted)}
+.job.run{border-color:var(--buoy);background:var(--buoy-soft)}
+.job.ok{border-color:var(--kelp);background:var(--kelp-soft)}
+.job.skip{border-style:dashed;opacity:.65}
+.job.fail{border-color:var(--miss);background:var(--miss-soft)}
+.pipe{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.pipe .stage{border:1px solid var(--line);border-radius:6px;padding:8px;display:grid;gap:4px;align-content:start;min-width:0;transition:opacity .3s,border-color .3s}
+.pipe .stage.dim{opacity:.3}
+.pipe .stage.on{border-color:var(--sea)}
+.pipe .cmd{font-family:var(--font-mono);font-size:.72rem;color:var(--sea);overflow-wrap:anywhere}
+.pipe .ln{font-family:var(--font-mono);font-size:.68rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:640px){.pipe{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+
+/* notes */
+.notes{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:700px){.notes{grid-template-columns:1fr}}
+.notes label{display:grid;gap:6px;font-size:.84rem;font-weight:500}
+textarea{width:100%;min-height:110px;resize:vertical;border:1px solid var(--line);border-radius:6px;background:var(--paper);padding:10px;line-height:1.6}
+@media (prefers-reduced-motion:no-preference){.map .fill{transition:height .3s ease}}
+</style>
+
+<div class="app">
+  <header class="bar">
+    <div class="title">
+      <h1><a href="#home">SciML 半年學習站</a></h1>
+      <span class="muted" style="font-size:.82rem">數值模擬・空間資訊・資料工程・自有基礎建設・MLOps｜每天 60–90 分鐘</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><b id="st-pct">0%</b><span>總進度</span></div>
+      <div class="stat"><b id="st-week">0%</b><span>本週</span></div>
+      <div class="stat"><b id="st-streak">0</b><span>連續天數</span></div>
+    </div>
+    <span class="save" id="save-state">本機儲存</span>
+    <select class="weeksel" id="weeksel" aria-label="選擇週次"></select>
+  </header>
+  <div class="layout">
+    <nav class="side" id="side" aria-label="週次"></nav>
+    <main id="main" aria-live="polite"></main>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+// ======================= 課程資料 =======================
+const PHASES=[
+ {id:"A",name:"A 打底",from:1,to:2},
+ {id:"B",name:"B 數值方法與物理判斷",from:3,to:7},
+ {id:"B2",name:"B2 神經網路延伸",from:8,to:8},
+ {id:"C",name:"C 空間資訊與地理統計",from:9,to:11},
+ {id:"D",name:"D ETL 與資料工程",from:12,to:13},
+ {id:"E",name:"E 自有基礎建設",from:14,to:17},
+ {id:"F",name:"F REST API 與模型服務",from:18,to:19},
+ {id:"G",name:"G MLOps 工具鏈",from:20,to:21},
+ {id:"H",name:"H Legacy 科學程式碼",from:22,to:22},
+ {id:"I",name:"I 最佳化回顧",from:23,to:23},
+ {id:"J",name:"J 選修：生成式設計",from:24,to:25},
+ {id:"K",name:"K 作品集與面試",from:26,to:26}];
+const R=(kind,t,a,y,v,u,classic)=>({kind,t,a,y,v,u,classic:!!classic});
+const W=[
+ {st:"潮位時間序列",t:"用 AI 協作讀懂一支資料處理程式：潮位時間序列",g:"讀懂一支 100 行的資料處理程式：每個數字的單位、每段在做什麼、改哪裡會影響什麼。開始用 Git 記錄進度。",sk:["AI 驗證","資料分析"],
+  d:["環境設定：Python、VS Code、Git，執行範例並第一次 commit","讀懂「產生資料」段：先預測改參數的結果，再執行驗證","讀懂 pandas 統計段：新增每日高潮次數、每月平均水位","做一張能放進報告的圖，套用畫圖檢查清單","不靠 AI 寫 find_high_tides()，再用雜訊讓它失敗"],s:"README 加一張圖與 3–5 行說明；閱讀 5 行摘要",
+  r:R("paper","Towards learning universal, regional, and local hydrological behaviors via machine learning applied to large-sample datasets","Kratzert et al.",2019,"HESS","https://doi.org/10.5194/hess-23-5089-2019",1),why:"同樣是水文時間序列，看 LSTM 如何在 531 個集水區超越傳統模式。",content:"content/w01.html"},
+ {st:"命令列與批次",t:"命令列參數與第一個批次工作",g:"把「改常數再手動跑」變成「用參數呼叫程式、批次執行、自動彙整」。這是排程、容器、API、MLOps 的共同起點。",sk:["基礎建設","AI 驗證"],
+  d:["讀 tide_cli.py：參數與結束碼，先預測再執行","驗證單位陷阱已修正：比較 h 與 30min 的結果","讀 batch.py：參數網格、送出工作、冪等跳過","彙整與檢查：模擬 vs 理論，找出雜訊造成的偏差","Linux 基本：ls、grep、管線、sort | uniq"],s:"批次流程圖；閱讀 5 行摘要",
+  r:R("paper","Differentiable modelling to unify machine learning and physical models for geosciences","Shen et al.",2023,"Nature Reviews Earth & Environment","https://arxiv.org/abs/2301.04027"),why:"物理模式與 ML 結合的全景，幫你判斷何時用 physics-based、data-driven 或 hybrid。",content:"content/w02.html"},
+ {st:"FDM 擴散方程",t:"有限差分解 1D 擴散方程",g:"理解網格、時間步長、穩定性與誤差。找出哪個環節對數值誤差最敏感。",sk:["物理判斷"],
+  d:["讀範例 FTCS 求解器，逐行對照方程式","與解析解比較，畫誤差隨時間變化","增大 Δt 讓計算爆掉，找出穩定條件 r = αΔt/Δx² ≤ 0.5","網格收斂測試：誤差 vs Δx 的對數圖，估計收斂階數","寫一頁「穩定性與誤差」筆記"],s:"一頁筆記＋收斂圖；閱讀摘要",
+  r:R("paper","Physics-informed machine learning","Karniadakis et al.",2021,"Nature Reviews Physics","https://doi.org/10.1038/s42254-021-00314-5"),why:"PIML 最常被引用的綜述，建立「物理 vs 資料」的整體地圖。"},
+ {st:"對流與 Burgers",t:"1D 對流與 Burgers 方程：數值方法自己的失真",g:"看到數值擴散與激波，寫出第一份「方法在哪裡失真」的報告。",sk:["物理判斷"],
+  d:["upwind 格式解 1D 對流，觀察波形被抹平","比較不同 CFL 數下的數值擴散","Burgers 方程：看激波如何形成","改變黏滯係數 ν，看解的變化","寫失敗案例報告 #1：失真在哪裡、證據圖"],s:"失敗案例報告 #1；閱讀摘要",
+  r:R("paper","Physics-informed neural networks: A deep learning framework for solving forward and inverse problems involving nonlinear PDEs","Raissi, Perdikaris, Karniadakis",2019,"J. Comput. Phys.","https://arxiv.org/abs/1711.10561",1),why:"PINN 原始論文，Burgers 方程正是本週主角，下一階段會用到。"},
+ {st:"批次實驗框架",t:"批次實驗框架：控制變數與可重現性",g:"把求解器包成 solve(params) → 結果，系統性地控制變數：網格、時間步長、參數。",sk:["資料分析","基礎建設"],
+  d:["把求解器包成函式：輸入參數字典、輸出結果字典","參數網格批次執行，沿用第 2 週的結構","每次執行存 config＋結果，確保可重現","自動產生總覽圖（熱圖或多線圖）","寫「5 分鐘結果摘要」：一張圖、三個結論、一個問題"],s:"第一份 5 分鐘摘要；閱讀摘要",
+  r:R("paper","PDEBench: An Extensive Benchmark for Scientific Machine Learning","Takamoto et al.",2022,"NeurIPS Datasets & Benchmarks","https://arxiv.org/abs/2210.07182"),why:"看專業團隊如何設計基準、選評估指標。"},
+ {st:"PyTorch 基礎",t:"PyTorch 基礎：autograd 與神經網路訓練",g:"親手寫出神經網路的訓練迴圈，理解 PINN 的關鍵工具：自動微分。",sk:["ML 訓練"],
+  d:["autograd：算 sin(x) 的導數並驗證等於 cos(x)","用小型 MLP 擬合 sin(x)","故意過擬合與欠擬合，觀察訓練／測試誤差","逐行理解訓練迴圈：forward、loss、backward、step","學習率實驗：三種學習率的 loss 曲線比較"],s:"訓練迴圈註解版筆記；閱讀摘要",
+  r:R("paper","Scientific Machine Learning through Physics-Informed Neural Networks: Where we are and What's next","Cuomo et al.",2022,"J. Sci. Comput.","https://arxiv.org/abs/2201.05624"),why:"PINN 綜述，依方程類型分類，方便對照練習。"},
+ {st:"PINN 與失敗模式",t:"PINN 解擴散與對流，並讓它失敗",g:"用 PINN 解第 3、4 週的同一批問題，與 FDM 直接比較，找出 PINN 失敗的條件。",sk:["物理判斷","ML 訓練"],
+  d:["讀 PINN 範例：loss 拆成 PDE、初始條件、邊界條件三項","PINN 解 1D 擴散，與第 3 週 FDM 比較誤差與時間","PINN 解 1D 對流，β 從 1 批次掃到 40","找出失敗臨界點，蒐集佐證圖","判斷題：這類問題該用 FDM、PINN 還是 hybrid？寫下理由"],s:"失敗案例報告 #2；閱讀摘要",
+  r:R("paper","Characterizing possible failure modes in physics-informed neural networks","Krishnapriyan et al.",2021,"NeurIPS","https://arxiv.org/abs/2109.01050"),why:"本週要重現的失敗實驗，論文有公開程式碼可對照。"},
+ {st:"神經運算元入門",t:"神經運算元入門：訓練一個代理模型",g:"用自己的求解器產生資料，訓練最小版 FNO，判斷代理模型何時值得。",sk:["ML 訓練"],
+  d:["用第 4 週求解器批次產生 200 組 Burgers 資料","讀 FNO 最小範例：spectral convolution 在做什麼","訓練並看測試誤差分佈：平均之外看最差案例","比較推論速度與求解器速度","寫下：什麼情況值得訓練代理模型，什麼情況不值得"],s:"代理模型 5 分鐘摘要；閱讀摘要",
+  r:R("paper","Fourier Neural Operator for Parametric Partial Differential Equations","Li et al.",2021,"ICLR","https://arxiv.org/abs/2010.08895"),why:"FNO 原始論文，同樣以 Burgers 方程示範。"},
+ {st:"Voronoi 與 Delaunay",t:"計算幾何：Voronoi、Delaunay 與徐昇多邊形",g:"用雨量站算徐昇多邊形（Voronoi），學會驗算 AI 產生的空間分割是否正確。",sk:["空間資訊"],
+  d:["雨量站 Voronoi（徐昇多邊形）：用 scipy.spatial 計算","Delaunay 三角化，與 Voronoi 的對偶關係","驗算 AI 生成的分割：每個點是否只落在自己的多邊形","邊界處理：無限區域如何用流域邊界裁切","面積加權平均雨量，與算術平均比較"],s:"徐昇多邊形雨量計算筆記；閱讀摘要",
+  r:R("doc","Spatial data structures and algorithms (scipy.spatial)","SciPy 官方文件","—","SciPy User Guide","https://docs.scipy.org/doc/scipy/tutorial/spatial.html"),why:"Delaunay、Voronoi、凸包的官方說明與範例。"},
+ {st:"拓撲與座標系統",t:"拓撲運算與座標系統：找出空間程式的地雷",g:"檢查多邊形有效性、拓撲關係與投影選擇，抓出 AI 生成的座標轉換錯誤。",sk:["空間資訊","AI 驗證"],
+  d:["Shapely：多邊形有效性檢查（自交、方向）","拓撲運算：交集、聯集、相鄰、包含","座標系統：WGS84 經緯度 vs TWD97 投影座標，面積差多少","讓 AI 做座標轉換，找出經緯度順序或投影選錯的錯誤","在流域多邊形內產生簡單三角網格（mesh generation）"],s:"空間資料驗算清單；閱讀摘要",
+  r:R("doc","Shapely User Manual","Shapely 官方文件","—","Shapely","https://shapely.readthedocs.io/en/stable/manual.html"),why:"幾何物件、有效性與拓撲謂詞的定義。"},
+ {st:"空間內插與克利金",t:"空間內插與地理統計：依假設選方法",g:"比較 IDW、克利金、spline，根據資料特性與方法的理論假設挑選內插法。",sk:["空間資訊","資料分析"],
+  d:["IDW 內插：冪次參數怎麼影響結果","變異圖（variogram）：計算與擬合","普通克利金（Ordinary Kriging）與它的假設：定常性","交叉驗證比較 IDW、克利金、spline","判斷題：資料稀疏、有趨勢、有方向性時各選哪種方法"],s:"內插方法選擇表＋交叉驗證結果；閱讀摘要",
+  r:R("paper","Spatial interpolation methods applied in the environmental sciences: A review","Li & Heap",2014,"Environmental Modelling & Software","https://doi.org/10.1016/j.envsoft.2013.12.008"),why:"環境科學內插方法的綜述，整理各方法的假設與影響表現的因素。"},
+ {st:"異質資料 ETL",t:"異質多源資料的 ETL",g:"把格式、頻率、時區、單位都不同的資料整合成可靠的資料集，而且重跑結果相同。",sk:["ETL"],
+  d:["盤點資料源：潮位 CSV、雨量 JSON、格網 NetCDF 的格式、頻率、時區、單位","Extract：寫讀取器，原始檔一律不修改","Transform：統一時區、單位、時間解析度，處理缺值","Load：存成 Parquet，重跑結果相同（冪等）","讓 AI 寫一段 ETL，找出它悄悄出錯的地方"],s:"ETL 流程圖＋資料字典；閱讀摘要",
+  r:R("doc","Time series / date functionality","pandas 官方文件","—","pandas User Guide","https://pandas.pydata.org/docs/user_guide/timeseries.html"),why:"時區、重採樣、頻率轉換的正確用法，ETL 最常出錯的地方。"},
+ {st:"資料品質與統計前提",t:"資料品質監控與統計前提",g:"把資料品質規則寫成自動檢查；判斷統計方法的前提是否成立。",sk:["ETL","資料分析"],
+  d:["資料品質規則：範圍、缺值率、時間連續性、重複","把規則寫成自動檢查，失敗時讓 pipeline 停下","統計前提：常態、獨立、定常，用圖與檢定確認","兩組資料比較：t 檢定前提不成立時改用什麼","失敗案例報告 #3：pipeline 在哪裡悄悄出錯"],s:"失敗案例報告 #3；閱讀摘要",
+  r:R("paper","Data Validation for Machine Learning","Breck et al.",2019,"MLSys","https://research.google/pubs/data-validation-for-machine-learning/"),why:"Google 在正式系統中如何自動驗證資料，可直接借用規則設計。"},
+ {st:"Linux 服務",t:"Linux 服務基礎：行程、排程、日誌",g:"讓第 12 週的 ETL 在 Linux 上定時、自動、可除錯地執行。",sk:["基礎建設"],
+  d:["行程、權限、環境變數、日誌","把 ETL 寫成可排程的指令（cron）","systemd service：開機自動執行、失敗自動重啟","看日誌找錯：journalctl 與結束碼","寫下：服務壞掉時你會先看哪三個地方"],s:"服務維運檢查清單；閱讀摘要",
+  r:R("doc","The Missing Semester of Your CS Education","MIT","—","課程講義","https://missing.csail.mit.edu/"),why:"shell、腳本、除錯工具的實用講義。"},
+ {st:"Docker 容器化",t:"Docker：把工作裝進可重現的容器",g:"把第 2 週的批次工作容器化，並找出 AI 生成 Dockerfile 的常見地雷。",sk:["基礎建設","AI 驗證"],
+  d:["容器是什麼：映像檔、容器、層","把 tide_cli 包成 Docker 映像","掛載資料夾、傳入環境變數與參數","映像檔大小與建置快取：改哪一行會讓重建變慢","檢查 AI 的 Dockerfile：版本未固定、以 root 執行、秘密寫進映像"],s:"可重現的容器化批次工作；閱讀摘要",
+  r:R("doc","Get started","Docker 官方文件","—","Docker Docs","https://docs.docker.com/get-started/"),why:"映像檔、容器、建置的官方入門。"},
+ {st:"多服務架構與決策",t:"多服務架構與 PaaS／CaaS／FaaS 決策",g:"用 docker compose 組出 ETL＋資料庫＋排程，練習「該 self-host 還是外包」的架構決策。",sk:["基礎建設"],
+  d:["docker compose：ETL worker＋資料庫＋排程","服務間的網路、相依、健康檢查","PaaS／CaaS／FaaS 的取捨：控制權、成本、維運負擔","決策練習：三個情境各選哪一種並寫理由","self-host 還是外包：列出判斷標準"],s:"架構決策紀錄（ADR）一份；閱讀摘要",
+  r:R("doc","The Twelve-Factor App","Adam Wiggins 等","—","12factor.net","https://12factor.net/"),why:"可部署服務的 12 條原則，審查架構時的檢查表。"},
+ {st:"審查 manifest 與擴展",t:"審查 AI 生成的 manifest，評估 10 倍擴展",g:"讀懂 Kubernetes 基本物件，找出 config 的地雷，估算資料量成長 10 倍時哪裡先垮。",sk:["基礎建設","AI 驗證"],
+  d:["Kubernetes 基本物件：Pod、Deployment、Service、ConfigMap、Secret","讀 AI 生成的 manifest，找地雷：無資源限制、無健康檢查、秘密明文","資料量成長 10 倍：CPU、記憶體、磁碟、網路哪個先撐不住","估算一天的資料量、處理時間與儲存成本","失敗案例報告 #4：一份有問題的 config 與修正"],s:"失敗案例報告 #4；閱讀摘要",
+  r:R("doc","Configuration Best Practices","Kubernetes 官方文件","—","Kubernetes Docs","https://kubernetes.io/docs/concepts/configuration/overview/"),why:"官方整理的 config 撰寫原則，正好拿來審查。"},
+ {st:"REST API",t:"REST API：把運算包成服務",g:"用 FastAPI 把第 11 週的內插包成格網查詢 API，介面經得起需求改變。",sk:["REST API"],
+  d:["REST 基本：資源、方法、狀態碼","FastAPI：把內插包成 /interpolate 端點","輸入驗證與錯誤處理：超出範圍的座標、缺資料","介面設計：版本、分頁，需求改變時如何不破壞舊用戶","讓 AI 寫 API，再用邊界情境找出漏洞"],s:"可用的格網查詢 API＋測試清單；閱讀摘要",
+  r:R("doc","Tutorial – User Guide","FastAPI 官方文件","—","FastAPI","https://fastapi.tiangolo.com/tutorial/"),why:"路由、驗證、錯誤處理的官方教學。"},
+ {st:"模型服務與 CI/CD",t:"模型服務化與 CI/CD",g:"把代理模型包成推論服務，並讓每次 push 自動測試與建置。",sk:["REST API","MLOps"],
+  d:["把第 8 週的代理模型包成推論端點","量測延遲與吞吐：批次推論 vs 單筆","pytest：為 ETL 與 API 寫測試","GitHub Actions：push 時自動測試與建置映像","寫下：模型更新時如何不中斷服務"],s:"CI 管線綠燈＋推論服務；閱讀摘要",
+  r:R("doc","GitHub Actions documentation","GitHub 官方文件","—","GitHub Docs","https://docs.github.com/en/actions"),why:"workflow、job、觸發條件的官方說明。"},
+ {st:"實驗追蹤與版本",t:"實驗追蹤、模型註冊與資料版本",g:"讓每個實驗、每個模型、每份資料都能回溯。",sk:["MLOps"],
+  d:["MLflow：記錄參數、指標、產出","把第 5 週的批次實驗改用 MLflow 記錄","模型註冊：版本、階段、回溯","DVC：資料與模型的版本控制","比較 Git、DVC、MLflow 各自管什麼"],s:"可回溯的實驗紀錄；閱讀摘要",
+  r:R("paper","Hidden Technical Debt in Machine Learning Systems","Sculley et al.",2015,"NeurIPS","https://proceedings.neurips.cc/paper/2015/file/86df7dcfd896fcaf2674f757a2463eba-Paper.pdf",1),why:"ML 系統的維運成本從哪來，MLOps 工具要解決的問題清單。"},
+ {st:"編排、監控與漂移",t:"流程編排、監控與漂移偵測",g:"把 ETL → 訓練 → 評估串成排程流程，並在輸入分佈改變時發出警報。",sk:["MLOps","資料分析"],
+  d:["流程編排：用 Prefect 串起 ETL → 訓練 → 評估","排程與重試：失敗時怎麼處理","監控：輸入分佈、預測分佈、延遲","漂移偵測：KS 檢定、PSI，用模擬的季節變化測試","設定警報門檻：太敏感與太遲鈍的代價"],s:"監控儀表＋漂移報告；閱讀摘要",
+  r:R("paper","Failing Loudly: An Empirical Study of Methods for Detecting Dataset Shift","Rabanser, Günnemann, Lipton",2019,"NeurIPS","https://arxiv.org/abs/1810.11953"),why:"比較各種漂移偵測方法，說明哪些檢定真的抓得到。"},
+ {st:"Fortran 與平行化",t:"Legacy 科學程式碼：讀懂 Fortran 與平行化取捨",g:"讀懂並 debug 舊的 Fortran 求解器，判斷 AI 的改寫或翻譯會不會出錯。",sk:["Legacy/HPC","AI 驗證"],
+  d:["讀 Fortran 版 1D 擴散求解器，對照第 3 週的 Python 版","用 gfortran 編譯執行，比較兩者結果","常見陷阱：1 起算的索引、column-major、隱式型別","讓 AI 把 Fortran 翻成 Python，找出它改錯的地方","OpenMP 平行化：何時變快、何時反而變慢"],s:"legacy 程式碼審查筆記；閱讀摘要",
+  r:R("doc","Learn Fortran","fortran-lang.org","—","官方教學","https://fortran-lang.org/learn/"),why:"現代 Fortran 的官方入門，讀舊程式時對照語法。"},
+ {st:"多目標最佳化",t:"多目標最佳化回顧：pymoo 與 Optuna",g:"把碩論的 NSGA-II 用現代工具重做，並用 Optuna 做一次超參數最佳化。",sk:["資料分析"],
+  d:["pymoo 跑 ZDT1，畫 Pareto front","讀懂非支配排序與擁擠距離，對照碩論","計算 hypervolume 量化比較","Optuna 調一個模型的超參數，加入剪枝","判斷題：什麼問題該用多目標，什麼該合成單一目標"],s:"碩論問題 pymoo 重現；閱讀摘要",
+  r:R("paper","A fast and elitist multiobjective genetic algorithm: NSGA-II","Deb et al.",2002,"IEEE Trans. Evol. Comput.","https://doi.org/10.1109/4235.996017",1),why:"你用過的演算法原文，這次讀懂每個設計決定。"},
+ {st:"拓樸最佳化資料集",t:"選修：拓樸最佳化資料集",g:"用 SIMP 方法批次產生最佳結構，建立生成模型的訓練資料。",sk:["ML 訓練"],
+  d:["讀懂 SIMP 拓樸最佳化範例程式","改變負載位置與體積比，觀察結構變化","批次產生 500 組最佳結構（沿用批次框架）","記錄每組的 compliance（柔度）與計算時間","寫 dataset card"],s:"資料集＋dataset card；閱讀摘要",
+  r:R("paper","Diffusion Models Beat GANs on Topology Optimization","Mazé & Ahmed",2023,"AAAI","https://ojs.aaai.org/index.php/AAAI/article/view/26093"),why:"用擴散模型生成拓樸結構，以物理指標引導生成。"},
+ {st:"生成模型與檢驗",t:"選修：生成模型與物理檢驗",g:"訓練小型生成模型，再用求解器檢驗生成結果是否真的可用。",sk:["ML 訓練","物理判斷"],
+  d:["訓練小型條件 VAE 或 U-Net（輸入負載條件）","生成結構並計算 compliance","與 SIMP 最佳解比較性能差距","統計失敗：結構不連通、違反體積限制","失敗案例報告 #5"],s:"失敗案例報告 #5；閱讀摘要",
+  r:R("paper","Diffusing the Optimal Topology: A Generative Optimization Approach","Giannone et al.",2023,"arXiv","https://arxiv.org/abs/2303.09760"),why:"把生成模型與最佳化結合，減少後處理步驟。"},
+ {st:"作品集與面試",t:"作品集與面試準備",g:"把半年的成果整理成 5 分鐘講得完的作品集，對照職缺每一項都有實例。",sk:[],
+  d:["整理 GitHub：README 結構、每個專案一張圖","作品集首頁：5 分鐘結果摘要","把 5 份失敗報告整理成「方法極限」索引","對照職缺逐項準備實例：每項技能一個做過的例子","模擬面試：自問自答 10 題"],s:"完成作品集",
+  r:R("doc","Rules of Machine Learning","Martin Zinkevich（Google）","—","Google for Developers","https://developers.google.com/machine-learning/guides/rules-of-ml"),why:"把半年學到的工程判斷，對照業界整理的 43 條規則。"}
+];
+const SKILLS=[
+ ["物理判斷","Must：數值模擬與物理判斷"],["基礎建設","Must：自有基礎建設架構"],["AI 驗證","Must：GAI 協作與驗證"],
+ ["空間資訊","Should：空間資訊技術／Nice：地理統計"],["資料分析","Should：資料分析"],["ETL","Should：Python ETL"],
+ ["REST API","Should：REST API"],["MLOps","Nice：MLOps、CI/CD、模型服務"],["ML 訓練","Nice：ML 訓練"],["Legacy/HPC","Nice：Fortran/C、HPC"]];
+const READ=["週一：摘要＋瀏覽圖表與章節標題","週二：引言或概觀，找出要解決的問題","週三：方法或核心概念，畫一張流程圖","週四：結果、限制或注意事項，記下關鍵數字","週五：寫 5 行摘要（papers/output/）"];
+const DAYN=["一","二","三","四","五","六"];
+const NW=W.length;
+
+// ======================= 狀態與同步 =======================
+let state={start:"2026-10-27",done:{},notes:{}};
+let dbDoc=null,writing=false,pending=false,saveTimer=null,view={kind:"home"};
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const k=(w,d,t)=>`w${w}d${d}${t}`;
+function parse(s){const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)}
+function dateOf(w,d){const x=parse(state.start);x.setDate(x.getDate()+(w-1)*7+(d-1));return x}
+function md(x){return (x.getMonth()+1)+"/"+x.getDate()}
+function today0(){const t=new Date();t.setHours(0,0,0,0);return t}
+function todayPos(){const diff=Math.round((today0()-parse(state.start))/864e5);
+  if(diff<0)return{before:true,days:-diff};const w=Math.floor(diff/7)+1,d=diff%7+1;if(w>NW)return{after:true};return{w,d}}
+function weekItems(w){const a=[];for(let d=1;d<=6;d++)a.push(k(w,d,"c"));for(let d=1;d<=5;d++)a.push(k(w,d,"p"));return a}
+function weekPct(w){const a=weekItems(w);return a.filter(x=>state.done[x]).length/a.length}
+function cellStatus(w,d,kind){if(state.done[k(w,d,kind)])return"done";const t=today0().getTime(),x=dateOf(w,d).getTime();return x===t?"today":x<t?"missed":"future"}
+function load(){try{const s=localStorage.getItem("sciml-log");if(s)Object.assign(state,JSON.parse(s))}catch(e){}}
+function persist(){try{localStorage.setItem("sciml-log",JSON.stringify(state))}catch(e){}
+  if(!dbDoc)return;clearTimeout(saveTimer);setSave("儲存中…");saveTimer=setTimeout(flush,700)}
+async function flush(){if(writing){pending=true;return}writing=true;
+  try{await dbDoc.set(JSON.parse(JSON.stringify(state)));setSave("已同步到雲端")}catch(e){setSave("同步失敗，已存在本機")}
+  writing=false;if(pending){pending=false;flush()}}
+function setSave(t){$("#save-state").textContent=t}
+function toggle(id){if(state.done[id])delete state.done[id];else state.done[id]=true;persist();refreshProgress()}
+
+// ======================= 畫面 =======================
+function renderStats(){let all=0,dn=0;for(let w=1;w<=NW;w++){const a=weekItems(w);all+=a.length;dn+=a.filter(x=>state.done[x]).length}
+  $("#st-pct").textContent=Math.round(dn/all*100)+"%";
+  const pos=todayPos();$("#st-week").textContent=pos.w?Math.round(weekPct(pos.w)*100)+"%":"—";
+  let s=0;if(pos.w){let w=pos.w,d=Math.min(pos.d,6);if(!state.done[k(w,d,"c")]){d--;if(d<1){w--;d=6}}
+    while(w>=1&&state.done[k(w,d,"c")]){s++;d--;if(d<1){w--;d=6}}}
+  $("#st-streak").textContent=s}
+function renderSide(){const pos=todayPos();let h=`<a class="home-link" href="#home" ${view.kind==="home"?'aria-current="page"':""}>首頁・今天</a>`;
+  PHASES.forEach(p=>{h+=`<div class="ph"><div class="ph-name">${esc(p.name)}</div>`;
+    for(let n=p.from;n<=p.to;n++){const pct=weekPct(n),cls=pct>=1?"full":pct>0?"half":"";
+      h+=`<a href="#w${n}" ${view.kind==="week"&&view.n===n?'aria-current="page"':""}><span class="n">W${String(n).padStart(2,"0")}</span><span class="t">${esc(W[n-1].st)}</span>${pos.w===n?'<span class="now">本週</span>':""}<span class="dot ${cls}" aria-label="完成 ${Math.round(pct*100)}%"></span></a>`}
+    h+=`</div>`});
+  $("#side").innerHTML=h;
+  const sel=$("#weeksel");sel.innerHTML=`<option value="home">首頁・今天</option>`+W.map((w,i)=>`<option value="w${i+1}">W${String(i+1).padStart(2,"0")} ${esc(w.st)}</option>`).join("");
+  sel.value=view.kind==="home"?"home":"w"+view.n}
+function taskHTML(id,kind,text){const c=!!state.done[id];
+  return `<label class="task"><input type="checkbox" class="chk" data-k="${id}" ${c?"checked":""}><span><span class="kind">${esc(kind)}</span><span class="${c?"done-text":""}">${esc(text)}</span></span></label>`}
+
+function renderHome(){const pos=todayPos();let today="";
+  if(pos.before)today=`<p style="margin:0">距離開始還有 ${pos.days} 天。</p>`;
+  else if(pos.after)today=`<p style="margin:0">半年課程已結束。回顧作品集，或在對話中規劃下一階段。</p>`;
+  else{const w=W[pos.w-1];
+    if(pos.d===7)today=`<p style="margin:0">今天休息。看一下第 ${pos.w} 週有沒有沒勾完的項目。</p>`;
+    else{today=`<h3>W${String(pos.w).padStart(2,"0")}・${esc(w.t)}</h3><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px">`;
+      if(pos.d<=5)today+=taskHTML(k(pos.w,pos.d,"c"),"練習 45–60 分",w.d[pos.d-1])+taskHTML(k(pos.w,pos.d,"p"),"閱讀 15–20 分",READ[pos.d-1]);
+      else today+=taskHTML(k(pos.w,6,"c"),"本週產出",w.s);
+      today+=`</div><div class="btns"><a class="btn primary" href="#w${pos.w}">打開第 ${pos.w} 週講解</a></div>`}}
+  let map="",ph="";for(let n=1;n<=NW;n++){const pct=weekPct(n);map+=`<a href="#w${n}" class="${pos.w===n?"cur":""}" aria-label="第 ${n} 週，完成 ${Math.round(pct*100)}%"><span class="col"><span class="fill" style="height:${pct*100}%"></span></span><span class="n">${n}</span></a>`}
+  ph=PHASES.map(p=>`<div style="grid-column:${p.from} / ${p.to+1}" title="${esc(p.name)}">${esc(p.id)}</div>`).join("");
+  const skillRows=SKILLS.map(([s,label])=>{const ws=W.map((w,i)=>w.sk.includes(s)?i+1:0).filter(Boolean);
+    return `<tr><td>${esc(label)}</td><td class="mono">${ws.map(n=>`<a href="#w${n}">W${n}</a>`).join("、")}</td></tr>`}).join("");
+  $("#main").innerHTML=`
+  <section class="card today" aria-labelledby="today-h"><div class="row"><h2 id="today-h">今天</h2><span class="mono muted">${pos.w?`第 ${pos.w} 週・週${pos.d===7?"日":DAYN[pos.d-1]}・${md(new Date())}`:""}</span></div>${today}</section>
+  <section class="card" aria-labelledby="map-h"><div class="row"><h2 id="map-h">26 週水位</h2>
+    <label class="muted" style="font-size:.82rem">開始日 <input type="date" id="start-date" value="${state.start}" style="border:1px solid var(--line);border-radius:6px;background:var(--paper);padding:3px 8px"></label></div>
+    <div><div class="map">${map}</div><div class="phases">${ph}</div></div>
+    <div class="legend-phases">${PHASES.map(p=>`<span><b>${esc(p.id)}</b>${esc(p.name.replace(/^\S+\s/,""))}（W${p.from}${p.to>p.from?"–"+p.to:""}）</span>`).join("")}</div></section>
+  <section class="card" aria-labelledby="how-h"><h2 id="how-h">每天怎麼用這個網站</h2>
+    <ol style="margin:0;padding-left:1.3em;display:grid;gap:6px;max-width:70ch">
+      <li>打開本週頁面，照「每日任務」找到今天那一天，按「看講解」跳到對應段落。</li>
+      <li>先讀理論與動畫，再打開 repo 裡的範例程式對照。語法可以問 AI，邏輯自己想。</li>
+      <li>做練習，答案寫進 <code>weekNN/notes.md</code>，<code>git add</code>／<code>commit</code>／<code>push</code>。</li>
+      <li>閱讀 15–20 分鐘，摘要寫進 <code>papers/output/</code>，21 天內開新對話說「grill 這篇」。</li>
+      <li>回到這裡勾選。一週結束時，在新對話說「第 N 週進度」，下一週的完整講解會在交接時加上。</li>
+    </ol></section>
+  <section class="card" aria-labelledby="ai-h"><h2 id="ai-h">AI 使用規則</h2>
+    <div class="tbl"><table><thead><tr><th>可以請 AI 做</th><th>自己做</th></tr></thead><tbody>
+      <tr><td>解釋某一行語法</td><td>決定要算什麼、為什麼這樣算</td></tr>
+      <tr><td>查函式參數</td><td>先預測結果，再執行驗證</td></tr>
+      <tr><td>改寫成更簡潔的寫法</td><td>判斷輸出在物理上、統計上合不合理</td></tr>
+      <tr><td>找錯誤訊息的原因</td><td>寫 commit message 與失敗報告</td></tr></tbody></table></div>
+    <p class="muted" style="margin:0;font-size:.86rem">職缺要的是「AI 出錯時能判斷錯在哪」。每週都有一題「讓 AI 寫，再找出它錯在哪」。</p></section>
+  <section class="card" aria-labelledby="job-h"><h2 id="job-h">職缺技能對照</h2>
+    <div class="tbl"><table><thead><tr><th>職缺要求</th><th>在哪幾週練</th></tr></thead><tbody>${skillRows}</tbody></table></div></section>`;
+  $("#start-date").addEventListener("change",e=>{if(e.target.value){state.start=e.target.value;persist();render()}})}
+
+function renderHeat(w){let h=`<div class="heat-grid"><div></div>`;
+  for(let d=1;d<=6;d++)h+=`<div class="hd">週${DAYN[d-1]}</div>`;
+  const lab={done:"已完成",missed:"已過期未做",today:"今天",future:"還沒到"};
+  [["c","練習"],["p","閱讀"]].forEach(([kind,name])=>{h+=`<div class="rl">${name}</div>`;
+    for(let d=1;d<=6;d++){if(kind==="p"&&d===6){h+=`<div class="hm off" aria-hidden="true">—</div>`;continue}
+      const st=cellStatus(w,d,kind);h+=`<button type="button" class="hm ${st}" data-k="${k(w,d,kind)}" role="switch" aria-checked="${st==="done"}" aria-label="週${DAYN[d-1]}${name}，${lab[st]}">${d===6?"產出":md(dateOf(w,d))}</button>`}});
+  return h+`</div>`}
+function renderDays(w,hasContent){const W_=W[w-1],pos=todayPos();let h="";
+  for(let d=1;d<=6;d++){const isT=pos.w===w&&pos.d===d;
+    h+=`<div class="day ${isT?"is-today":""}"><div class="when"><b>週${DAYN[d-1]}</b>${md(dateOf(w,d))}</div>`;
+    if(d<=5)h+=taskHTML(k(w,d,"c"),"練習",W_.d[d-1])+taskHTML(k(w,d,"p"),"閱讀",READ[d-1]);
+    else h+=taskHTML(k(w,6,"c"),"本週產出",W_.s)+`<div></div>`;
+    h+=hasContent?`<button class="btn go" data-day="${d}">看講解</button>`:`<span></span>`;
+    h+=`</div>`}
+  return h}
+function renderWeek(n){const w=W[n-1],ph=PHASES.find(p=>n>=p.from&&n<=p.to),notes=state.notes["w"+n]||{};
+  const r=w.r,rtag=r.kind==="doc"?'<span class="tag doc">官方文件／講義</span>':r.classic?'<span class="tag classic">經典論文</span>':'<span class="tag">近五年論文</span>';
+  $("#main").innerHTML=`
+  <section class="wk-head"><span class="label">${esc(ph.name)}・WEEK ${String(n).padStart(2,"0")}・${md(dateOf(n,1))}–${md(dateOf(n,6))}</span>
+    <h2 style="font-size:1.5rem">${esc(w.t)}</h2><p class="goal">${esc(w.g)}</p>
+    <div>${w.sk.map(s=>`<span class="tag ok">${esc(s)}</span>`).join("")}</div>
+    <div class="btns"><a class="btn" href="#w${Math.max(1,n-1)}" ${n===1?'aria-disabled="true" style="opacity:.45;pointer-events:none"':""}>← 上一週</a><a class="btn" href="#w${Math.min(NW,n+1)}" ${n===NW?'aria-disabled="true" style="opacity:.45;pointer-events:none"':""}>下一週 →</a></div></section>
+  <section class="card" aria-labelledby="heat-h"><div class="row"><h3 id="heat-h">本週管制熱圖</h3>
+    <div class="heat-legend"><span><i class="done"></i>已完成</span><span><i class="missed"></i>已過期未做</span><span><i class="today"></i>今天</span><span><i></i>還沒到</span></div></div>
+    <div id="heat">${renderHeat(n)}</div></section>
+  <section class="card" aria-labelledby="days-h"><h3 id="days-h">每日任務</h3><div class="days" id="days">${renderDays(n,!!w.content)}</div></section>
+  <section class="card" aria-labelledby="lesson-h"><h3 id="lesson-h">講解</h3><div class="lesson" id="lesson">${w.content?'<p class="muted">載入中…</p>':outline(n)}</div></section>
+  <section class="card" aria-labelledby="read-h"><h3 id="read-h">本週閱讀</h3>
+    <div><a href="${r.u}" target="_blank" rel="noopener"><b>${esc(r.t)}</b></a></div>
+    <div class="muted" style="font-size:.86rem">${esc(r.a)}${r.y!=="—"?"・"+r.y:""}・${esc(r.v)} ${rtag}</div>
+    <div style="font-size:.9rem">為什麼讀：${esc(w.why)}</div>
+    <div class="muted" style="font-size:.84rem">閱讀節奏：${READ.map(x=>x.split("：")[1]).join(" → ")}</div></section>
+  <section class="card" aria-labelledby="notes-h"><h3 id="notes-h">草稿筆記</h3>
+    <p class="muted" style="margin:0;font-size:.84rem">只存在這個網站。正式版本請寫進 repo 的 <code>week${String(n).padStart(2,"0")}/notes.md</code> 與 <code>papers/output/</code>。</p>
+    <div class="notes">
+      <label for="n-paper">閱讀摘要草稿<textarea id="n-paper" data-note="paper" placeholder="1. 解決什麼問題&#10;2. 方法一句話&#10;3. 最重要的結果&#10;4. 限制或失敗情況&#10;5. 跟本週練習的關係">${esc(notes.paper||"")}</textarea></label>
+      <label for="n-fail">本週觀察／失敗案例<textarea id="n-fail" data-note="fail" placeholder="哪裡預測不準？可能原因？佐證（圖檔名、數字）？">${esc(notes.fail||"")}</textarea></label>
+    </div></section>`;
+  if(w.content)loadLesson(n)}
+function outline(n){const w=W[n-1];
+  return `<div class="callout term"><b>講解尚未產生</b><p>這週的完整理論、程式與動畫會在第 ${n-1} 週完成時一起產生。到時在新對話說「第 ${n-1} 週進度」即可。下面是本週的學習路線。</p></div>
+  <ol>${w.d.map(x=>`<li>${esc(x)}</li>`).join("")}<li>週六產出：${esc(w.s)}</li></ol>`}
+
+// ---------- 講解內容載入 ----------
+const lessonCache=new Map();let mounted=[];
+async function loadLesson(n){const w=W[n-1],el=$("#lesson");
+  try{let html=lessonCache.get(n);if(!html){const res=await fetch(w.content,{cache:"no-cache"});if(!res.ok)throw new Error(res.status);html=await res.text();lessonCache.set(n,html)}
+    if(view.kind!=="week"||view.n!==n)return;
+    el.innerHTML=html;decorateCode(el);mountAnims(el)}
+  catch(e){el.innerHTML=`<div class="callout trap"><b>講解載入失敗</b><p>請用學習站的 claude.ai 連結開啟。若在本機開啟 repo 的 <code>site/index.html</code>，請先在 <code>site/</code> 資料夾執行 <code>python -m http.server</code>，再開 <code>http://localhost:8000</code>。</p></div>`+outline(n)}}
+function decorateCode(root){root.querySelectorAll(".code pre code").forEach(c=>{try{if(window.hljs)hljs.highlightElement(c)}catch(e){}});
+  root.querySelectorAll(".code").forEach(box=>{if(box.querySelector(".cp"))return;const b=document.createElement("button");b.className="cp";b.type="button";b.textContent="複製";
+    b.addEventListener("click",()=>{const text=box.querySelector("code").innerText;const ok=()=>{b.textContent="已複製";setTimeout(()=>b.textContent="複製",1400)};
+      const fb=()=>{const r=document.createRange();r.selectNodeContents(box.querySelector("code"));const s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent="已選取";setTimeout(()=>b.textContent="複製",1400)};
+      try{navigator.clipboard.writeText(text).then(ok,fb)}catch(e){fb()}});box.appendChild(b)})}
+function unmountAnims(){mounted.forEach(f=>{try{f()}catch(e){}});mounted=[]}
+function mountAnims(root){root.querySelectorAll("[data-anim]").forEach(el=>{const f=ANIMS[el.dataset.anim];if(f){try{const off=f(el);if(off)mounted.push(off)}catch(e){el.textContent="動畫載入失敗："+e.message}}})}
+
+function refreshProgress(){renderStats();renderSide();
+  if(view.kind==="week"){const h=$("#heat");if(h)h.innerHTML=renderHeat(view.n);
+    const d=$("#days");if(d)d.innerHTML=renderDays(view.n,!!W[view.n-1].content)}
+  else renderHome()}
+function route(){const m=location.hash.match(/^#w(\d{1,2})$/);const n=m?+m[1]:0;
+  if(n>=1&&n<=NW)view={kind:"week",n};else view={kind:"home"}}
+function render(){unmountAnims();route();renderStats();renderSide();if(view.kind==="week")renderWeek(view.n);else renderHome();window.scrollTo(0,0)}
+
+// ---------- 事件 ----------
+document.addEventListener("change",e=>{const t=e.target;
+  if(t.matches(".chk")){if(t.checked)state.done[t.dataset.k]=true;else delete state.done[t.dataset.k];persist();refreshProgress()}
+  if(t.id==="weeksel"){location.hash=t.value==="home"?"#home":"#"+t.value}});
+document.addEventListener("click",e=>{const hm=e.target.closest(".hm[data-k]");if(hm){toggle(hm.dataset.k);return}
+  const go=e.target.closest("[data-day].go");if(go){const sec=document.querySelector(`#lesson [data-day="${go.dataset.day}"]`);if(sec)sec.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})}});
+let noteTimer=null;
+document.addEventListener("input",e=>{const t=e.target;if(!t.dataset||!t.dataset.note||view.kind!=="week")return;
+  const key="w"+view.n;state.notes[key]=Object.assign({},state.notes[key],{[t.dataset.note]:t.value});clearTimeout(noteTimer);noteTimer=setTimeout(persist,600)});
+window.addEventListener("hashchange",render);
+
+// ======================= 動畫引擎 =======================
+const RM=matchMedia("(prefers-reduced-motion: reduce)");
+const redraws=new Set();
+function C(){const cs=getComputedStyle(document.documentElement),g=n=>cs.getPropertyValue(n).trim();
+  return{ink:g("--ink"),muted:g("--muted"),line:g("--line"),sea:g("--sea"),seaSoft:g("--sea-soft"),kelp:g("--kelp"),kelpSoft:g("--kelp-soft"),buoy:g("--buoy"),buoySoft:g("--buoy-soft"),miss:g("--miss"),paper:g("--paper"),bg:g("--bg"),mono:g("--font-mono")}}
+new MutationObserver(()=>redraws.forEach(f=>f())).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme","class"]});
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>redraws.forEach(f=>f()));
+function canvas(host,h){const c=document.createElement("canvas");c.style.cssText=`width:100%;height:${h}px;display:block`;host.appendChild(c);
+  const ctx=c.getContext("2d");return{c,ctx,size(){const w=Math.max(10,c.getBoundingClientRect().width||host.clientWidth||300),dpr=window.devicePixelRatio||1;
+    if(c.width!==Math.round(w*dpr)||c.height!==Math.round(h*dpr)){c.width=Math.round(w*dpr);c.height=Math.round(h*dpr)}ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);return{w,h}}}}
+function el(tag,attrs,html){const e=document.createElement(tag);if(attrs)for(const[a,v]of Object.entries(attrs))e.setAttribute(a,v);if(html!==undefined)e.innerHTML=html;return e}
+function frame(ctx,box,o){// o: x0,x1,y0,y1,xt,yt,xl,yl,pad
+  const L=o.padL??42,Rp=o.padR??10,T=o.padT??12,B=o.padB??26,cl=C();
+  const X=x=>L+(x-o.x0)/(o.x1-o.x0)*(box.w-L-Rp),Y=y=>T+(o.y1-y)/(o.y1-o.y0)*(box.h-T-B);
+  ctx.strokeStyle=cl.line;ctx.lineWidth=1;ctx.fillStyle=cl.muted;ctx.font=`11px ${cl.mono||"monospace"}`;
+  (o.yt||[]).forEach(v=>{ctx.globalAlpha=.6;ctx.beginPath();ctx.moveTo(L,Y(v));ctx.lineTo(box.w-Rp,Y(v));ctx.stroke();ctx.globalAlpha=1;ctx.textAlign="right";ctx.textBaseline="middle";ctx.fillText(String(v),L-6,Y(v))});
+  (o.xt||[]).forEach(v=>{ctx.textAlign="center";ctx.textBaseline="top";ctx.fillText(String(v),X(v),box.h-B+6)});
+  ctx.textAlign="left";ctx.textBaseline="top";if(o.yl)ctx.fillText(o.yl,L+4,T);if(o.xl){ctx.textAlign="right";ctx.textBaseline="bottom";ctx.fillText(o.xl,box.w-Rp,box.h-B-4)}
+  return{X,Y,L,R:box.w-Rp,T,B:box.h-B}}
+function line(ctx,pts,color,w,dash){ctx.strokeStyle=color;ctx.lineWidth=w||1.5;ctx.setLineDash(dash||[]);ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.stroke();ctx.setLineDash([])}
+function dotAt(ctx,x,y,r,color){ctx.fillStyle=color;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill()}
+function mulberry(seed){let a=seed>>>0;return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function gauss(rand){let u=0,v=0;while(u===0)u=rand();while(v===0)v=rand();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
+function observe(host,draw){redraws.add(draw);const ro=new ResizeObserver(()=>draw());ro.observe(host);return()=>{redraws.delete(draw);ro.disconnect()}}
+const TM2=12.42,TS2=12.00,TBEAT=1/Math.abs(1/TM2-1/TS2)/24;
+
+const ANIMS={
+ // 1. M2 + S2 疊加 → 大小潮（時間序列＋相量圖）
+ "tide-beat"(host){host.innerHTML="";
+  host.append(el("div",{class:"a-title"},"M2 與 S2 疊加：大潮與小潮從哪裡來"));
+  const ctl=el("div",{class:"ctl"},`<label>S2 振幅 <input type="range" id="tb-s2" min="0" max="1" step="0.05" value="0.45"> <span class="mono" id="tb-s2v">0.45</span> m</label>
+   <label>時間 <input type="range" id="tb-t" min="0" max="30" step="0.05" value="0"> <span class="mono" id="tb-tv">0.0</span> 天</label>
+   <button class="btn" id="tb-play" type="button">播放</button>`);
+  const plots=el("div",{class:"plots"});const p1=el("div"),p2=el("div",{class:"phasor"});plots.append(p1,p2);
+  const read=el("div",{class:"read"});const cap=el("p",{class:"cap"},"右圖以 M2 為基準（固定朝右），S2 的箭頭每 14.79 天相對轉一圈。兩箭頭同向時合成最長＝大潮；反向時最短＝小潮。M2 固定為 1.00 m。");
+  host.append(ctl,plots,read,cap);
+  const A=1.0;let B=.45,tau=0,playing=false,raf=0,last=0;
+  const cv1=canvas(p1,230),cv2=canvas(p2,170);
+  const s2=ctl.querySelector("#tb-s2"),tt=ctl.querySelector("#tb-t"),pb=ctl.querySelector("#tb-play");
+  function env(tday){const dphi=2*Math.PI*(tday*24)*(1/TS2-1/TM2);return Math.sqrt(A*A+B*B+2*A*B*Math.cos(dphi))}
+  function draw(){const cl=C(),b=cv1.size(),ctx=cv1.ctx;const yr=1.25+0.2;
+    const f=frame(ctx,b,{x0:0,x1:30,y0:-2.2,y1:2.6,xt:[0,5,10,15,20,25,30],yt:[-2,-1,0,1,2],yl:"水位 [m]",xl:"天"});
+    // 大小潮標記
+    for(let kk=0;kk*TBEAT<=30;kk++){[[kk*TBEAT,"大潮",cl.kelp],[(kk+.5)*TBEAT,"小潮",cl.buoy]].forEach(([x,lab,col])=>{if(x>30)return;ctx.fillStyle=col;ctx.globalAlpha=.12;ctx.fillRect(f.X(x)-6,f.T,12,f.B-f.T);ctx.globalAlpha=1;ctx.font="11px sans-serif";ctx.textAlign="center";ctx.textBaseline="top";ctx.fillText(lab,f.X(x),f.T)})}
+    const pts=[],up=[],dn=[];for(let i=0;i<=30*24*2;i++){const th=i/2,td=th/24;const v=A*Math.cos(2*Math.PI*th/TM2)+B*Math.cos(2*Math.PI*th/TS2);pts.push([f.X(td),f.Y(v)]);const e=env(td);up.push([f.X(td),f.Y(e)]);dn.push([f.X(td),f.Y(-e)])}
+    line(ctx,pts,cl.sea,.8);line(ctx,up,cl.buoy,1.6,[5,4]);line(ctx,dn,cl.buoy,1.6,[5,4]);
+    ctx.strokeStyle=cl.ink;ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(f.X(tau),f.T+14);ctx.lineTo(f.X(tau),f.B);ctx.stroke();
+    // 相量
+    const b2=cv2.size(),c2=cv2.ctx,cx=b2.w/2,cy=b2.h/2,sc=Math.min(b2.w,b2.h)/2/ (A+1)*0.95;
+    c2.strokeStyle=cl.line;c2.beginPath();c2.arc(cx,cy,sc*(A+B),0,Math.PI*2);c2.stroke();c2.setLineDash([3,3]);c2.beginPath();c2.arc(cx,cy,sc*Math.abs(A-B),0,Math.PI*2);c2.stroke();c2.setLineDash([]);
+    const dphi=2*Math.PI*(tau*24)*(1/TS2-1/TM2);const ax=cx+sc*A,ay=cy,bx=ax+sc*B*Math.cos(dphi),by=ay-sc*B*Math.sin(dphi);
+    const arrow=(x0,y0,x1,y1,col,w)=>{c2.strokeStyle=col;c2.lineWidth=w;c2.beginPath();c2.moveTo(x0,y0);c2.lineTo(x1,y1);c2.stroke();const a=Math.atan2(y1-y0,x1-x0);c2.fillStyle=col;c2.beginPath();c2.moveTo(x1,y1);c2.lineTo(x1-8*Math.cos(a-.4),y1-8*Math.sin(a-.4));c2.lineTo(x1-8*Math.cos(a+.4),y1-8*Math.sin(a+.4));c2.fill()};
+    arrow(cx,cy,ax,ay,cl.sea,2.5);if(B>0)arrow(ax,ay,bx,by,cl.muted,2);arrow(cx,cy,bx,by,cl.buoy,2);
+    c2.fillStyle=cl.muted;c2.font="11px sans-serif";c2.textAlign="left";c2.textBaseline="top";c2.fillText("M2",cx+4,cy+4);c2.fillStyle=cl.buoy;c2.fillText("合成",4,4);
+    const L=env(tau),deg=((dphi*180/Math.PI)%360+360)%360;
+    read.innerHTML=`<span>大潮潮差 2(M2+S2) = <b>${(2*(A+B)).toFixed(2)}</b> m</span><span>小潮潮差 2|M2−S2| = <b>${(2*Math.abs(A-B)).toFixed(2)}</b> m</span><span>週期 ${TBEAT.toFixed(2)} 天</span><span>此刻夾角 ${deg.toFixed(0)}°，當日潮差 ≈ <b>${(2*L).toFixed(2)}</b> m</span>`}
+  function step(ts){if(!playing)return;const dt=last?(ts-last)/1000:0;last=ts;tau=(tau+dt*2.5)%30;tt.value=tau;ctl.querySelector("#tb-tv").textContent=tau.toFixed(1);draw();raf=requestAnimationFrame(step)}
+  function setPlay(p){playing=p;pb.textContent=p?"暫停":"播放";last=0;cancelAnimationFrame(raf);if(p)raf=requestAnimationFrame(step)}
+  s2.addEventListener("input",()=>{B=+s2.value;ctl.querySelector("#tb-s2v").textContent=B.toFixed(2);draw()});
+  tt.addEventListener("input",()=>{setPlay(false);tau=+tt.value;ctl.querySelector("#tb-tv").textContent=tau.toFixed(1);draw()});
+  pb.addEventListener("click",()=>setPlay(!playing));
+  const off=observe(host,draw);draw();if(!RM.matches)setPlay(true);
+  return()=>{setPlay(false);off()}},
+
+ // 2. 取樣頻率改了，t 的單位就變了
+ "sampling-units"(host){host.innerHTML="";
+  host.append(el("div",{class:"a-title"},"取樣頻率改變時，t 還是「小時」嗎"));
+  const ctl=el("div",{class:"ctl"},`<span>FREQ</span><span class="seg"><button type="button" data-f="1" aria-pressed="false">"h"</button><button type="button" data-f="0.5" aria-pressed="true">"30min"</button></span>
+   <label><input type="checkbox" id="su-fix"> 用實際小時數 t_hours（第 2 週的修正）</label>`);
+  const box=el("div"),read=el("div",{class:"read"}),cap=el("p",{class:"cap"},"灰線是真實的 M2（週期 12.42 小時）。點是程式算出來的值，畫在它們真正的時間位置上。");
+  host.append(ctl,box,read,cap);const cv=canvas(box,210);let dt=.5,fix=false;
+  function draw(){const cl=C(),b=cv.size(),ctx=cv.ctx;const f=frame(ctx,b,{x0:0,x1:48,y0:-1.3,y1:1.3,xt:[0,6,12,18,24,30,36,42,48],yt:[-1,0,1],yl:"M2 [m]",xl:"實際經過的時間 [小時]"});
+    const ref=[];for(let x=0;x<=48;x+=.1)ref.push([f.X(x),f.Y(Math.cos(2*Math.PI*x/TM2))]);line(ctx,ref,cl.muted,1.2);
+    const N=Math.round(48/dt),pts=[];const ok=fix||dt===1,col=ok?cl.kelp:cl.miss;
+    for(let i=0;i<=N;i++){const real=i*dt,tval=fix?real:i;pts.push([f.X(real),f.Y(Math.cos(2*Math.PI*tval/TM2))])}
+    line(ctx,pts,col,1.4);pts.forEach(p=>dotAt(ctx,p[0],p[1],2.4,col));
+    const app=fix?TM2:TM2*dt;
+    read.innerHTML=`<span>t = ${fix?"i × "+dt+" 小時":"i（陣列索引）"}</span><span>每一步實際 ${dt} 小時</span><span class="${ok?"good":"bad"}">看起來的週期：${app.toFixed(2)} 小時${ok?"（正確）":"（錯，只剩一半）"}</span>`}
+  ctl.querySelectorAll("[data-f]").forEach(btn=>btn.addEventListener("click",()=>{dt=+btn.dataset.f;ctl.querySelectorAll("[data-f]").forEach(x=>x.setAttribute("aria-pressed",x===btn));draw()}));
+  ctl.querySelector("#su-fix").addEventListener("change",e=>{fix=e.target.checked;draw()});
+  const off=observe(host,draw);draw();return off},
+
+ // 3. seed 只影響雜訊
+ "seed-noise"(host){host.innerHTML="";
+  host.append(el("div",{class:"a-title"},"改 seed：哪些會變、哪些不會"));
+  const ctl=el("div",{class:"ctl"},`<span>SEED = <b class="mono" id="sn-v">42</b></span><button class="btn" type="button" id="sn-new">換一個 seed</button><button class="btn" type="button" id="sn-same">同一個 seed 再跑一次</button>`);
+  const box=el("div"),cap=el("p",{class:"cap"},"雜訊放大為 0.15 m 方便觀察。分潮由公式算出，跟 seed 無關；雜訊由亂數產生器產生，seed 決定這串亂數。");
+  host.append(ctl,box,cap);const cv=canvas(box,300);let seed=42,prev=null,flash=null,fadeT=0,raf=0;
+  const N=72;const det=[];for(let i=0;i<N;i++)det.push(Math.cos(2*Math.PI*i/TM2)+.45*Math.cos(2*Math.PI*i/TS2));
+  const noiseOf=s=>{const r=mulberry(s);return det.map(()=>.15*gauss(r))};let cur=noiseOf(seed);
+  function panel(ctx,b,y0,h,vals,ylo,yhi,title,badge,col,prevVals){const cl=C();const f=frame(ctx,{w:b.w,h:h},{x0:0,x1:N-1,y0:ylo,y1:yhi,yt:[],padT:18,padB:6});
+    ctx.save();ctx.translate(0,0);ctx.restore();
+    const shift=y=>y+y0;ctx.strokeStyle=cl.line;ctx.strokeRect(f.L,shift(f.T),f.R-f.L,f.B-f.T);
+    if(prevVals){line(ctx,prevVals.map((v,i)=>[f.X(i),shift(f.Y(v))]),cl.muted,1,[3,3])}
+    line(ctx,vals.map((v,i)=>[f.X(i),shift(f.Y(v))]),col,1.6);
+    ctx.fillStyle=cl.ink;ctx.font="12px sans-serif";ctx.textAlign="left";ctx.textBaseline="top";ctx.fillText(title,f.L,shift(2));
+    if(badge){ctx.font="bold 12px sans-serif";ctx.textAlign="right";ctx.fillStyle=badge.c;ctx.fillText(badge.t,f.R,shift(2))}}
+  function draw(){const cl=C(),b=cv.size(),ctx=cv.ctx,h=b.h/3;
+    const eta=det.map((v,i)=>v+cur[i]),pe=prev?det.map((v,i)=>v+prev[i]):null;
+    const bd=(changes)=>flash?(changes?(flash==="same"?{t:"完全相同",c:cl.kelp}:{t:"改變了",c:cl.buoy}):{t:"不變",c:cl.kelp}):null;
+    panel(ctx,b,0,h,det,-1.6,1.6,"分潮 m2 + s2（公式）",bd(false),cl.sea,null);
+    panel(ctx,b,h,h,cur,-.5,.5,"雜訊 noise（亂數）",bd(true),cl.buoy,prev);
+    panel(ctx,b,2*h,h,eta,-1.8,1.8,"潮位 eta = 分潮 + 雜訊",bd(true),cl.ink,pe)}
+  ctl.querySelector("#sn-new").addEventListener("click",()=>{prev=cur;seed+=1;cur=noiseOf(seed);flash="new";ctl.querySelector("#sn-v").textContent=seed;draw()});
+  ctl.querySelector("#sn-same").addEventListener("click",()=>{prev=cur;cur=noiseOf(seed);flash="same";draw()});
+  const off=observe(host,draw);draw();return off},
+
+ // 4. resample 分組統計
+ "resample"(host){host.innerHTML="";
+  host.append(el("div",{class:"a-title"},"resample(\"D\")：每小時 → 每日"));
+  const ctl=el("div",{class:"ctl"},`<button class="btn" type="button" id="rs-prev">上一步</button><button class="btn" type="button" id="rs-next">下一步</button><button class="btn" type="button" id="rs-play">自動播放</button><span class="mono" id="rs-step"></span>`);
+  const box=el("div"),cap=el("p",{class:"cap"});host.append(ctl,box,cap);const cv=canvas(box,220);
+  const N=72,r=mulberry(7),v=[];for(let i=0;i<N;i++)v.push(.2+Math.cos(2*Math.PI*i/TM2)+.45*Math.cos(2*Math.PI*i/TS2)+.05*gauss(r));
+  const days=[0,1,2].map(d=>{const s=v.slice(d*24,d*24+24);const mx=Math.max(...s),mn=Math.min(...s);return{mx,mn,mean:s.reduce((a,b)=>a+b,0)/24,imx:d*24+s.indexOf(mx),imn:d*24+s.indexOf(mn)}});
+  const CAP=["原始資料：72 筆每小時潮位，索引是時間。",'<code>eta.resample("D")</code>：依「日期」把資料分成 3 組，每組 24 筆。','<code>.agg(["max", "min", "mean"])</code>：每組算最高、最低、平均，3 天變成 3 列。','<code>daily["range"] = daily["max"] - daily["min"]</code>：每日潮差，就是第 1 週的第二張圖。'];
+  let stp=0,timer=0;
+  function draw(){const cl=C(),b=cv.size(),ctx=cv.ctx;const f=frame(ctx,b,{x0:0,x1:72,y0:-1.6,y1:1.9,xt:[0,24,48,72],yt:[-1,0,1],yl:"水位 [m]",xl:"小時"});
+    if(stp>=1)[0,1,2].forEach(d=>{ctx.fillStyle=d%2?cl.seaSoft:cl.bg;ctx.globalAlpha=.7;ctx.fillRect(f.X(d*24),f.T,f.X(24)-f.X(0),f.B-f.T);ctx.globalAlpha=1;ctx.fillStyle=cl.muted;ctx.font="11px sans-serif";ctx.textAlign="center";ctx.textBaseline="top";ctx.fillText(`第 ${d+1} 天`,f.X(d*24+12),f.T+2)});
+    const a=stp>=3?.18:1;ctx.globalAlpha=a;v.forEach((y,i)=>dotAt(ctx,f.X(i+.5),f.Y(y),2.2,cl.sea));line(ctx,v.map((y,i)=>[f.X(i+.5),f.Y(y)]),cl.sea,.8);ctx.globalAlpha=1;
+    if(stp>=2)days.forEach((d,j)=>{const x0=f.X(j*24+1),x1=f.X(j*24+23);line(ctx,[[x0,f.Y(d.mean)],[x1,f.Y(d.mean)]],cl.muted,1.4,[4,3]);dotAt(ctx,f.X(d.imx+.5),f.Y(d.mx),5,cl.miss);dotAt(ctx,f.X(d.imn+.5),f.Y(d.mn),5,cl.kelp);
+      ctx.font="11px "+cl.mono;ctx.fillStyle=cl.ink;ctx.textAlign="left";ctx.textBaseline="bottom";ctx.fillText(`max ${d.mx.toFixed(2)}`,f.X(j*24+1),f.Y(1.75));ctx.textBaseline="top";ctx.fillText(`min ${d.mn.toFixed(2)}`,f.X(j*24+1),f.Y(-1.25))});
+    if(stp>=3)days.forEach((d,j)=>{const x=f.X(j*24+12);ctx.strokeStyle=cl.buoy;ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(x,f.Y(d.mx));ctx.lineTo(x,f.Y(d.mn));ctx.stroke();ctx.fillStyle=cl.buoy;ctx.font="bold 12px "+cl.mono;ctx.textAlign="left";ctx.textBaseline="middle";ctx.fillText(`range ${(d.mx-d.mn).toFixed(2)}`,x+8,f.Y((d.mx+d.mn)/2))});
+    cap.innerHTML=CAP[stp];ctl.querySelector("#rs-step").textContent=`${stp+1} / 4`}
+  const go=s=>{stp=(s+4)%4;draw()};
+  ctl.querySelector("#rs-prev").addEventListener("click",()=>{clearInterval(timer);go(stp-1)});
+  ctl.querySelector("#rs-next").addEventListener("click",()=>{clearInterval(timer);go(stp+1)});
+  ctl.querySelector("#rs-play").addEventListener("click",()=>{clearInterval(timer);go(0);timer=setInterval(()=>go(stp+1),1800)});
+  const off=observe(host,draw);draw();return()=>{clearInterval(timer);off()}},
+
+ // 5. 找高潮：雜訊造成假峰值
+ "peak-find"(host){host.innerHTML="";
+  host.append(el("div",{class:"a-title"},"「比前後都高」就是高潮嗎：雜訊造成的假峰值"));
+  const ctl=el("div",{class:"ctl"},`<label>雜訊 NOISE_STD <input type="range" id="pf-n" min="0" max="0.4" step="0.01" value="0.05"> <span class="mono" id="pf-nv">0.05</span> m</label>
+   <label><input type="checkbox" id="pf-gap"> 最小間隔 6 小時</label><label><input type="checkbox" id="pf-sm"> 先平滑（5 點移動平均）</label><button class="btn" type="button" id="pf-re">新雜訊</button>`);
+  const box=el("div"),read=el("div",{class:"read"}),cap=el("p",{class:"cap"},"紅點是演算法找到的高潮；淺色圈是沒有雜訊時真正的高潮位置。三天的半日潮應該約有 6 次高潮（24 ÷ 12.42 ≈ 1.93 次／天）。");
+  host.append(ctl,box,read,cap);const cv=canvas(box,220);let ns=.05,gap=false,sm=false,seed=3;
+  const N=72,det=[];for(let i=0;i<N;i++)det.push(.2+Math.cos(2*Math.PI*i/TM2)+.45*Math.cos(2*Math.PI*i/TS2));
+  const peaks=a=>{const p=[];for(let i=1;i<a.length-1;i++)if(a[i]>a[i-1]&&a[i]>a[i+1])p.push(i);return p};
+  function draw(){const cl=C(),b=cv.size(),ctx=cv.ctx;const r=mulberry(seed);const raw=det.map(v=>v+ns*gauss(r));
+    let s=raw;if(sm)s=raw.map((_,i)=>{let a=0,c=0;for(let j=i-2;j<=i+2;j++)if(j>=0&&j<N){a+=raw[j];c++}return a/c});
+    let p=peaks(s);if(gap){const sorted=[...p].sort((a,b)=>s[b]-s[a]),keep=[];sorted.forEach(i=>{if(keep.every(j=>Math.abs(j-i)>=6))keep.push(i)});p=keep.sort((a,b)=>a-b)}
+    const f=frame(ctx,b,{x0:0,x1:71,y0:-1.8,y1:2.1,xt:[0,12,24,36,48,60,72].filter(x=>x<=71),yt:[-1,0,1,2],yl:"水位 [m]",xl:"小時"});
+    peaks(det).forEach(i=>{ctx.strokeStyle=cl.kelp;ctx.lineWidth=2;ctx.globalAlpha=.6;ctx.beginPath();ctx.arc(f.X(i),f.Y(det[i]),8,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1});
+    line(ctx,raw.map((v,i)=>[f.X(i),f.Y(v)]),cl.sea,1);if(sm)line(ctx,s.map((v,i)=>[f.X(i),f.Y(v)]),cl.ink,1.6);
+    p.forEach(i=>dotAt(ctx,f.X(i),f.Y(s[i]),4,cl.miss));
+    const ok=p.length>=5&&p.length<=7;read.innerHTML=`<span class="${ok?"good":"bad"}">找到 ${p.length} 個高潮（預期約 6 個）</span>${ok?"":"<span>多出來的是雜訊造成的假峰值</span>"}`}
+  ctl.querySelector("#pf-n").addEventListener("input",e=>{ns=+e.target.value;ctl.querySelector("#pf-nv").textContent=ns.toFixed(2);draw()});
+  ctl.querySelector("#pf-gap").addEventListener("change",e=>{gap=e.target.checked;draw()});
+  ctl.querySelector("#pf-sm").addEventListener("change",e=>{sm=e.target.checked;draw()});
+  ctl.querySelector("#pf-re").addEventListener("click",()=>{seed++;draw()});
+  const off=observe(host,draw);draw();return off},
+
+ // 6. 批次工作流程（第 2 週）
+ "batch-flow"(host){host.innerHTML="";
+  host.append(el("div",{class:"a-title"},"批次的四個步驟：送出 → 結束碼 → 跳過已完成 → 彙整"));
+  const ctl=el("div",{class:"ctl"},`<button class="btn primary" type="button" id="bf-run">執行 batch.py</button><button class="btn" type="button" id="bf-reset">清空 runs/</button><label><input type="checkbox" id="bf-bad"> 加入錯誤參數 s2_amp = -1</label>`);
+  const jobs=el("div",{class:"jobs"}),read=el("div",{class:"read"}),tbl=el("div",{class:"tbl"}),cap=el("p",{class:"cap"},"每個方塊是一個「工作」＝一次 tide_cli.py 執行。表格的 min_range_m 是範例程式實際跑出來的值。");
+  host.append(ctl,jobs,read,tbl,cap);
+  const grid=[];[.2,.45,.7,.9,1.0].forEach(a=>[1,2].forEach(s=>grid.push({a,s})));let done=new Set(),timers=[],busy=false;
+  const name=j=>`s2_amp${j.a}_seed${j.s}`;
+  function list(){const g=[...grid];if(ctl.querySelector("#bf-bad").checked)g.push({a:-1,s:1});return g}
+  function paint(states){const g=list();jobs.innerHTML=g.map((j,i)=>{const st=states?states[i]:(done.has(name(j))?"ok":"");const lab={"":"尚未執行",run:"執行中…",ok:"exit 0・完成",skip:"跳過（已完成）",fail:"exit 2・參數錯誤"}[st];
+    return `<div class="job ${st}"><span>${name(j)}</span><span class="st">${lab}</span></div>`}).join("")}
+  const REAL={"s2_amp0.2_seed1":1.5757,"s2_amp0.2_seed2":1.6282,"s2_amp0.45_seed1":1.1183,"s2_amp0.45_seed2":1.155,"s2_amp0.7_seed1":.6518,"s2_amp0.7_seed2":.6952,"s2_amp0.9_seed1":.3769,"s2_amp0.9_seed2":.4029,"s2_amp1_seed1":.3435,"s2_amp1_seed2":.3396};
+  function table(){const rows=grid.filter(j=>done.has(name(j))).map(j=>`<tr><td class="mono">${name(j)}</td><td class="mono">${j.a}</td><td class="mono">${j.s}</td><td class="mono">${REAL[name(j)].toFixed(4)}</td><td class="mono">${(2*Math.abs(1-j.a)).toFixed(2)}</td></tr>`).join("");
+    tbl.innerHTML=rows?`<table><thead><tr><th>run</th><th>s2_amp</th><th>seed</th><th>min_range_m</th><th>theory_min</th></tr></thead><tbody>${rows}</tbody></table>`:`<p class="muted" style="margin:0;padding:10px">summary.csv 還是空的</p>`}
+  function run(){if(busy)return;busy=true;const g=list(),states=g.map(()=>"");let nRun=0,nSkip=0,nFail=0;
+    g.forEach((j,i)=>{timers.push(setTimeout(()=>{if(done.has(name(j))){states[i]="skip";nSkip++;paint(states)}else{states[i]="run";paint(states);
+        timers.push(setTimeout(()=>{if(j.a<0){states[i]="fail";nFail++}else{states[i]="ok";done.add(name(j));nRun++}paint(states);table()},RM.matches?0:260))}
+      if(i===g.length-1)timers.push(setTimeout(()=>{busy=false;read.innerHTML=`<span>執行 ${nRun}</span><span>跳過 ${nSkip}</span><span class="${nFail?"bad":"good"}">失敗 ${nFail}</span><span>batch.py 結束碼：${nFail?1:0}</span>`},RM.matches?0:400))},RM.matches?0:i*300))})}
+  ctl.querySelector("#bf-run").addEventListener("click",run);
+  ctl.querySelector("#bf-reset").addEventListener("click",()=>{timers.forEach(clearTimeout);timers=[];busy=false;done.clear();paint();table();read.innerHTML=""});
+  ctl.querySelector("#bf-bad").addEventListener("change",()=>{if(!busy)paint()});
+  paint();table();return()=>timers.forEach(clearTimeout)},
+
+ // 7. Linux 管線
+ "pipe"(host){host.innerHTML="";
+  host.append(el("div",{class:"a-title"},"管線 |：前一個指令的輸出，變成下一個指令的輸入"));
+  const ctl=el("div",{class:"ctl"},`<button class="btn primary" type="button" id="pp-next">下一個指令</button><button class="btn" type="button" id="pp-reset">重來</button><span class="mono muted">cat runs/*/config.json | grep seed | sort | uniq -c</span>`);
+  const pipe=el("div",{class:"pipe"}),cap=el("p",{class:"cap"});host.append(ctl,pipe,cap);
+  const runs=[];[.2,.45,.7,.9,1.0].forEach(a=>[1,2].forEach(s=>runs.push({a,s})));
+  const catL=[];runs.slice(0,3).forEach(r=>{catL.push("{",`  "m2_amp": 1.0,`,`  "s2_amp": ${r.a},`,`  "seed": ${r.s},`,"  …","}")});catL.push(`…（10 個檔，共約 110 行）`);
+  const grepL=runs.map(r=>`  "seed": ${r.s},`);const sortL=[...grepL].sort();const uniqL=[`  5   "seed": 1,`,`  5   "seed": 2,`];
+  const ST=[["cat runs/*/config.json",catL,"cat：把 10 個檔案的內容接起來輸出。"],["grep seed",grepL,"grep：只留下含有 seed 的行，10 行。"],["sort",sortL,"sort：排序，相同的行會排在一起。"],["uniq -c",uniqL,"uniq -c：把連續相同的行合併並計數。答案：每個 seed 各 5 次。"]];
+  let n=0;function paint(){pipe.innerHTML=ST.map((s,i)=>`<div class="stage ${i<n?"":"dim"} ${i===n-1?"on":""}"><span class="cmd">${i?"| ":""}${esc(s[0])}</span>${(i<n?s[1]:[]).map(x=>`<span class="ln">${esc(x)}</span>`).join("")}</div>`).join("");
+    cap.textContent=n?ST[n-1][2]:"按「下一個指令」，看資料怎麼一步步被處理。";ctl.querySelector("#pp-next").disabled=n>=4}
+  ctl.querySelector("#pp-next").addEventListener("click",()=>{n=Math.min(4,n+1);paint()});
+  ctl.querySelector("#pp-reset").addEventListener("click",()=>{n=0;paint()});paint()}
+};
+
+// ======================= 啟動 =======================
+load();render();
+(async()=>{try{if(!window.claude)return;const [db,user]=await Promise.all([claude.use("db"),claude.use("user")]);
+  if(!db||!user)return;const id=await user.id();if(!id)return;dbDoc=db.doc("data/users/"+id+"/progress");
+  const snap=await dbDoc.get();
+  if(snap.exists){const d=snap.data();state=Object.assign({},state,d,{start:d.start||state.start,done:Object.assign({},d.done||{}),notes:JSON.parse(JSON.stringify(d.notes||{}))});
+    try{localStorage.setItem("sciml-log",JSON.stringify(state))}catch(e){}refreshProgress();if(view.kind==="week"){/* 保留目前講解，不重載 */}setSave("已同步到雲端")}
+  else{await dbDoc.set(JSON.parse(JSON.stringify(state)));setSave("已同步到雲端")}
+}catch(e){setSave("本機儲存")}})();
+</script>

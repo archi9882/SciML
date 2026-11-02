@@ -1,6 +1,8 @@
 # SciML 學習紀錄
 
-從水文與海洋科學背景出發，用 20 週學習以機器學習加速物理模擬：PINN、多目標最佳化、Neural Operator，以及生成式設計。
+從水文與海洋科學背景出發，用 26 週（半年）補齊能源產業數值模擬職缺所需的能力：數值模擬與物理判斷、空間資訊與地理統計、ETL、自有基礎建設、REST API、MLOps，以及驗證 AI 產出的判斷力。
+
+**學習入口**：[SciML 半年學習站](https://claude.ai/artifact/Vq3vHXDt4AjtTW9tTbeGQL)（每週講解、程式導讀、動畫、每日任務與進度）。原始碼在 `site/`。
 
 每週的程式、論文摘要與失敗案例報告都記錄在這裡。
 
@@ -8,24 +10,31 @@
 
 | 資料夾 | 內容 |
 |---|---|
-| `week01/` … `week20/` | 每週範例程式、練習題（`exercises.md`）與自己的練習 |
+| `week01/` … `week26/` | 每週範例程式、練習題（`exercises.md`）與自己的練習 |
 | `papers/` | `input/` 放論文 PDF，`output/` 放自己的反芻（模板 `output/TEMPLATE.md`）；流程見 `.claude/skills/verifying-paper-comprehension/SKILL.md`，期限檢查用 `python papers/check.py` |
 | `reports/` | 失敗案例報告：現行方法在哪裡預測不準、原因與佐證（格式見 `reports/TEMPLATE.md`） |
 | `backups/` | 進度追蹤頁的勾選與筆記備份 |
-| `PLAN.md` | 20 週計畫與交接摘要 |
+| `PLAN.md` | 26 週計畫與交接摘要 |
+| `site/` | 學習站原始碼：`index.html` 與每週講解 `content/wNN.html` |
+| `jobs/` | 職缺技能盤點 |
 | `pyflow/` | 獨立作品：Python 傳遞關係視覺化工具（見 `pyflow/README.zh-TW.md`） |
 
 ## 進度
 
 | 階段 | 週 | 主題 | 狀態 |
 |---|---|---|---|
-| A 打底 | 1–2 | Python 協作、批次腳本 | 進行中 |
-| B 數值方法 | 3–5 | 有限差分、Burgers、批次實驗框架 | |
-| C PINN | 6–9 | PyTorch、PINN、失敗模式與改善 | |
-| D 最佳化 | 10–13 | pymoo、Kaggle、Optuna、多目標調 PINN | |
-| E Neural Operator | 14–17 | 資料集、FNO、DeepONet、分佈外測試 | |
-| F 選修專題 | 18–19 | 生成式設計：拓樸最佳化 | |
-| | 20 | 作品集與論文導讀 | |
+| A 打底 | 1–2 | 讀懂資料處理程式、命令列與批次 | 進行中 |
+| B 數值方法與物理判斷 | 3–7 | FDM、Burgers、批次實驗框架、PyTorch、PINN 與失敗模式 | |
+| B2 神經網路延伸 | 8 | 神經運算元入門 | |
+| C 空間資訊與地理統計 | 9–11 | Voronoi／Delaunay、拓撲與座標系統、空間內插 | |
+| D ETL 與資料工程 | 12–13 | 異質資料 ETL、資料品質與統計前提 | |
+| E 自有基礎建設 | 14–17 | Linux 服務、Docker、多服務架構決策、manifest 審查 | |
+| F REST API 與模型服務 | 18–19 | FastAPI、模型服務化、CI/CD | |
+| G MLOps 工具鏈 | 20–21 | MLflow、DVC、編排、監控與漂移 | |
+| H Legacy 科學程式碼 | 22 | Fortran、OpenMP、AI 翻譯審查 | |
+| I 最佳化回顧 | 23 | pymoo、Optuna | |
+| J 選修：生成式設計 | 24–25 | 拓樸最佳化資料集、生成模型與物理檢驗 | |
+| K 作品集與面試 | 26 | 作品集與模擬面試 | |
 
 ## 讀論文的步驟
 
@@ -43,6 +52,7 @@
 ## 執行環境
 
 ```bash
-pip install numpy pandas matplotlib
+pip install -r requirements.txt
 python week01/tide_example.py
+python week02/batch.py
 ```
