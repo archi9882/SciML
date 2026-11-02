@@ -1,108 +1,103 @@
-<section>
-  <h2>這週在練什麼</h2>
-  <p>第 1 週改參數的方式是打開檔案改常數，再手動執行。做一次可以，做五十次就會出錯：忘了改回來、不記得這張圖是哪組參數跑的。</p>
-  <p>這週把程式改成「用參數呼叫」的工具，再寫一支批次腳本自動跑完一整組參數、彙整結果。這個介面是後面所有工程主題的共同起點：排程器、Docker 容器、REST API、MLOps 流程，本質上都是「用參數執行一支程式，檢查結束碼與輸出檔」。</p>
-  <div class="callout job"><b>對應職缺</b><p>職缺說「系統性的控制變數，結果不如預期就砍掉換方向」。批次工作讓控制變數變得便宜，這是做到這件事的前提。也是 Must Have 2「自有基礎建設」的最小版本。</p></div>
-  <p>範例程式：<code>week02/tide_cli.py</code>（一次實驗）與 <code>week02/batch.py</code>（一整組實驗）。練習題在 <code>week02/exercises.md</code>。</p>
+<section class="bigq-intro">
+  <p>第 1 週你一次改一個常數、手動跑、手動比較。這樣做五次還行，做五十次就會出錯：忘了改回來、不記得這張圖是哪組參數跑的、新舊結果混在一起。</p>
+  <div class="callout job"><b>為什麼要學這個</b><p>職缺說「系統性的控制變數，結果不如預期就砍掉換方向」。前提是「改一個參數、看結果」這件事要便宜而且不出錯。這週做的「用參數呼叫程式、批次執行、自動彙整」，也是之後排程、容器、API、MLOps 的共同起點：它們本質上都是用參數執行一支程式，再檢查結束碼與輸出檔。</p></div>
+  <p>這週在大圖裡屬於「ETL」與「部署與排程」兩格的最小版本。範例：<code>week02/tide_cli.py</code>（一次實驗）、<code>week02/batch.py</code>（一整組實驗）。</p>
 </section>
 
 <section data-day="1">
-  <h2><span class="day-mark">Day 1</span>命令列參數與結束碼</h2>
-  <p><code>argparse</code> 把命令列上的文字轉成程式裡的變數。每個參數都有型別、預設值與說明，執行 <code>--help</code> 就能看到完整清單。</p>
-  <div class="code"><span class="file">week02/tide_cli.py</span><pre><code class="language-python">p = argparse.ArgumentParser(description="合成潮位：M2 + S2 + 雜訊")
-p.add_argument("--s2-amp", type=float, default=0.45, help="S2 振幅 [m]")
+  <h2><span class="stage-no">一</span>理論與示範</h2>
+  <p class="lead">要讓實驗便宜又不出錯，需要四個觀念：用參數呼叫程式、用結束碼回報成敗、批次要能安全地重跑、用小工具快速檢查大量輸出。</p>
+
+  <h3><span class="day-mark">Day 1</span>1. 一次執行＝一次實驗：參數與結束碼</h3>
+  <p><code>argparse</code> 把命令列上的文字轉成程式裡的變數，每個參數有型別、預設值與說明，<code>--help</code> 會列出全部。參數不合理時，程式要明確失敗，而不是硬算出一個怪結果。</p>
+  <div class="code"><span class="file">week02/tide_cli.py（節錄）</span><pre><code class="language-python">p.add_argument("--s2-amp", type=float, default=0.45, help="S2 振幅 [m]")
 p.add_argument("--freq", default="h", help='取樣頻率，如 "h"、"30min"')
-p.add_argument("--seed", type=int, default=42, help="亂數種子")
-p.add_argument("--out", required=True, help="輸出資料夾")</code></pre></div>
-  <p>參數不合理時，程式不該硬跑出一個奇怪的結果，而是明確地失敗：</p>
-  <div class="code"><span class="file">week02/tide_cli.py</span><pre><code class="language-python">errors = validate(a)
+p.add_argument("--out", required=True, help="輸出資料夾")
+
+errors = validate(a)
 if errors:
     for e in errors:
         print(f"參數錯誤：{e}", file=sys.stderr)   # 錯誤寫到 stderr
     return 2                                      # 非 0 = 失敗</code></pre></div>
-  <div class="callout term"><b>名詞：結束碼（exit code）</b><p>程式結束時回報的數字。0 代表成功，非 0 代表失敗，慣例上 2 代表參數用錯。批次系統、排程器、CI 都只看這個數字判斷成敗，不會讀你印出來的文字。</p></div>
+  <div class="callout term"><b>名詞：結束碼（exit code）</b><p>程式結束時回報的數字。0 是成功，非 0 是失敗，慣例上 2 代表參數用錯。批次系統、排程器、CI 只看這個數字，不會讀你印出來的文字。</p></div>
   <div class="tbl"><table><thead><tr><th>輸出</th><th>給誰看</th><th>本範例放什麼</th></tr></thead><tbody>
-    <tr><td>stdout（標準輸出）</td><td>下一個程式</td><td>一行 JSON 結果</td></tr>
-    <tr><td>stderr（標準錯誤）</td><td>人</td><td>錯誤訊息</td></tr>
+    <tr><td>stdout</td><td>下一個程式</td><td>一行 JSON 結果</td></tr>
+    <tr><td>stderr</td><td>人</td><td>錯誤訊息</td></tr>
     <tr><td>結束碼</td><td>呼叫它的程式</td><td>0 成功、2 參數錯誤</td></tr>
     <tr><td>輸出資料夾</td><td>三個月後的你</td><td>config.json、metrics.json、eta.csv</td></tr>
   </tbody></table></div>
-</section>
+  <div class="callout demo"><b>示範</b><p><code>python tide_cli.py --s2-amp -1 --out runs/bad</code> 會印出「參數錯誤：振幅不能是負數」，接著 <code>echo $?</code>（PowerShell：<code>$LASTEXITCODE</code>）得到 2，而且不會建立 <code>runs/bad</code>。</p></div>
 
-<section data-day="2">
-  <h2><span class="day-mark">Day 2</span>第 1 週的單位陷阱，在這裡被修好</h2>
-  <p>第 1 週的 <code>t = np.arange(n)</code> 只有在每小時取樣時才代表小時。<code>tide_cli.py</code> 改成從時間軸本身算出實際經過的小時數，並用結束時間決定筆數，不再寫死 <code>days * 24</code>：</p>
-  <div class="code"><span class="file">week02/tide_cli.py</span><pre><code class="language-python">time = pd.date_range(start=a.start, end=pd.Timestamp(a.start) + pd.Timedelta(days=a.days),
+  <h3 data-day="2"><span class="day-mark">Day 2</span>2. 第 1 週的單位陷阱在這裡修好</h3>
+  <p><code>tide_cli.py</code> 從時間軸算實際經過的小時數，並用結束時間決定筆數，不再寫死 <code>days * 24</code>。打開下方的「用實際小時數」，兩種頻率都會落在真實曲線上。</p>
+  <div class="code"><pre><code class="language-python">time = pd.date_range(start=a.start, end=pd.Timestamp(a.start) + pd.Timedelta(days=a.days),
                      freq=a.freq, inclusive="left")
 t_hours = (time - time[0]) / pd.Timedelta(hours=1)</code></pre></div>
-  <p>打開「用實際小時數」，兩種頻率的波形都會落在真實曲線上：</p>
   <div data-anim="sampling-units"></div>
-  <div class="callout predict"><b>先預測再執行</b><p><code>--freq h</code> 與 <code>--freq 30min</code> 的 <code>max_range_m</code> 應該接近還是差很多？<code>n_samples</code> 應該差幾倍？寫下預測再跑。實測：1440 筆對 2880 筆，最大潮差 3.00 對 3.03 m，差異來自雜訊。</p></div>
-</section>
+  <div class="callout demo"><b>示範：用理論驗證修正</b><p><code>--freq h</code> 得到 1440 筆、最大潮差 3.00 m；<code>--freq 30min</code> 得到 2880 筆、最大潮差 3.03 m。筆數剛好兩倍，潮差接近，差異來自雜訊。修正成立。</p></div>
 
-<section data-day="3">
-  <h2><span class="day-mark">Day 3</span>批次的四個步驟</h2>
-  <p><code>batch.py</code> 做四件事。按「執行」看一次完整流程，再按一次看第二次執行有什麼不同。勾選「加入錯誤參數」看失敗如何被處理。</p>
+  <h3 data-day="3"><span class="day-mark">Day 3</span>3. 批次的四個步驟，以及為什麼要能安全重跑</h3>
+  <p><code>batch.py</code> 做四件事：定義參數網格、每組送出一個工作並檢查結束碼、跳過已完成的、讀回所有結果彙整成 <code>summary.csv</code>。按「執行」看一次，再按一次看第二次有什麼不同。</p>
   <div data-anim="batch-flow"></div>
-  <ol>
-    <li><b>定義參數網格</b>：<code>GRID</code> 寫要變的參數與取值，<code>itertools.product</code> 列出所有組合。</li>
-    <li><b>送出工作</b>：每組參數用 <code>subprocess.run</code> 呼叫一次 <code>tide_cli.py</code>，檢查結束碼。</li>
-    <li><b>跳過已完成</b>：結果已存在且設定相同就不重跑。</li>
-    <li><b>彙整</b>：讀回每個資料夾的 config 與 metrics，合併成 <code>summary.csv</code>。</li>
-  </ol>
   <div class="code"><span class="file">week02/batch.py</span><pre><code class="language-python">GRID = {
     "s2_amp": [0.20, 0.45, 0.70, 0.90, 1.00],
     "seed": [1, 2],
 }
 
 def already_done(folder: Path, params: dict) -> bool:
-    """結果存在、且當時的設定跟這次相同，才算做過。"""
     cfg, met = folder / "config.json", folder / "metrics.json"
     if not (cfg.exists() and met.exists()):
         return False
     old = json.loads(cfg.read_text(encoding="utf-8"))
     return all(old.get(k) == v for k, v in params.items())</code></pre></div>
-  <div class="callout term"><b>名詞：冪等性（idempotency）</b><p>做一次或做很多次，結果都一樣。批次跑到一半當掉，直接重跑就好，不會重複計算，也不會產生兩份互相矛盾的結果。第 13 週的 ETL、第 22 週的流程編排都要求這個性質。</p></div>
-  <div class="callout trap"><b>為什麼要比對設定，而不只是檢查檔案存在</b><p>如果只看 <code>metrics.json</code> 在不在，你改了預設雜訊再重跑，舊結果會被當成新結果沿用，整份彙整悄悄混了兩種設定。比對 config 才能防住這種錯。</p></div>
+  <div class="callout term"><b>名詞：冪等性（idempotency）</b><p>做一次或做很多次，結果都一樣。批次跑到一半當掉，直接重跑就好，不會重複計算，也不會產生互相矛盾的結果。</p></div>
+
+  <h3>4. 用小工具檢查大量輸出：管線</h3>
+  <p>批次跑完有一堆資料夾。不寫程式，用 <code>|</code> 把小指令串起來就能快速檢查：前一個指令的輸出，變成下一個指令的輸入。</p>
+  <div data-anim="pipe"></div>
 </section>
 
 <section data-day="4">
-  <h2><span class="day-mark">Day 4</span>彙整與檢查：模擬和理論差在哪</h2>
-  <p><code>summary.png</code> 畫出每個 S2 振幅下的最大、最小每日潮差，疊上理論虛線 2(M2+S2) 與 2|M2−S2|。最大潮差幾乎貼著理論線，最小潮差在 S2 接近 M2 時卻明顯偏大。實際跑出來的數字：</p>
-  <div class="tbl"><table><thead><tr><th>S2 振幅</th><th>模擬最小潮差（seed 1／2）</th><th>理論 2|M2−S2|</th></tr></thead><tbody>
-    <tr><td class="mono">0.45</td><td class="mono">1.12／1.16 m</td><td class="mono">1.10 m</td></tr>
-    <tr><td class="mono">0.90</td><td class="mono">0.38／0.40 m</td><td class="mono">0.20 m</td></tr>
-    <tr><td class="mono">1.00</td><td class="mono">0.34／0.34 m</td><td class="mono">0.00 m</td></tr>
+  <h2><span class="stage-no">二</span>例題（完整示範）</h2>
+  <div class="callout predict"><b>例題</b><p>已經跑過一次 <code>batch.py</code>（10 組）。現在在 <code>GRID</code> 加入 <code>"noise": [0.05, 0.3]</code> 再跑。預測：應該有幾組、第二次執行會跳過幾組、<code>summary.csv</code> 會有幾列？然後實際跑，比對預測。</p></div>
+  <p><b>步驟 1：先算。</b>5 個振幅 × 2 個 seed × 2 個雜訊 = 20 組。直覺上，原本 noise = 0.05 的 10 組已經跑過，應該跳過 10 組、<code>summary.csv</code> 有 20 列。</p>
+  <p><b>步驟 2：實際跑。</b></p>
+  <div class="tbl"><table><thead><tr><th>項目</th><th>預測</th><th>實際</th></tr></thead><tbody>
+    <tr><td>執行的組數</td><td class="mono">10</td><td class="mono">20（一組都沒跳過）</td></tr>
+    <tr><td>summary.csv 列數</td><td class="mono">20</td><td class="mono">30</td></tr>
+    <tr><td>noise = 0.05 的每組筆數</td><td class="mono">2</td><td class="mono">4（重複）</td></tr>
   </tbody></table></div>
-  <p>偏差有兩個來源，都在「每日最高減每日最低」這個算法本身，不是模型錯了：</p>
-  <ul>
-    <li><b>一天的時間窗</b>：理論小潮潮差是包絡線最窄那一瞬間的值。但每日統計看的是整整 24 小時，前後 12 小時包絡線已經變寬，所以就算沒有雜訊，每日最小潮差也不會是 0。</li>
-    <li><b>雜訊的極值</b>：每天 24 筆各帶雜訊，最高那筆傾向被往上推，最低那筆被往下推，潮差系統性偏大。</li>
-  </ul>
-  <p>小潮時真實潮差很小，這兩個偏差的比例就變得很明顯。要分辨哪個來源比較大，把 <code>--noise 0</code> 跑一次就知道。</p>
-  <div class="callout predict"><b>先預測再執行</b><p>在 <code>GRID</code> 加入 <code>"noise": [0.05, 0.3]</code>。總共幾組？noise = 0.3 時最小潮差的偏差會變大還是變小？寫下來再跑。這就是一則「方法在什麼條件下失準」的觀察。</p></div>
+  <p><b>步驟 3：找原因。</b>資料夾名稱由參數組成，加了 noise 之後名稱從 <code>s2_amp0.2_seed1</code> 變成 <code>s2_amp0.2_seed1_noise0.05</code>，舊資料夾對不上，所以全部重跑。而 <code>collect()</code> 會讀 <code>runs/</code> 底下所有資料夾，舊的 10 個也被收進來，noise = 0.05 的結果因此出現兩次。</p>
+  <p><b>步驟 4：判斷影響，下結論。</b>這次重複的兩份數值剛好一樣，所以平均值沒變；但筆數、標準差都錯了。如果舊結果是用不同的預設值跑的，平均值也會悄悄被拉偏，而且程式不會報錯。修正方式：彙整時只收「這次網格裡的組合」，或每次換網格前清空 <code>runs/</code>。</p>
+  <div class="callout job"><b>這個例題教的方法</b><p>批次結果出錯時通常不會報錯，只會「多一些」或「少一些」。習慣用簡單的數字先預測（應該幾組、幾列），再跟實際比對。數字對不上，就是線索。</p></div>
 </section>
 
 <section data-day="5">
-  <h2><span class="day-mark">Day 5</span>Linux 基本操作：管線</h2>
-  <p>批次跑完會產生一堆資料夾。不寫程式，用幾個小指令串起來就能快速檢查。關鍵是<b>管線</b> <code>|</code>：把前一個指令的輸出，接成下一個指令的輸入。</p>
-  <div data-anim="pipe"></div>
-  <div class="tbl"><table><thead><tr><th>指令</th><th>做什麼</th></tr></thead><tbody>
-    <tr><td><code>ls runs | wc -l</code></td><td>數有幾個實驗資料夾</td></tr>
-    <tr><td><code>grep -h min_range runs/*/metrics.json</code></td><td>一次列出所有結果的最小潮差</td></tr>
-    <tr><td><code>cat runs/*/config.json | grep seed | sort | uniq -c</code></td><td>統計每個 seed 出現幾次</td></tr>
-    <tr><td><code>echo $?</code>（PowerShell：<code>$LASTEXITCODE</code>）</td><td>看上一個指令的結束碼</td></tr>
-  </tbody></table></div>
-  <p>Windows 上用 Git Bash 或 WSL 執行。這些指令先自己查用法，不要讓 AI 直接給答案。第 16 週架 Linux 服務時，看日誌、找錯都靠這幾招。</p>
+  <h2><span class="stage-no">三</span>變化題</h2>
+  <p class="lead">先自己做，卡住再看提示；答案寫進 <code>week02/notes.md</code> 再對照。</p>
+
+  <h3><span class="day-mark">Day 5</span>變化 1：分離偏差來源</h3>
+  <p>例題跑完後，<code>noise = 0.3</code> 在 S2 = 1.00 時的最小潮差約 1.12 m，理論是 0。用第 1 週例題的四步，把落差拆成「一天的時間窗」和「雜訊」兩個來源。</p>
+  <details class="hint"><summary>提示</summary><p>加一組 <code>--noise 0</code> 當基準。雜訊為 0 時剩下的部分，就是時間窗造成的。</p></details>
+  <details class="hint"><summary>參考答案</summary><p>雜訊 0 時約 0.31 m（時間窗），雜訊 0.05 時約 0.34–0.38 m，雜訊 0.3 時約 1.1 m。雜訊越大，每日最高與最低被往外推得越多，偏差隨雜訊快速增加。</p></details>
+
+  <h3>變化 2：讓一組失敗，批次仍要跑完</h3>
+  <p>在網格加入一組 <code>s2_amp = -1</code>。現在的 <code>batch.py</code> 會怎麼處理？讓它跑完其他組，最後列出失敗清單，並決定失敗的那組要不要出現在 <code>summary.csv</code>。</p>
+  <details class="hint"><summary>提示</summary><p><code>submit()</code> 已經回傳結束碼。失敗的那組不會產生 <code>metrics.json</code>，所以 <code>collect()</code> 不會收到它。問題是：你要不要在摘要裡明確記下「這組失敗了」？</p></details>
+
+  <h3>變化 3：讓 AI 寫檢查腳本，再抓它的錯</h3>
+  <p>請 AI 寫一支 <code>check_summary.py</code>：「讀 summary.csv，確認每組參數都有結果、沒有重複」。用例題那份 30 列的 summary 測試它。它抓得到重複嗎？抓不到的話，錯在哪一行？</p>
+  <details class="hint"><summary>提示</summary><p>常見的錯：只檢查 <code>run</code> 欄位是否重複（資料夾名稱不同，所以抓不到），而沒有檢查「參數組合」是否重複。</p></details>
 </section>
 
 <section data-day="6">
-  <h2><span class="day-mark">Day 6</span>本週產出</h2>
+  <h2><span class="stage-no">四</span>回答本週大問題</h2>
+  <p>用一段話回答「怎麼讓『改一個參數、看結果』變得便宜又不出錯？」，寫進 <code>week02/notes.md</code>，並畫一張批次流程圖（文字即可）：參數網格 → 送出工作 → 檢查結束碼 → 跳過已完成 → 彙整 → 檢查筆數 → 畫圖。答案至少說明：</p>
   <ol>
-    <li>在 <code>week02/notes.md</code> 畫一張批次流程圖（文字即可）：參數網格 → 送出工作 → 檢查結束碼 → 跳過已完成 → 彙整 → 畫圖。</li>
-    <li>寫本週閱讀的 5 行摘要：<code>papers/output/2023_shen.md</code>。閱讀時特別留意作者如何區分 physics-based、data-driven 與 hybrid，這是職缺 Must Have 1 的判斷題。</li>
-    <li>回到本頁勾選，push。</li>
+    <li>每一步各防止了哪一種錯誤。</li>
+    <li>例題裡那種「新舊結果混在一起」要怎麼防。</li>
+    <li>什麼時候該重跑全部，什麼時候可以跳過。</li>
   </ol>
-  <div class="callout job"><b>下週預告：AI 成品交付</b><p>第 3 週你會拿到一套由 AI 寫好、能從頭跑到尾的潮汐監測系統 TideWatch。這兩週學的「讀程式、看單位、檢查結束碼、用理論對答案」，就是之後逐塊審查它的基本功。</p></div>
-  <div class="callout term"><b>加分題</b><p>讓 <code>batch.py</code> 在某一組失敗時繼續跑完其他組，最後回報失敗清單。想想看：失敗的那組，應該出現在 <code>summary.csv</code> 裡嗎？出現的話要怎麼標記？</p></div>
+  <p>另外寫本週閱讀的 5 行摘要：<code>papers/output/2023_shen.md</code>。閱讀時留意作者如何區分 physics-based、data-driven 與 hybrid，這是第 10 週要做的判斷。</p>
+  <div class="callout job"><b>下週預告：AI 成品交付</b><p>第 3 週會拿到一套由 AI 寫好、能從頭跑到尾的潮汐監測系統 TideWatch。這兩週學的「拿理論對答案、先預測再比對、把落差拆成來源」，就是之後逐塊審查它的方法。</p></div>
 </section>

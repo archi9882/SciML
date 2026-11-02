@@ -25,6 +25,8 @@
 - 在意 context window：每週開新對話，回覆保持精簡。
 
 ## 學習偏好（必須遵守）
+- **先地圖、再細節**：每週只有一個「大問題」，開頭先說它在大圖（TideWatch 資料流）的哪一格；所有練習都要能回答「不做這題會不會影響大問題的答案」，不能的就刪或降為延伸。
+- **教學順序固定**：一、理論與示範（每個觀念附一個可跑的示範）→ 二、例題（完整逐步解，示範解題方法）→ 三、變化題（改條件／讓方法失敗／讓 AI 做再抓錯，提示與參考答案收合）→ 四、回答大問題（週六產出）。講解片段的 `data-day` 對應每日任務。
 - 語法可交給 AI，邏輯不外包；第一個月語法比重低。
 - 做中學：每週先給可執行範例程式，學習者讀懂後做練習題。練習要包含「先預測再執行」與「讓方法失敗」。
 - 每週至少一題「讓 AI 寫，再找出它錯在哪」（對應職缺 Must Have 3）。
@@ -37,7 +39,7 @@
 - **學習站（單一入口）**：https://claude.ai/artifact/Vq3vHXDt4AjtTW9tTbeGQL
   - 原始碼在 repo 的 `site/`：`index.html`（26 週資料、進度、動畫引擎）＋ `content/wNN.html`（每週講解片段）。
   - 發布：Artifact publish，`url` 為上述網址，`file_path` = `site/index.html`，`files` 帶上所有 `content/wNN.html`。
-  - 新增一週講解：寫 `site/content/wNN.html`，在 `index.html` 的 `W[NN-1]` 加上 `content:"content/wNN.html"`，需要新動畫就加進 `ANIMS`，然後重新發布。
+  - 新增一週講解：依「理論與示範 → 例題 → 變化題 → 回答大問題」寫 `site/content/wNN.html`（大問題在 `Q` 陣列），在 `index.html` 的 `W[NN-1]` 加上 `content:"content/wNN.html"`，需要新動畫就加進 `ANIMS`，然後重新發布。
   - db：collection `data/users/me`，doc `progress`。欄位：`start`、`done`（key `w{週}d{日}c` 練習、`w{週}d{日}p` 閱讀）、`notes`（`w{週}` → `{paper, fail}`）、`track`（舊欄位，保留不用）。
   - 讀取：ArtifactData `get`，url 如上，collection `data/users/me`，doc_id `progress`。
 - **GitHub repo（正本）**：https://github.com/archi9882/SciML
@@ -106,6 +108,7 @@
 - 2026-10-27：建立 GitHub repo archi9882/SciML 作為正本；開始日提前至當天。
 - 2026-10-28：追蹤頁加入「本週管制熱圖」。第 1 週 Day 2 Q1、Q2 完成；`papers/*.pdf` 加入 .gitignore。
 - 2026-11-02：目標職缺改為安瑟樂威（`jobs/anselorway-energy.md`），計畫由 20 週改為 26 週；保留數值方法、PINN、神經網路基礎、生成式設計，新增空間資訊、ETL、自有基礎建設、REST API、MLOps、legacy 程式碼。
+- 2026-11-03：教學格式改為「一週一大問題＋理論與示範 → 例題 → 變化題 → 回答大問題」；學習站首頁最上方加入大圖（TideWatch 資料流與「本週」位置），每週頁面顯示大問題與小地圖；第 1、2 週講解與 exercises.md 依新格式改寫。
 - 2026-11-03：計畫第三版：改為「AI 先交成品、逐塊拆解」。新增第 3 週 TideWatch 交付，其後各單元加入審查與替換；拿掉原第 23 週最佳化回顧（Optuna 併入 W21、NSGA-II 併入 W24），維持 26 週。學習站首頁新增成品模組卡，審查週頁面顯示「本週審查成品」。
 - 2026-11-02：計畫第二版：W1 Day 3–4 合併、原 W5 併入 W4、原 W9–10 合併、原 W14–15 合併；省下 3 週新增 W5 模式驗證、W9 Hybrid、W14 系統性驗證 AI。學習站首頁加入單元連動圖，參考來源收在頁末。
 - 2026-11-02：追蹤頁改版為「SciML 半年學習站」（同一網址、進度保留），原始碼放 `site/`；第 1、2 週講解與 7 個動畫上線。第 2 週範例 `week02/tide_cli.py`、`batch.py`、`exercises.md` 提前交付。

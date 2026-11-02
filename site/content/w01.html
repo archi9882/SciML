@@ -1,139 +1,102 @@
-<section>
-  <h2>這週在練什麼</h2>
-  <p>職缺要求的核心能力是：AI 給出一段數值程式時，你能判斷它哪裡悄悄錯了。這需要先能讀懂程式，知道每個數字的單位、每一段在做什麼、改哪裡會影響什麼。</p>
-  <p>這週的素材是一條合成潮位：用公式產生 60 天、每小時一筆的水位，再做統計與畫圖。用合成資料的原因是真值已知。程式算出來的數字對不對，可以直接拿理論值檢查。</p>
-  <div class="callout job"><b>對應職缺</b><p>Must Have 3「GAI 協作與驗證」：識別數值計算中的錯誤。Should Have「資料分析」：統計結果是否可信。</p></div>
-  <p>範例程式在 repo 的 <code>week01/tide_example.py</code>。下面依程式的順序講，每一段標出對應的練習日。</p>
+<section class="bigq-intro">
+  <p>這週只回答一個問題。理論、例題、變化題都是為了回答它，週末你要用自己的話寫出答案。</p>
+  <div class="callout job"><b>為什麼從這裡開始</b><p>職缺的核心能力是「AI 給出數值結果時，判斷它可不可信」。可信不可信，靠的是拿理論對答案、把落差拆成來源。這週用一支 100 行的潮位程式練這件事，之後每個單元都是同一套思路，只是對象換成求解器、模型、API、部署設定。</p></div>
+  <p>這支程式在大圖裡屬於「觀測資料」與「物理模型」兩格：它產生一條潮位，再算出每日統計。範例在 repo 的 <code>week01/tide_example.py</code>。</p>
 </section>
 
 <section data-day="1">
-  <h2><span class="day-mark">Day 1</span>程式的五個段落</h2>
-  <p>先看全貌再看細節。這支程式由上到下分成五段，之後每週的範例都會維持這個結構。</p>
-  <div class="tbl"><table><thead><tr><th>段落</th><th>做什麼</th><th>你改這裡會發生什麼</th></tr></thead><tbody>
-    <tr><td>0. 參數</td><td>振幅、週期、天數、雜訊、seed 集中放在最上面</td><td>整個實驗的設定改變</td></tr>
-    <tr><td>1. 產生資料</td><td><code>make_constituents()</code> 算分潮，<code>make_tide()</code> 加上雜訊</td><td>資料本身改變</td></tr>
-    <tr><td>2. 統計</td><td><code>daily_stats()</code> 把每小時資料變成每日最高、最低、潮差</td><td>摘要數字改變</td></tr>
-    <tr><td>3. 畫圖</td><td><code>plot_overview()</code> 輸出 PNG</td><td>只有圖改變</td></tr>
-    <tr><td>4. 主程式</td><td>依序呼叫上面的函式，印出結果</td><td>執行順序改變</td></tr>
-  </tbody></table></div>
-  <p>Day 1 只要讓它跑起來：在 venv 中執行 <code>python week01/tide_example.py</code>，看到 <code>tide_overview.png</code>，然後第一次 commit。環境設定的細節見 repo 的 <code>VENV.md</code>，Git 指令見 <code>GIT_CHEATSHEET.md</code>。</p>
-</section>
+  <h2><span class="stage-no">一</span>理論與示範</h2>
+  <p class="lead">要判斷潮差可不可信，需要四個觀念：潮差的理論值從哪來、時間的單位怎麼決定、亂數怎麼影響結果、每日統計怎麼算出來。每個觀念都附一個示範。</p>
 
-<section data-day="2">
-  <h2><span class="day-mark">Day 2</span>物理背景：潮汐是幾個正弦波相加</h2>
-  <p>潮汐分析把水位拆成好幾個固定頻率的正弦波，每一個叫做一個<b>分潮</b>，對應一種天體的週期運動。這支程式只用最主要的兩個。</p>
+  <h3><span class="day-mark">Day 1</span>1. 潮汐是兩個正弦波相加，潮差有理論值</h3>
+  <p>潮汐可以拆成好幾個固定頻率的正弦波，每一個叫做一個<b>分潮</b>。這支程式只用最主要的兩個：</p>
   <div class="callout term"><b>名詞</b>
-    <p><b>M2（主太陰半日潮）</b>：月球引力造成，週期 12.42 小時。「半日」指一天約漲退兩次；12.42 小時是半個太陰日（月球相對地球轉一圈約 24.84 小時）。通常是最強的分潮。</p>
-    <p><b>S2（主太陽半日潮）</b>：同樣的機制，換成太陽。太陽很遠，潮汐效應較弱。週期正好 12.00 小時。</p></div>
-  <p>水位寫成公式：</p>
+    <p><b>M2（主太陰半日潮）</b>：月球引力造成，週期 12.42 小時，一天約漲退兩次，通常是最強的分潮。</p>
+    <p><b>S2（主太陽半日潮）</b>：太陽引力造成，週期 12.00 小時，比 M2 弱。</p></div>
   <div class="eq">η(t) = MSL + A_M2·cos(2πt / 12.42) + A_S2·cos(2πt / 12.00) + 雜訊     （t 的單位：小時）</div>
-  <p>兩個週期很接近但不相等，所以兩個波會慢慢錯開：同向時互相加強，叫<b>大潮</b>；反向時互相抵消，叫<b>小潮</b>。從大潮到下一次大潮的時間，就是兩個頻率的差：</p>
-  <div class="eq">大小潮週期 = 1 / |1/12.42 − 1/12.00| ≈ 354.9 小時 ≈ 14.79 天
-大潮潮差 = 2 × (A_M2 + A_S2)
-小潮潮差 = 2 × |A_M2 − A_S2|</div>
+  <p>兩個週期接近但不相等，所以兩個波會慢慢錯開：同向時互相加強叫<b>大潮</b>，反向時互相抵消叫<b>小潮</b>。由此得到三個理論值，之後所有檢查都拿它們當標準答案：</p>
+  <div class="eq">大潮潮差 = 2 × (A_M2 + A_S2) = 2 × (1.00 + 0.45) = 2.90 m
+小潮潮差 = 2 × |A_M2 − A_S2| = 2 × |1.00 − 0.45| = 1.10 m
+大小潮週期 = 1 / |1/12.42 − 1/12.00| ≈ 14.79 天</div>
   <div data-anim="tide-beat"></div>
-  <div class="callout predict"><b>先預測再驗證（Day 2 Q2）</b><p>把 S2 振幅拉到 1.00，跟 M2 一樣大。先用上面的公式算小潮潮差，再拉動滑桿確認，最後改程式的 <code>S2_AMP</code> 執行，看程式印出的「最小潮差」。三個數字應該一致，只差雜訊。</p></div>
-</section>
+  <div class="callout demo"><b>示範：拿程式輸出對理論</b><p>執行 <code>python week01/tide_example.py</code>，程式最後印出：</p>
+    <div class="eq">最大潮差：3.00 m（理論約 2.90 m）
+最小潮差：1.09 m（理論約 1.10 m）
+理論大小潮週期：14.79 天</div>
+    <p class="muted" style="font-size:.84rem">以上是 SEED = 42 的輸出；你的 SEED 是 50，數字會差一點，結論相同。</p>
+    <p>最小潮差幾乎吻合，最大潮差卻多了 0.10 m。這 0.10 m 從哪來，就是下面例題要回答的。</p></div>
 
-<section>
-  <h2>產生資料：一次算完整條陣列</h2>
-  <p>你已經把原本的 <code>make_tide()</code> 拆成兩個函式，分潮可以單獨拿來畫圖，這個拆法很好。</p>
-  <div class="code"><span class="file">week01/tide_example.py</span><pre><code class="language-python">def make_constituents(start: str, days: int, freq: str) -> pd.DataFrame:
-    n = days * 24
-    time = pd.date_range(start=start, periods=n, freq=freq)
-    t = np.arange(n, dtype=float)          # [0, 1, 2, ..., n-1]
-    m2 = M2_AMP * np.cos(2 * np.pi * t / M2_PERIOD)
-    s2 = S2_AMP * np.cos(2 * np.pi * t / S2_PERIOD)
-    return pd.DataFrame({"m2": m2, "s2": s2}, index=time)
-
-def make_tide(start: str, days: int, freq: str, seed: int) -> pd.Series:
-    rng = np.random.default_rng(seed)
-    comp = make_constituents(start, days, freq)
-    noise = rng.normal(0.0, NOISE_STD, size=len(comp))
-    eta = MEAN_SEA_LEVEL + comp["m2"] + comp["s2"] + noise
-    return pd.Series(eta.values, index=comp.index, name="eta_m")</code></pre></div>
-  <p><code>np.cos(...)</code> 一次處理整條陣列，不用迴圈，這叫<b>向量化</b>。<code>pd.date_range</code> 產生時間軸，當作資料的索引，之後才能「依日期分組」。</p>
-</section>
-
-<section>
-  <h2>陷阱一：取樣頻率改了，t 就不是小時（Day 2 Q1）</h2>
-  <p><code>t = np.arange(n)</code> 只是 0, 1, 2, …。它代表「小時」，完全是因為兩個巧合同時成立：取樣間隔剛好 1 小時，而且公式裡的週期 12.42 用的單位是小時。</p>
-  <p>把 <code>FREQ</code> 改成 <code>"30min"</code>，每一步實際只過 0.5 小時，但 <code>t</code> 還是每步加 1。公式以為過了 1 小時，波形就跑快一倍，週期看起來只剩 6.21 小時。還有第二個問題：<code>n = days * 24</code> 也是寫死的，30 分鐘取樣時 60 天應該有 2880 筆，程式只產生 1440 筆，等於只模擬了 30 天。</p>
+  <h3 data-day="2"><span class="day-mark">Day 2</span>2. t 的單位由取樣頻率決定</h3>
+  <p><code>t = np.arange(n)</code> 只是 0, 1, 2, …。它代表「小時」，是因為取樣間隔剛好 1 小時，而公式裡的週期 12.42 用的單位也是小時。把取樣改成 30 分鐘，每一步只過 0.5 小時，<code>t</code> 卻還是每步加 1，波形就快了一倍；而 <code>n = days * 24</code> 寫死，60 天只會模擬 30 天。</p>
   <div data-anim="sampling-units"></div>
-  <div class="callout trap"><b>為什麼這種錯很危險</b><p>程式不會報錯，圖也畫得出來，只是數值錯了。這正是職缺說的「數值悄悄飄掉」。修正方式是用時間軸本身算出實際經過的小時數：</p></div>
-  <div class="code"><pre><code class="language-python">t_hours = (time - time[0]) / pd.Timedelta(hours=1)   # 不管 freq 是什麼，單位都是小時</code></pre></div>
-  <p>第 2 週的 <code>tide_cli.py</code> 就是用這個寫法，你會在那裡驗證它。</p>
-</section>
+  <div class="callout demo"><b>示範：正確的寫法</b><p>用時間軸本身算出實際經過的小時數，不管頻率是什麼，單位都對：</p></div>
+  <div class="code"><pre><code class="language-python">t_hours = (time - time[0]) / pd.Timedelta(hours=1)</code></pre></div>
 
-<section>
-  <h2>陷阱二：seed 控制的是哪些東西（Day 2 Q3）</h2>
-  <p>你用 <code>seed_check.py</code> 實際比對過了：只有分潮 <code>comp</code> 不受 seed 影響，其他輸出都變了。原因是分潮由公式算出，雜訊由亂數產生器產生，seed 決定的只是那串亂數。</p>
+  <h3>3. 亂數只影響雜訊，seed 讓結果可重現</h3>
+  <p>分潮由公式算出，跟 seed 無關；雜訊由亂數產生器產生，seed 決定這串亂數。你用 <code>seed_check.py</code> 驗證過：只有分潮 <code>comp</code> 不受 seed 影響。固定 seed，才能確定前後結果的差異來自你改的參數，而不是雜訊剛好不同。</p>
   <div data-anim="seed-noise"></div>
-  <p>固定 seed 的目的是<b>可重現</b>：同一組參數每次產生完全相同的雜訊。之後比較「改了某個參數前後」的差異時，才能確定差異來自參數，而不是雜訊剛好不同。第 5 週做批次實驗時，seed 會變成要記錄在設定檔裡的一個參數。</p>
-</section>
 
-<section data-day="3">
-  <h2><span class="day-mark">Day 3</span>pandas 統計：依日期分組</h2>
-  <p><code>resample("D")</code> 依日期把資料分組，跟 Excel 樞紐分析的「依日期彙總」類似。分組之後，<code>.agg()</code> 對每一組算指定的統計量。</p>
+  <h3 data-day="3"><span class="day-mark">Day 3</span>4. 從每小時到每日：resample</h3>
+  <p><code>resample("D")</code> 依日期把資料分組，<code>.agg()</code> 對每組算統計量。每日潮差就是「當天最高減當天最低」，這個算法本身會帶來偏差，例題會用到。</p>
   <div data-anim="resample"></div>
   <div class="code"><span class="file">week01/tide_example.py</span><pre><code class="language-python">def daily_stats(eta: pd.Series) -> pd.DataFrame:
     daily = eta.resample("D").agg(["max", "min", "mean"])
     daily["range"] = daily["max"] - daily["min"]
     return daily</code></pre></div>
-  <div class="callout predict"><b>先預測再寫（Day 3 Q1）</b><p>一天幾次高潮？一天 24 小時，M2 週期 12.42 小時，24 ÷ 12.42 ≈ 1.93。所以大多數日子有 2 次，大約每兩週會有一天只有 1 次。寫完 <code>high_count</code> 後，檢查結果是否符合這個預期。</p></div>
-  <div class="callout predict"><b>用理論檢查結果（Day 3 Q2）</b><p>正弦波在很多個週期內平均為 0，所以每月平均水位應該很接近 <code>MEAN_SEA_LEVEL</code>（0.20 m）。如果差很多，先懷疑程式，再懷疑資料。</p></div>
 </section>
 
-<section>
-  <h2>Day 3 後半：畫一張能放進報告的圖</h2>
-  <p>統計做完，接著把圖改成三個子圖，第三個畫每日平均水位。圖是給別人看的結論，不是程式的副產品。這份檢查清單之後每週都會用：</p>
+<section data-day="3">
+  <h2><span class="stage-no">二</span>例題（完整示範）</h2>
+  <div class="callout predict"><b>例題</b><p>程式印出最大潮差 3.00 m，理論是 2.90 m。多出的 0.10 m 是程式錯了，還是另有原因？請拆出來源，並各自估計大小。</p></div>
+  <p><b>步驟 1：列出可能的來源。</b>理論值是「沒有雜訊、連續時間」的包絡線寬度。程式和理論有兩個不同：資料每小時取樣一次（可能錯過真正的峰值），以及每筆資料加了雜訊。</p>
+  <p><b>步驟 2：一次只改一個條件，看落差怎麼變。</b>把 <code>NOISE_STD</code> 改成 0，其他不動，再跑一次：</p>
+  <div class="tbl"><table><thead><tr><th>條件</th><th>最大潮差</th><th>跟理論 2.90 m 的差</th></tr></thead><tbody>
+    <tr><td>雜訊 0.05 m（原設定）</td><td class="mono">3.00 m</td><td class="mono">+0.10 m</td></tr>
+    <tr><td>雜訊 0</td><td class="mono">2.90 m</td><td class="mono">−0.003 m</td></tr>
+  </tbody></table></div>
+  <p><b>步驟 3：解釋每個來源。</b></p>
   <ul>
-    <li>每個軸都有名稱與單位</li>
-    <li>標題說明這張圖在比較什麼</li>
-    <li>有理論值或基準線可以對照</li>
-    <li>不看程式碼，同事 10 秒內看得懂重點</li>
+    <li><b>取樣</b>：每小時取一筆，最多錯過峰值半小時，讓潮差略為偏小，這裡只有 −0.003 m，可以忽略。</li>
+    <li><b>雜訊</b>：當天最高那筆，傾向剛好被雜訊往上推；最低那筆，傾向被往下推。兩端都往外擴，所以潮差系統性偏大，約 +0.10 m，相當於兩倍的雜訊標準差。</li>
   </ul>
-  <p>第三點最常被忽略。在潮差圖上加兩條水平虛線，標出理論的大潮與小潮潮差，讀者一眼就能看出模擬是否合理：</p>
-  <div class="code"><pre><code class="language-python">ax2.axhline(2 * (M2_AMP + S2_AMP), ls="--", color="gray", label="theory spring range")
-ax2.axhline(2 * abs(M2_AMP - S2_AMP), ls=":", color="gray", label="theory neap range")</code></pre></div>
+  <p><b>步驟 4：下結論。</b>程式沒有錯。0.10 m 的落差幾乎全部來自「每日最高減最低」遇上雜訊時的偏差。結論的寫法：<i>在雜訊 0.05 m 下，每日潮差會比真實值高約 0.1 m；需要更準時，應先平滑或改用擬合振幅的方法。</i></p>
+  <div class="callout job"><b>這個例題教的方法</b><p>落差出現時：① 列出程式和理論的所有差異；② 一次只關掉一個差異；③ 量每個差異貢獻多少；④ 寫出「在什麼條件下可信、偏差多大」。之後審查 AI 成品，每一次都用這四步。</p></div>
 </section>
 
 <section data-day="4">
-  <h2><span class="day-mark">Day 4</span>讓 AI 改程式，找出它漏改的地方</h2>
-  <p>職缺要的不是「會叫 AI 寫程式」，而是能判斷它錯在哪。今天用一個你已經知道答案的問題來練：請 AI 把 <code>tide_example.py</code> 改成 30 分鐘取樣。</p>
-  <p>你在 Day 2 已經知道正確的修改要動兩個地方：<code>t</code> 要換成實際小時數，<code>n = days * 24</code> 也要跟著頻率改。AI 很常只改 <code>FREQ</code> 一行，或只改其中一處。</p>
-  <ol>
-    <li>給 AI 的指令只寫「把取樣頻率改成 30 分鐘」，不要提示陷阱。記下它改了哪些行。</li>
-    <li>不看它的解釋，先寫兩個檢查，再執行它的版本：
-      <ul>
-        <li>筆數檢查：60 天、30 分鐘取樣應該有 2880 筆。</li>
-        <li>物理檢查：一天的高潮次數仍然應該接近 1.93 次；大小潮週期仍然是 14.79 天。</li>
-      </ul></li>
-    <li>如果檢查沒過，指出錯在哪一行、為什麼錯。如果全部通過，換一個更容易出錯的要求再試一次，例如「改成 10 分鐘取樣並把模擬延長到 90 天」。</li>
-  </ol>
-  <div class="callout job"><b>對應職缺</b><p>這就是 Must Have 3 的「識別 AI 在數值計算中的錯誤」。關鍵是檢查來自物理與單位，而不是來自 AI 自己的說明。第 15 週會把這些檢查整理成一套正式的驗證檢查表。</p></div>
-</section>
+  <h2><span class="stage-no">三</span>變化題</h2>
+  <p class="lead">三題都用例題的四步。先自己做，卡住再看提示；寫完答案進 <code>week01/notes.md</code> 再對照參考答案。</p>
 
-<section data-day="5">
-  <h2><span class="day-mark">Day 5</span>自己寫一個函式，再讓它失敗</h2>
-  <p>任務：寫 <code>find_high_tides(eta)</code>，找出「比前一筆和後一筆都高」的時間點。這題請先用中文寫步驟，再自己寫程式，不要讓 AI 直接寫。寫完之後才讓 AI 寫一個版本來比較。</p>
-  <p>重點在第 3 小題：方法在什麼條件下會失敗。先用下面的動畫建立直覺，再回到自己的程式驗證。</p>
-  <div data-anim="peak-find"></div>
-  <p>雜訊一大，相鄰兩筆的高低就由雜訊決定，一個真正的高潮附近會冒出好幾個假峰值。兩種常見解法：</p>
+  <h3><span class="day-mark">Day 4</span>變化 1：改條件。S2 跟 M2 一樣大時</h3>
+  <p>把 <code>S2_AMP</code> 改成 1.00。理論小潮潮差是 2 × |1.00 − 1.00| = 0。程式印出的最小潮差是多少？為什麼不是 0？把落差拆成來源。</p>
+  <details class="hint"><summary>提示</summary><p>這次除了雜訊，還有一個例題沒出現的來源：理論值是包絡線最窄的「那一瞬間」，但每日統計看的是一整天。試試把雜訊設成 0，看看最小潮差還剩多少。</p></details>
+  <details class="hint"><summary>參考答案</summary><p>雜訊 0.05 時約 0.38 m；雜訊 0 時仍有約 0.31 m。所以主要來源是<b>一天的時間窗</b>：小潮那一刻包絡線最窄，但前後 12 小時已經變寬，當天的最高減最低不可能是 0。剩下約 0.07 m 來自雜訊。結論：小潮附近，每日潮差無法反映瞬間的理論值。</p></details>
+
+  <h3>變化 2：讓 AI 改程式，用理論抓錯</h3>
+  <p>請 AI「把取樣頻率改成 30 分鐘」，不要提示任何陷阱。先寫好兩個檢查，再執行它的版本：</p>
   <ul>
-    <li><b>先平滑</b>：用移動平均壓掉高頻雜訊。代價是峰值的高度與時間會被拉偏。</li>
-    <li><b>設定最小間隔</b>：兩次高潮至少相隔幾小時。這是用物理知識（半日潮週期約 12.4 小時）約束演算法。</li>
+    <li>筆數：60 天、30 分鐘取樣應該是 2880 筆。</li>
+    <li>物理：大小潮週期仍是 14.79 天，最大潮差仍接近 3.0 m。</li>
   </ul>
-  <div class="callout job"><b>失敗案例報告的雛形</b><p>記下：雜訊多大時開始失準、證據是什麼、哪種修正有效、修正的代價。這四點就是 <code>reports/TEMPLATE.md</code> 的骨架。</p></div>
+  <p>檢查沒過，就指出錯在哪一行、為什麼錯；全部通過，換一個更難的要求再試，例如「改成 10 分鐘取樣、模擬 90 天」。</p>
+  <details class="hint"><summary>提示</summary><p>回頭看第 2 個觀念：正確的修改要動兩處，<code>t</code> 與 <code>n</code>。AI 常常只改 <code>FREQ</code> 一行。</p></details>
+
+  <h3 data-day="5"><span class="day-mark">Day 5</span>變化 3：自己寫一個方法，再讓它失敗</h3>
+  <p>不靠 AI，寫 <code>find_high_tides(eta)</code>：找出「比前一筆和後一筆都高」的時間點。先用中文寫步驟，再寫程式。寫完後用理論檢查：每天應該約有 24 ÷ 12.42 ≈ 1.93 次高潮。接著把 <code>NOISE_STD</code> 調到 0.3，看它在什麼條件下失敗。</p>
+  <div data-anim="peak-find"></div>
+  <details class="hint"><summary>提示</summary><p>雜訊大時，一個真正的高潮附近會冒出好幾個假峰值。兩種修正：先平滑（代價是峰值被拉偏），或規定兩次高潮至少相隔幾小時（用半日潮週期約 12.4 小時的物理知識約束）。</p></details>
+  <details class="hint"><summary>參考答案</summary><p>雜訊 0.05 時通常正確；雜訊 0.3 時高潮數會明顯超過每天 2 次。加上「至少相隔 6 小時」後回到合理範圍。記下：雜訊多大開始失準、證據、哪種修正有效、修正的代價。這四點就是失敗案例報告的骨架。</p></details>
 </section>
 
 <section data-day="6">
-  <h2><span class="day-mark">Day 6</span>本週產出</h2>
+  <h2><span class="stage-no">四</span>回答本週大問題</h2>
+  <p>用一段話回答「這支程式算出來的潮差，可信嗎？」，寫進 <code>week01/notes.md</code>，並放進 repo 的 <code>README.md</code>，附一張你改過的圖。答案至少要有三部分：</p>
   <ol>
-    <li>在 repo 的 <code>README.md</code> 放一張你改過的圖，加 3–5 行說明這週做了什麼。</li>
-    <li>寫本週閱讀的 5 行摘要：<code>papers/output/2019_kratzert.md</code>（模板 <code>papers/output/TEMPLATE.md</code>），填好 <code>week: 1</code> 與 <code>output_started</code>。</li>
-    <li>21 天內開新對話說「grill 這篇」，讓 AI 追問到你弄懂為止。</li>
-    <li>回到本頁勾選，push。</li>
+    <li><b>可信的部分</b>：哪些數字跟理論吻合、吻合到多少。</li>
+    <li><b>偏差與來源</b>：例題與變化 1 找到的偏差，各自多大、從哪來。</li>
+    <li><b>不可信的條件</b>：取樣、雜訊、小潮附近，在什麼情況下不能直接採信。</li>
   </ol>
-  <div class="callout term"><b>加分題</b><p>到中央氣象署開放資料平台下載一個潮位站的實測資料，用 <code>pd.read_csv()</code> 讀進來取代 <code>make_tide()</code>。真實資料有缺值和時間不連續，處理它們是第 13 週 ETL 的前哨。</p></div>
+  <p>圖要能支撐你的答案：每個軸有單位、標題說明在比較什麼、畫出理論基準線（<code>ax2.axhline(...)</code>），同事不看程式 10 秒內看得懂重點。</p>
+  <p>另外寫本週閱讀的 5 行摘要：<code>papers/output/2019_kratzert.md</code>，21 天內開新對話說「grill 這篇」。</p>
+  <div class="callout term"><b>延伸（時間夠再做）</b><p>到中央氣象署開放資料平台下載一個潮位站的實測資料，取代 <code>make_tide()</code>。實測資料沒有標準答案，可信度要靠第 6 週的模式驗證來判斷。</p></div>
 </section>

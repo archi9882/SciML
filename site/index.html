@@ -229,6 +229,35 @@ textarea{width:100%;min-height:110px;resize:vertical;border:1px solid var(--line
 .mod.audit{border-color:var(--buoy)}.mod.audit .pill{background:var(--buoy-soft);color:var(--buoy)}
 .mod.swap{border-color:var(--kelp)}.mod.swap .pill{background:var(--kelp-soft);color:var(--kelp)}
 .audit{border-left:4px solid var(--buoy)}
+.bigq{border:1px solid var(--buoy);background:var(--buoy-soft);border-radius:8px;padding:10px 14px;display:grid;gap:2px;max-width:70ch}
+.bigq b{font-family:var(--font-display);font-size:1.12rem;line-height:1.5}
+.minimap summary{cursor:pointer}
+.minimap[open] summary{margin-bottom:8px}
+.bm{display:grid;gap:8px;min-width:0}
+.bm-flow{display:flex;flex-wrap:wrap;gap:6px;align-items:stretch}
+.bm-arrow{color:var(--muted);align-self:center;font-size:.9rem}
+.bm-box{position:relative;display:grid;gap:1px;align-content:start;text-decoration:none;color:var(--ink);border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:7px 10px;min-width:96px;flex:1 1 96px}
+.bm-box b{font-size:.86rem}
+.bm-box span{font-size:.7rem;color:var(--muted)}
+.bm-box .bm-w{font-size:.62rem}
+.bm-box:hover{border-color:var(--sea)}
+.bm-box.some{background:var(--kelp-soft)}
+.bm-box.here{border:2px solid var(--buoy);background:var(--buoy-soft)}
+.bm-here{position:absolute;top:-8px;right:6px;font-size:.6rem!important;font-family:var(--font-mono);background:var(--buoy);color:var(--paper)!important;border-radius:3px;padding:0 5px}
+.bm-band{position:relative;border:1px dashed var(--miss);border-radius:6px;padding:6px 10px;font-size:.8rem;color:var(--ink)}
+.bm-band b{color:var(--miss);margin-right:8px}
+.bm-band.here{border-style:solid;border-width:2px;background:var(--miss-soft)}
+.stage-no{display:inline-grid;place-content:center;width:1.6em;height:1.6em;border-radius:50%;background:var(--ink);color:var(--paper);font-size:.8em;margin-right:8px;vertical-align:2px}
+.lesson .lead{color:var(--muted)}
+.lesson [data-day]{scroll-margin-top:96px}
+.lesson h3{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px}
+.callout.demo{border-left:4px solid var(--kelp);background:var(--kelp-soft)}
+.callout.demo > b:first-child{color:var(--kelp)}
+details.hint{border:1px solid var(--line);border-radius:6px;padding:8px 12px;background:var(--bg)}
+details.hint summary{cursor:pointer;font-size:.86rem;color:var(--sea);font-weight:500}
+details.hint[open] summary{margin-bottom:6px}
+details.hint p{margin:0}
+.bigq-intro{gap:10px}
 /* 單元連動圖 */
 .dep,.sources{display:block}
 .dep summary,.sources summary{cursor:pointer}
@@ -339,10 +368,10 @@ const AUD={
  26:{m:"*",what:"把 AI 原版與你的最終版並排比較，算出抓錯率"}};
 const W=[
  {st:"潮位時間序列",t:"用 AI 協作讀懂一支資料處理程式：潮位時間序列",g:"讀懂一支 100 行的資料處理程式：每個數字的單位、每段在做什麼、改哪裡會影響什麼。開始用 Git 記錄進度。",sk:["AI 驗證","資料分析"],
-  d:["環境設定：Python、VS Code、Git，執行範例並第一次 commit","讀懂「產生資料」段：先預測改參數的結果，再執行驗證","pandas 統計與報告圖：high_count、monthly_mean、理論基準線","讓 AI 把取樣改成 30 分鐘，找出它漏改的地方","不靠 AI 寫 find_high_tides()，再用雜訊讓它失敗"],s:"README 加一張圖與 3–5 行說明；閱讀 5 行摘要",
+  d:["理論 1：跑程式，拿輸出對大潮、小潮、週期的理論值","理論 2–3：時間單位與 seed（對照你已完成的 Q1–Q3）","理論 4＋例題：resample，拆解最大潮差多出 0.10 m 的來源","變化 1、2：S2 = M2 時的小潮潮差；讓 AI 改取樣再用理論抓錯","變化 3：自己寫 find_high_tides()，再用雜訊讓它失敗"],s:"回答大問題：這支程式的潮差可信嗎（notes＋README 一張圖）；閱讀摘要",
   r:R("paper","Towards learning universal, regional, and local hydrological behaviors via machine learning applied to large-sample datasets","Kratzert et al.",2019,"HESS","https://doi.org/10.5194/hess-23-5089-2019",1),why:"同樣是水文時間序列，看 LSTM 如何在 531 個集水區超越傳統模式。",content:"content/w01.html"},
  {st:"命令列與批次",t:"命令列參數與第一個批次工作",g:"把「改常數再手動跑」變成「用參數呼叫程式、批次執行、自動彙整」。這是排程、容器、API、MLOps 的共同起點。",sk:["基礎建設","AI 驗證"],
-  d:["讀 tide_cli.py：參數與結束碼，先預測再執行","驗證單位陷阱已修正：比較 h 與 30min 的結果","讀 batch.py：參數網格、送出工作、冪等跳過","彙整與檢查：模擬 vs 理論，找出雜訊造成的偏差","Linux 基本：ls、grep、管線、sort | uniq"],s:"批次流程圖；閱讀 5 行摘要",
+  d:["理論 1：讀 tide_cli.py，參數與結束碼，先預測再執行","理論 2：驗證單位陷阱已修正（h vs 30min）","理論 3–4：批次四步驟、冪等跳過、管線檢查","例題：加入 noise 維度，預測組數與列數，找出新舊結果混在一起的原因","變化 1–3：分離偏差來源、失敗也要跑完、抓 AI 檢查腳本的錯"],s:"回答大問題：批次流程圖與說明；閱讀摘要",
   r:R("paper","Differentiable modelling to unify machine learning and physical models for geosciences","Shen et al.",2023,"Nature Reviews Earth & Environment","https://arxiv.org/abs/2301.04027"),why:"物理模式與 ML 結合的全景，幫你判斷何時用 physics-based、data-driven 或 hybrid。",content:"content/w02.html"},
  {st:"AI 成品交付",t:"AI 成品交付：先看全貌，不求看懂",g:"拿到一套由 AI 寫好、從頭跑到尾的潮汐監測系統 TideWatch。這週只要讓它跑起來、畫出架構、建立錯誤紀錄表，內部細節之後逐塊拆解。",sk:["AI 驗證","基礎建設"],
   d:["clone 成品，照 README 在本機跑起來；遇到錯誤先自己讀錯誤訊息","畫架構圖：資料從哪來、經過哪些模組、輸出到哪裡","為每個模組寫一行：輸入、輸出、你猜它可能出錯的地方","用已知答案做第一次檢查：潮位單位、時區、M2 週期","建立錯誤紀錄表 audit_log.md：編號、模組、證據、狀態"],s:"架構圖＋錯誤紀錄表初版；閱讀摘要",
@@ -421,6 +450,20 @@ const W=[
   d:["整理 GitHub：README 結構、每個模組一張圖","AI 原版 vs 你的最終版：逐模組比較，算出抓錯率","把 5 份失敗報告與 audit_log 整理成「方法極限」索引","對照職缺逐項準備實例：每項技能一個做過的例子","模擬面試：自問自答 10 題"],s:"完成作品集",
   r:R("doc","Rules of Machine Learning","Martin Zinkevich（Google）","—","Google for Developers","https://developers.google.com/machine-learning/guides/rules-of-ml"),why:"把半年學到的工程判斷，對照業界整理的 43 條規則。"}
 ];
+// 每週大問題：理論、例題、變化題都為了回答它
+const Q=["這支程式算出來的潮差，可信嗎？","怎麼讓「改一個參數、看結果」變得便宜又不出錯？","這套系統由哪些部分組成，每一塊可能在哪裡出錯？","數值解什麼時候會爆掉，什麼時候會悄悄不準？","數值方法本身會造成哪些失真，怎麼系統性地找出它的邊界？","模型跟真實世界差多少，差距來自哪裡？","神經網路是怎麼學的，訓練程式最容易在哪裡出錯？","什麼問題適合 PINN，它在什麼條件下會失敗？","什麼時候值得訓練代理模型來取代求解器？","物理、資料、hybrid 三種做法，該怎麼選？","空間程式的座標與分割，怎麼確認它是對的？","測站之間的值該怎麼補，選哪種方法、為什麼？","格式、時區、單位都不同的資料，怎麼整合得可靠？","資料什麼時候不能信，統計結論什麼時候不能信？","怎麼系統性地證明 AI 寫的程式是錯的？","怎麼讓一個工作在伺服器上自動、定時、可重現地跑？","多個服務怎麼組在一起，該自己架還是外包？","資料量變成 10 倍時，系統哪裡先垮？","怎麼把運算包成別人能穩定使用的服務？","怎麼讓每次修改都自動被測試、安全地上線？","三個月後，怎麼知道某個結果是怎麼來的？","系統在線上悄悄變差時，怎麼第一時間知道？","舊的科學程式被 AI 改過之後，怎麼確定沒被改壞？","怎麼產生大量最佳設計當訓練資料，並看清目標之間的取捨？","生成模型做出來的設計，物理上真的能用嗎？","半年做了什麼，怎麼證明你能抓出 AI 的錯？"];
+// 大圖：TideWatch 的資料流，以及每一格在哪幾週學
+const BIG=[
+ {id:"obs",name:"觀測資料",sub:"潮位站",weeks:[1,6,13]},
+ {id:"etl",name:"ETL",sub:"擷取、清理、整合",weeks:[2,13]},
+ {id:"qc",name:"品質檢查",sub:"規則、統計前提",weeks:[14]},
+ {id:"phys",name:"物理模型",sub:"調和分析、求解器",weeks:[1,4,5,6,8,23]},
+ {id:"ml",name:"ML 修正",sub:"訓練、代理、hybrid",weeks:[7,8,9,10,24,25]},
+ {id:"sp",name:"空間內插",sub:"座標、分割、克利金",weeks:[11,12]},
+ {id:"api",name:"API",sub:"查詢與推論服務",weeks:[19,20]},
+ {id:"dep",name:"部署與排程",sub:"Linux、容器、K8s",weeks:[2,16,17,18]},
+ {id:"mon",name:"監控與追蹤",sub:"實驗、漂移、CI",weeks:[20,21,22]}];
+const BIG_ALL=[3,15,26];
 const SKILLS=[
  ["物理判斷","Must：數值模擬與物理判斷"],["基礎建設","Must：自有基礎建設架構"],["AI 驗證","Must：GAI 協作與驗證"],
  ["空間資訊","Should：空間資訊技術／Nice：地理統計"],["資料分析","Should：資料分析"],["ETL","Should：Python ETL"],
@@ -485,6 +528,9 @@ function renderHome(){const pos=todayPos();let today="";
   const skillRows=SKILLS.map(([s,label])=>{const ws=W.map((w,i)=>w.sk.includes(s)?i+1:0).filter(Boolean);
     return `<tr><td>${esc(label)}</td><td class="mono">${ws.map(n=>`<a href="#w${n}">W${n}</a>`).join("、")}</td></tr>`}).join("");
   $("#main").innerHTML=`
+  <section class="card" aria-labelledby="big-h"><div class="row"><h2 id="big-h">大圖：你要建立的系統</h2><span class="muted" style="font-size:.82rem">職缺描述的工作，就是讓這條鏈可靠地運轉</span></div>
+    ${bigMapHTML(pos.w||1,false)}
+    <p class="muted" style="margin:0;font-size:.84rem">橘框是本週所在的位置。每週都只回答一個大問題，讓其中一格從「看不懂」變成「審得出錯」。點方塊可跳到對應的週。</p></section>
   <section class="card today" aria-labelledby="today-h"><div class="row"><h2 id="today-h">今天</h2><span class="mono muted">${pos.w?`第 ${pos.w} 週・週${pos.d===7?"日":DAYN[pos.d-1]}・${md(new Date())}`:""}</span></div>${today}</section>
   <section class="card" aria-labelledby="map-h"><div class="row"><h2 id="map-h">26 週水位</h2>
     <label class="muted" style="font-size:.82rem">開始日 <input type="date" id="start-date" value="${state.start}" style="border:1px solid var(--line);border-radius:6px;background:var(--paper);padding:3px 8px"></label></div>
@@ -532,7 +578,10 @@ function renderWeek(n){const w=W[n-1],ph=PHASES.find(p=>n>=p.from&&n<=p.to),note
   const r=w.r,rtag=r.kind==="doc"?'<span class="tag doc">官方文件／講義</span>':r.classic?'<span class="tag classic">經典論文</span>':'<span class="tag">近五年論文</span>';
   $("#main").innerHTML=`
   <section class="wk-head"><span class="label">${esc(ph.name)}・WEEK ${String(n).padStart(2,"0")}・${md(dateOf(n,1))}–${md(dateOf(n,6))}</span>
-    <h2 style="font-size:1.5rem">${esc(w.t)}</h2><p class="goal">${esc(w.g)}</p>
+    <h2 style="font-size:1.5rem">${esc(w.t)}</h2>
+    <div class="bigq"><span class="label">本週大問題</span><b>${esc(Q[n-1])}</b></div>
+    <p class="goal">${esc(w.g)}</p>
+    <details class="minimap"><summary class="muted" style="font-size:.84rem">在大圖中的位置</summary>${bigMapHTML(n,true)}</details>
     <div>${w.sk.map(s=>`<span class="tag ok">${esc(s)}</span>`).join("")}</div>
     <div class="btns"><a class="btn" href="#w${Math.max(1,n-1)}" ${n===1?'aria-disabled="true" style="opacity:.45;pointer-events:none"':""}>← 上一週</a><a class="btn" href="#w${Math.min(NW,n+1)}" ${n===NW?'aria-disabled="true" style="opacity:.45;pointer-events:none"':""}>下一週 →</a></div></section>
   ${auditCard(n)}
@@ -563,7 +612,7 @@ function sourcesHTML(ns,title){const groups=PHASES.map(p=>({p,items:ns.filter(n=
     <div class="dep-body"><ol class="src-list">${body}</ol>
     <p class="muted" style="margin:0;font-size:.8rem">每週閱讀均以網路搜尋確認出處與連結。講解中的數值（例如第 2 週的潮差表）為 repo 範例程式的實際執行結果。</p></div></details>`}
 function outline(n){const w=W[n-1];
-  return `<div class="callout term"><b>講解尚未產生</b><p>這週的完整理論、程式與動畫會在第 ${n-1} 週完成時一起產生。到時在新對話說「第 ${n-1} 週進度」即可。下面是本週的學習路線。</p></div>
+  return `<div class="callout term"><b>講解尚未產生</b><p>講解會依「理論與示範 → 例題 → 變化題 → 回答大問題」的順序寫成。這週的完整理論、程式與動畫會在第 ${n-1} 週完成時一起產生。到時在新對話說「第 ${n-1} 週進度」即可。下面是本週的學習路線。</p></div>
   <ol>${w.d.map(x=>`<li>${esc(x)}</li>`).join("")}<li>週六產出：${esc(w.s)}</li></ol>`}
 
 // ---------- 講解內容載入 ----------
@@ -792,6 +841,13 @@ const ANIMS={
 
 
 
+
+// ======================= 大圖 =======================
+function bigMapHTML(cur,compact){const here=b=>b.weeks.includes(cur);
+  const boxes=BIG.map((b,i)=>`${i?'<span class="bm-arrow" aria-hidden="true">→</span>':""}<a class="bm-box ${here(b)?"here":""} ${b.weeks.some(w=>weekPct(w)>=1)?"some":""}" href="#w${(b.weeks.find(w=>w>=cur)||b.weeks[0])}"><b>${esc(b.name)}</b><span>${esc(b.sub)}</span>${compact?"":`<span class="mono bm-w">${b.weeks.map(w=>"W"+w).join(" ")}</span>`}${here(b)?'<span class="bm-here">本週</span>':""}</a>`).join("");
+  const allHere=BIG_ALL.includes(cur);
+  return `<div class="bm"><div class="bm-flow">${boxes}</div>
+    <div class="bm-band ${allHere?"here":""}"><b>AI 驗證</b>貫穿整條鏈：每一格都要能判斷 AI 寫的版本錯在哪${compact?"":`（全系統：${BIG_ALL.map(w=>`<a href="#w${w}">W${w}</a>`).join("、")}）`}${allHere?'<span class="bm-here">本週</span>':""}</div></div>`}
 // ======================= 成品模組與審查 =======================
 function modState(m){if(weekPct(m.swap)>=1)return["swap","已替換"];if(m.weeks.some(w=>weekPct(w)>0))return["audit","審查中"];
   if(weekPct(3)>=1)return["ai","AI 原版"];return["wait","第 3 週交付"]}
