@@ -8,7 +8,7 @@
 :root{
   --bg:#f3f6f7; --paper:#ffffff; --ink:#14232b; --muted:#5b6d76; --line:#d5dfe3;
   --sea:#0e5a73; --sea-soft:#dcebf0; --kelp:#2f7d5b; --kelp-soft:#ddefe5; --buoy:#d9822b; --buoy-soft:#fbead6;
-  --miss:#b5452f; --miss-soft:#f8ddd5;
+  --miss:#b5452f; --miss-soft:#f8ddd5; --vio:#6b4fbb;
   --code-bg:#eef3f5; --code-ink:#1b2f38; --tok-kw:#8a3ffc; --tok-str:#2f7d5b; --tok-num:#b5452f; --tok-com:#6f838c; --tok-fn:#0e5a73;
   --font-display:"Noto Serif TC","Songti TC",serif;
   --font-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
@@ -17,12 +17,12 @@
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#0d171c; --paper:#14222a; --ink:#e3ecef; --muted:#93a6ae; --line:#26363e;
   --sea:#5fb3cf; --sea-soft:#173543; --kelp:#6cc49b; --kelp-soft:#173528; --buoy:#f0a65a; --buoy-soft:#3a2a17;
-  --miss:#f0847a; --miss-soft:#3a2420;
+  --miss:#f0847a; --miss-soft:#3a2420; --vio:#b39cf0;
   --code-bg:#0f1c22; --code-ink:#d6e3e8; --tok-kw:#c4a7ff; --tok-str:#8fd6b0; --tok-num:#f3a291; --tok-com:#7d939b; --tok-fn:#7cc6de; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0d171c; --paper:#14222a; --ink:#e3ecef; --muted:#93a6ae; --line:#26363e;
   --sea:#5fb3cf; --sea-soft:#173543; --kelp:#6cc49b; --kelp-soft:#173528; --buoy:#f0a65a; --buoy-soft:#3a2a17;
-  --miss:#f0847a; --miss-soft:#3a2420;
+  --miss:#f0847a; --miss-soft:#3a2420; --vio:#b39cf0;
   --code-bg:#0f1c22; --code-ink:#d6e3e8; --tok-kw:#c4a7ff; --tok-str:#8fd6b0; --tok-num:#f3a291; --tok-com:#7d939b; --tok-fn:#7cc6de; color-scheme:dark}
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.7;
@@ -223,6 +223,40 @@ textarea{width:100%;min-height:110px;resize:vertical;border:1px solid var(--line
 .src-list{margin:0;padding-left:1.2em;display:grid;gap:6px;font-size:.84rem;list-style:none}
 .src-list li{overflow-wrap:anywhere}
 .src-list .src-ph{font-family:var(--font-mono);font-size:.72rem;color:var(--muted);margin-top:6px;letter-spacing:.04em}
+/* 單元連動圖 */
+.dep,.sources{display:block}
+.dep summary,.sources summary{cursor:pointer}
+.dep-body{display:grid;gap:12px;min-width:0;margin-top:12px}
+.dep-body > *{min-width:0}
+.dep-wrap{max-width:100%;overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--bg)}
+.dep-svg{display:block;min-width:960px;width:100%;height:auto}
+.dep-edge{fill:none;stroke-width:1.8;opacity:.75;transition:opacity .2s,stroke-width .2s}
+.dep-svg.focus .dep-edge{opacity:.1}
+.dep-svg.focus .dep-edge.on{opacity:1;stroke-width:3}
+.dep-node{cursor:pointer}
+.dep-node circle{stroke-width:2;transition:opacity .2s}
+.dep-node text{font-family:var(--font-mono);font-size:10px;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.dep-node.cat-start circle{fill:var(--paper);stroke:var(--sea)}
+.dep-node.cat-start text{fill:var(--sea)}
+.dep-node.cat-linked circle{fill:var(--sea);stroke:var(--sea)}
+.dep-node.cat-linked text{fill:var(--paper)}
+.dep-node.cat-solo circle{fill:var(--paper);stroke:var(--muted);stroke-dasharray:3 2}
+.dep-node.cat-solo text{fill:var(--muted)}
+.dep-node.cat-sum circle{fill:var(--buoy-soft);stroke:var(--buoy);stroke-width:3}
+.dep-node.cat-sum text{fill:var(--buoy)}
+.dep-svg.focus .dep-node circle{opacity:.3}
+.dep-svg.focus .dep-node.on circle{opacity:1}
+.dep-node:focus,.dep-node:focus-visible{outline:none}
+.dep-node:focus-visible circle{stroke:var(--buoy);stroke-width:3}
+.dep-ph{font-family:var(--font-mono);font-size:10px;fill:var(--muted)}
+.dep-band{fill:var(--sea-soft);opacity:.5}
+.dep-legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.78rem;color:var(--muted);align-items:center}
+.dep-legend i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:5px;vertical-align:-2px;border:2px solid var(--sea)}
+.dep-legend i.linked{background:var(--sea)}
+.dep-legend i.solo{border:2px dashed var(--muted)}
+.dep-legend i.sum{background:var(--buoy-soft);border:3px solid var(--buoy)}
+.dep-legend b{display:inline-block;width:18px;height:3px;border-radius:2px;margin-right:5px;vertical-align:3px}
+.dep-info{font-size:.86rem;min-height:2.6em;margin:0}
 </style>
 
 <div class="app">
@@ -411,6 +445,7 @@ function renderHome(){const pos=todayPos();let today="";
     <label class="muted" style="font-size:.82rem">開始日 <input type="date" id="start-date" value="${state.start}" style="border:1px solid var(--line);border-radius:6px;background:var(--paper);padding:3px 8px"></label></div>
     <div><div class="map">${map}</div><div class="phases">${ph}</div></div>
     <div class="legend-phases">${PHASES.map(p=>`<span><b>${esc(p.id)}</b>${esc(p.name.replace(/^\S+\s/,""))}（W${p.from}${p.to>p.from?"–"+p.to:""}）</span>`).join("")}</div></section>
+  ${depMapHTML()}
   <section class="card" aria-labelledby="how-h"><h2 id="how-h">每天怎麼用這個網站</h2>
     <ol style="margin:0;padding-left:1.3em;display:grid;gap:6px;max-width:70ch">
       <li>打開本週頁面，照「每日任務」找到今天那一天，按「看講解」跳到對應段落。</li>
@@ -477,8 +512,8 @@ function sourcesHTML(ns,title){const groups=PHASES.map(p=>({p,items:ns.filter(n=
   let total=0,body="";groups.forEach(g=>{body+=ns.length>1?`<li class="src-ph">${esc(g.p.name)}</li>`:"";
     g.items.forEach(n=>{const w=W[n-1];[w.r,...(w.src||[])].forEach(r=>{total++;body+=`<li><span class="mono muted">W${String(n).padStart(2,"0")}</span> ${cite(r)}</li>`})})});
   return `<details class="card sources"><summary><h3 style="display:inline">${esc(title)}</h3> <span class="muted mono" style="font-size:.8rem">${total} 筆</span></summary>
-    <ol class="src-list">${body}</ol>
-    <p class="muted" style="margin:0;font-size:.8rem">每週閱讀均以網路搜尋確認出處與連結。講解中的數值（例如第 2 週的潮差表）為 repo 範例程式的實際執行結果。</p></details>`}
+    <div class="dep-body"><ol class="src-list">${body}</ol>
+    <p class="muted" style="margin:0;font-size:.8rem">每週閱讀均以網路搜尋確認出處與連結。講解中的數值（例如第 2 週的潮差表）為 repo 範例程式的實際執行結果。</p></div></details>`}
 function outline(n){const w=W[n-1];
   return `<div class="callout term"><b>講解尚未產生</b><p>這週的完整理論、程式與動畫會在第 ${n-1} 週完成時一起產生。到時在新對話說「第 ${n-1} 週進度」即可。下面是本週的學習路線。</p></div>
   <ol>${w.d.map(x=>`<li>${esc(x)}</li>`).join("")}<li>週六產出：${esc(w.s)}</li></ol>`}
@@ -706,6 +741,48 @@ const ANIMS={
   ctl.querySelector("#pp-next").addEventListener("click",()=>{n=Math.min(4,n+1);paint()});
   ctl.querySelector("#pp-reset").addEventListener("click",()=>{n=0;paint()});paint()}
 };
+
+
+// ======================= 單元連動圖 =======================
+const LINES={batch:{name:"批次與實驗線",col:"var(--buoy)",up:true},solver:{name:"求解器與模型線",col:"var(--sea)",up:true},space:{name:"空間與服務線",col:"var(--kelp)",up:false},ops:{name:"資料與維運線",col:"var(--vio)",up:false}};
+const DEPS=[
+ [1,2,"batch","潮位模型改成命令列工具"],[2,5,"batch","批次結構變成實驗框架"],[5,8,"batch","用實驗框架產生訓練資料"],[5,20,"batch","批次實驗改用 MLflow 記錄"],[5,24,"batch","批次產生拓樸結構"],[24,25,"batch","用資料集訓練生成模型"],
+ [3,4,"solver","FDM 延伸到對流與 Burgers"],[3,7,"solver","PINN 與 FDM 比較"],[4,7,"solver","PINN 解對流方程"],[6,7,"solver","訓練迴圈用於 PINN"],[4,8,"solver","Burgers 求解器產生資料"],[6,8,"solver","訓練迴圈用於 FNO"],[3,22,"solver","與 Fortran 版逐行對照"],
+ [9,10,"space","Voronoi 延伸到拓撲與座標"],[10,11,"space","在正確座標系做內插"],[11,18,"space","內插包成 API"],[18,19,"space","API 加上測試與 CI/CD"],[8,19,"space","代理模型包成推論服務"],
+ [12,13,"ops","ETL 加上品質檢查"],[12,14,"ops","ETL 用 cron／systemd 排程"],[14,15,"ops","服務容器化"],[15,16,"ops","單一容器擴成多服務"],[16,17,"ops","compose 對照 Kubernetes"],[15,19,"ops","CI 建置容器映像"],[13,21,"ops","品質規則變成監控"],[20,21,"ops","實驗紀錄接上編排"]];
+const CATN={start:"起點單元",linked:"連動單元",solo:"獨立單元",sum:"總整理"};
+function depCat(n){if(n===NW)return"sum";const i=DEPS.some(d=>d[1]===n),o=DEPS.some(d=>d[0]===n);return i?"linked":o?"start":"solo"}
+function depMapHTML(){const gap=36,x0=26,y=175,X=n=>x0+(n-1)*gap,Wd=x0*2+(NW-1)*gap,H=360;
+  let svg=`<svg class="dep-svg" id="dep-svg" viewBox="0 0 ${Wd} ${H}" role="img" aria-label="26 週單元連動圖">`;
+  PHASES.forEach((p,i)=>{if(i%2===0)svg+=`<rect class="dep-band" x="${X(p.from)-gap/2}" y="${H-28}" width="${(p.to-p.from+1)*gap}" height="22" rx="3"></rect>`;
+    svg+=`<text class="dep-ph" x="${(X(p.from)+X(p.to))/2}" y="${H-17}" text-anchor="middle" dominant-baseline="central">${esc(p.id)}</text>`});
+  DEPS.forEach(([a,b,l],i)=>{const L=LINES[l],s=X(b)-X(a),h=Math.min(140,22+s*.32),yy=L.up?y-h:y+h;
+    svg+=`<path class="dep-edge" data-i="${i}" d="M${X(a)} ${y} Q${(X(a)+X(b))/2} ${yy} ${X(b)} ${y}" style="stroke:${L.col}"></path>`});
+  for(let n=1;n<=NW;n++)svg+=`<g class="dep-node cat-${depCat(n)}" data-n="${n}" tabindex="0" role="button" aria-label="第 ${n} 週：${esc(W[n-1].st)}，${CATN[depCat(n)]}"><circle cx="${X(n)}" cy="${y}" r="12"></circle><text x="${X(n)}" y="${y}">${n}</text></g>`;
+  svg+=`</svg>`;
+  const by=c=>W.map((_,i)=>i+1).filter(n=>depCat(n)===c);
+  const row=(c,desc)=>`<tr><td>${CATN[c]}</td><td>${esc(desc)}</td><td class="mono">${by(c).map(n=>`<a href="#w${n}">W${n}</a>`).join("、")}</td></tr>`;
+  return `<details class="card dep"><summary><h2 style="display:inline;font-size:1.15rem">單元連動圖</h2> <span class="muted" style="font-size:.82rem">哪些單元要用到前面的成果</span></summary>
+   <div class="dep-body"><div class="dep-legend"><span><i></i>起點單元</span><span><i class="linked"></i>連動單元</span><span><i class="solo"></i>獨立單元</span><span><i class="sum"></i>總整理</span>
+    ${Object.values(LINES).map(L=>`<span><b style="background:${L.col}"></b>${L.name}</span>`).join("")}</div>
+   <div class="dep-wrap">${svg}</div>
+   <p class="dep-info" id="dep-info">點一個圓圈，看這週需要哪些前面的成果、之後又會被哪幾週用到。弧線在上方是批次與求解器兩條線，在下方是空間服務與資料維運兩條線。</p>
+   <div class="tbl"><table><thead><tr><th>類型</th><th>意思</th><th>單元</th></tr></thead><tbody>
+    ${row("start","不需要前面的成果，但後面會用到它的產出")}
+    ${row("linked","需要前面某幾週的程式或資料；沒做完時，交接會提供可用版本")}
+    ${row("solo","不需要前面的成果，後面也不依賴它，可以隨時調動順序")}
+    ${row("sum","整合前面所有成果")}</tbody></table></div></div></details>`}
+function focusDep(n){const svg=$("#dep-svg"),info=$("#dep-info");if(!svg)return;
+  const same=svg.dataset.f==String(n);svg.dataset.f=same?"":n;svg.classList.toggle("focus",!same);
+  svg.querySelectorAll(".dep-edge,.dep-node").forEach(e=>e.classList.remove("on"));
+  if(same){info.textContent="點一個圓圈，看這週需要哪些前面的成果、之後又會被哪幾週用到。";return}
+  const ins=DEPS.map((d,i)=>[d,i]).filter(([d])=>d[1]===n),outs=DEPS.map((d,i)=>[d,i]).filter(([d])=>d[0]===n);
+  [...ins,...outs].forEach(([d,i])=>{svg.querySelector(`.dep-edge[data-i="${i}"]`).classList.add("on");[d[0],d[1]].forEach(m=>svg.querySelector(`.dep-node[data-n="${m}"]`).classList.add("on"))});
+  svg.querySelector(`.dep-node[data-n="${n}"]`).classList.add("on");
+  const fmt=a=>a.map(([d])=>`W${d[0]===n?d[1]:d[0]}（${d[3]}）`).join("、");
+  info.innerHTML=`<b>W${n} ${esc(W[n-1].st)}</b>・${CATN[depCat(n)]}。`+(n===NW?"整合前面所有成果。":(ins.length?`需要：${esc(fmt(ins))}。`:"不需要前面的成果。")+(outs.length?`之後用於：${esc(fmt(outs))}。`:"後面沒有單元依賴它。"))+` <a href="#w${n}">打開這週</a>`}
+document.addEventListener("click",e=>{const g=e.target.closest(".dep-node");if(g)focusDep(+g.dataset.n)});
+document.addEventListener("keydown",e=>{const g=e.target.closest&&e.target.closest(".dep-node");if(g&&(e.key==="Enter"||e.key===" ")){e.preventDefault();focusDep(+g.dataset.n)}});
 
 // ======================= 啟動 =======================
 load();render();
