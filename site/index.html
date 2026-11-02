@@ -218,6 +218,11 @@ th{border-top:0;font-weight:500;color:var(--muted);font-size:.75rem;font-family:
 .notes label{display:grid;gap:6px;font-size:.84rem;font-weight:500}
 textarea{width:100%;min-height:110px;resize:vertical;border:1px solid var(--line);border-radius:6px;background:var(--paper);padding:10px;line-height:1.6}
 @media (prefers-reduced-motion:no-preference){.map .fill{transition:height .3s ease}}
+.sources summary{cursor:pointer;list-style-position:outside}
+.sources[open] summary{margin-bottom:4px}
+.src-list{margin:0;padding-left:1.2em;display:grid;gap:6px;font-size:.84rem;list-style:none}
+.src-list li{overflow-wrap:anywhere}
+.src-list .src-ph{font-family:var(--font-mono);font-size:.72rem;color:var(--muted);margin-top:6px;letter-spacing:.04em}
 </style>
 
 <div class="app">
@@ -422,7 +427,8 @@ function renderHome(){const pos=todayPos();let today="";
       <tr><td>找錯誤訊息的原因</td><td>寫 commit message 與失敗報告</td></tr></tbody></table></div>
     <p class="muted" style="margin:0;font-size:.86rem">職缺要的是「AI 出錯時能判斷錯在哪」。每週都有一題「讓 AI 寫，再找出它錯在哪」。</p></section>
   <section class="card" aria-labelledby="job-h"><h2 id="job-h">職缺技能對照</h2>
-    <div class="tbl"><table><thead><tr><th>職缺要求</th><th>在哪幾週練</th></tr></thead><tbody>${skillRows}</tbody></table></div></section>`;
+    <div class="tbl"><table><thead><tr><th>職缺要求</th><th>在哪幾週練</th></tr></thead><tbody>${skillRows}</tbody></table></div></section>
+  ${sourcesHTML(W.map((_,i)=>i+1),"全部參考來源")}`;
   $("#start-date").addEventListener("change",e=>{if(e.target.value){state.start=e.target.value;persist();render()}})}
 
 function renderHeat(w){let h=`<div class="heat-grid"><div></div>`;
@@ -462,8 +468,17 @@ function renderWeek(n){const w=W[n-1],ph=PHASES.find(p=>n>=p.from&&n<=p.to),note
     <div class="notes">
       <label for="n-paper">閱讀摘要草稿<textarea id="n-paper" data-note="paper" placeholder="1. 解決什麼問題&#10;2. 方法一句話&#10;3. 最重要的結果&#10;4. 限制或失敗情況&#10;5. 跟本週練習的關係">${esc(notes.paper||"")}</textarea></label>
       <label for="n-fail">本週觀察／失敗案例<textarea id="n-fail" data-note="fail" placeholder="哪裡預測不準？可能原因？佐證（圖檔名、數字）？">${esc(notes.fail||"")}</textarea></label>
-    </div></section>`;
+    </div></section>
+  ${sourcesHTML([n],"本週參考來源")}`;
   if(w.content)loadLesson(n)}
+// 參考來源：一律收在頁面最末節，預設收合
+function cite(r){return `${esc(r.a)}${r.y!=="—"?"（"+r.y+"）":""}．<a href="${r.u}" target="_blank" rel="noopener">${esc(r.t)}</a>．${esc(r.v)}${r.classic?"．經典":""}`}
+function sourcesHTML(ns,title){const groups=PHASES.map(p=>({p,items:ns.filter(n=>n>=p.from&&n<=p.to)})).filter(g=>g.items.length);
+  let total=0,body="";groups.forEach(g=>{body+=ns.length>1?`<li class="src-ph">${esc(g.p.name)}</li>`:"";
+    g.items.forEach(n=>{const w=W[n-1];[w.r,...(w.src||[])].forEach(r=>{total++;body+=`<li><span class="mono muted">W${String(n).padStart(2,"0")}</span> ${cite(r)}</li>`})})});
+  return `<details class="card sources"><summary><h3 style="display:inline">${esc(title)}</h3> <span class="muted mono" style="font-size:.8rem">${total} 筆</span></summary>
+    <ol class="src-list">${body}</ol>
+    <p class="muted" style="margin:0;font-size:.8rem">每週閱讀均以網路搜尋確認出處與連結。講解中的數值（例如第 2 週的潮差表）為 repo 範例程式的實際執行結果。</p></details>`}
 function outline(n){const w=W[n-1];
   return `<div class="callout term"><b>講解尚未產生</b><p>這週的完整理論、程式與動畫會在第 ${n-1} 週完成時一起產生。到時在新對話說「第 ${n-1} 週進度」即可。下面是本週的學習路線。</p></div>
   <ol>${w.d.map(x=>`<li>${esc(x)}</li>`).join("")}<li>週六產出：${esc(w.s)}</li></ol>`}
