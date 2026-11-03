@@ -54,6 +54,5 @@
 
 ```bash
 pip install -r requirements.txt
-python week01/tide_example.py
-python week02/batch.py
+python weekNN/<範例程式>.py   # 各週範例程式放在對應的 weekNN/，依該週 exercises.md 執行
 ```

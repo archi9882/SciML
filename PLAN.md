@@ -4,15 +4,10 @@
 本文件同時存在 claude.ai 專案「All About LLM」（`claude/sciml-plan.md`）與 GitHub repo（`PLAN.md`），兩邊內容保持一致。
 
 ## 目前待辦（下次對話先看這裡）
-- **位置**：第 1 週 Day 3（pandas 統計＋報告圖，原 Day 3、4 已合併）。Day 4 改為「讓 AI 把取樣改成 30 分鐘，用筆數與物理檢查找出它漏改的地方」。
-- **已完成**：Day 1；Day 2 的 Q1、Q2、Q3；Day 3 的 Q1–Q3 已作答（`high_count` 初版數的是高於門檻的小時數，不是高潮次數，待重寫）。
-  2026-11-03 起 `week01/`、`week02/` 已從 repo 移除，舊內容留在 git 歷史（commit `4346c6c`，`git checkout 4346c6c -- week01 week02` 可還原）。
-  Day 2 Q3 當時用 `seed_check.py` 實測，結論正確（只有分潮 comp 不受 seed 影響；固定 seed 是為了可重現）。
-  Q1 的說法可再精確：除了 t 的單位，`n = days * 24` 也寫死了，30min 取樣時只模擬 30 天。學習站第 1 週講解已補上。
-- **學習者自行做的事**：把 `make_tide()` 拆成 `make_constituents()` + `make_tide()`，圖上加了 M2、S2 子圖；`SEED` 目前是 50。
-- **追蹤頁勾選落後**：db 只勾了 `w1d1c`，Day 2 實際已完成但未勾。
+- **位置**：從第 1 週重新開始（2026-11-03 決定）。`week01/`、`week02/` 已移除，進度不沿用舊的 Day 3；依新格式（一週一大問題，理論與示範 → 例題 → 變化題）重新產出第 1 週範例程式與 `exercises.md`。
+- **舊內容**：舊的範例程式與 `notes.md` 作答（Day 1–3）留在 git 歷史，commit `4346c6c`，`git checkout 4346c6c -- week01 week02` 可還原參考。
+- **學習站**：`site/content/` 的第 1、2 週講解仍在；追蹤頁 db 只勾了 `w1d1c`，重新開始後勾選以實際進度為準。
 - **下一個里程碑**：第 2 週交接時產生 TideWatch 成品與 `sealed-answer-key`（見下方）。
-- **還沒做**：第 1 週 Day 3–6。`week01/`、`week02/` 的範例程式與 `exercises.md` 已移除，需依新格式重新產出；學習站第 1、2 週講解（`site/content/`）仍在。
 
 ## 學習者背景
 - 水文與海洋科學碩士；修過流體力學、流體動力學、水文學、水文分析。
