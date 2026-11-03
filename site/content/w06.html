@@ -1,0 +1,113 @@
+<section class="bigq-intro">
+  <p>這週只回答一個問題。理論、例題、變化題都是為了回答它，週末你要用自己的話寫出答案。</p>
+  <div class="callout job"><b>為什麼這週重要</b><p>職缺要求的是「設計驗證流程」，而不是把整個問題丟給 AI 再事後修補。驗證流程的第一步，是分清楚「程式算對了嗎」與「模型描述的是真實嗎」，第二步是知道模型與真實差多少、差距從哪來。這週練這兩步，並拿它們審查成品。</p></div>
+  <p>這週交付<b>第二個成品 ChannelWatch</b>（明渠水力學：Manning 水深、水面線、水躍、水位流量曲線），放在 repo 的 <code>channelwatch/</code>，用 <code>python -m channelwatch run</code> 執行。審查對象有三塊：HydroWatch 的降雨逕流率定、水庫發電量，以及 ChannelWatch。第 3 週的 <code>audit_log.md</code> 繼續用。範例程式在 <code>week06/validation_example.py</code>。</p>
+</section>
+
+<section data-day="1">
+  <h2><span class="stage-no">一</span>理論與示範</h2>
+  <p class="lead">要回答「差多少、差在哪」，需要五個觀念：驗證與確證不同、率定與驗證要分開、水位流量曲線有外插風險、誤差要列成預算、數字要能手算量級。</p>
+
+  <h3><span class="day-mark">Day 1</span>1. Verification 與 validation：兩個不同的問題</h3>
+  <div class="callout term"><b>名詞</b>
+    <p><b>Verification（驗證程式）</b>：程式有沒有把方程式解對？用已知解、收斂測試、守恆檢查回答。</p>
+    <p><b>Validation（確證模型）</b>：方程式描述的是真實嗎？用<b>沒有參與率定的觀測</b>回答。</p></div>
+  <div class="tbl"><table><thead><tr><th>問題</th><th>怎麼回答</th><th>前幾週的例子</th></tr></thead><tbody>
+    <tr><td>程式算對了嗎</td><td>已知解、守恆、收斂</td><td>第 1 週退水檢查 0.351 對 0.368；第 4 週的穩定條件與收斂</td></tr>
+    <tr><td>模型像真實嗎</td><td>用獨立的觀測比較</td><td>這週：流量觀測、水位流量曲線</td></tr>
+  </tbody></table></div>
+  <p>兩者不能互相取代：程式完全正確，模型仍然可能描述錯了流域；模型貼近觀測，程式仍然可能有錯。經典定義見本週閱讀 Oberkampf &amp; Trucano (2002)。</p>
+
+  <h3 data-day="2"><span class="day-mark">Day 2</span>2. 率定與驗證要分開；NSE 高不代表參數對</h3>
+  <p>率定是調參數讓模擬貼近一段觀測。如果用同一段資料評分，分數只說明「調得動」，不能說明「模型描述得對」。要把資料切成兩段，率定用前半、驗證用後半。評分用 NSE：</p>
+  <div class="eq">NSE = 1 − Σ(觀測 − 模擬)² / Σ(觀測 − 觀測平均)²
+1 為完美；0 表示不比「永遠猜平均值」好；負數表示更差</div>
+  <div class="callout demo"><b>示範：用第 2 週的合成資料（真值 k = 1.2 hr、C = 0.4）率定</b><p>執行 <code>python week06/validation_example.py</code>，第一部分印出：</p>
+    <div class="eq">雨量正確：    k = 1.2 hr、C = 0.40；率定期 NSE = 0.991，驗證期 NSE = 0.995
+雨量只量到 60%：k = 1.2 hr、C = 0.65；率定期 NSE = 0.990，驗證期 NSE = 0.994</div>
+    <p>第二行的雨量被少算了 40%，率定卻照樣得到 0.99 的 NSE，只是 C 被調成 0.65 去補償。<b>評分很高，參數卻是錯的</b>：模型把「雨量量少了」誤認成「流域產流多」。</p></div>
+  <p>這是驗證的核心難題：分數只能檢查「輸入加參數的組合」，不能分辨哪一個是錯的。要分辨，需要獨立的證據，例如用另一個雨量站、物理上合理的 C 範圍，或檢查水量平衡。</p>
+
+  <h3 data-day="3"><span class="day-mark">Day 3</span>3. 水位流量曲線：由水位推流量，外插很危險</h3>
+  <p>河川流量很難連續量，實務上先在不同水位下人工實測流量，擬合出水位流量曲線，之後只量水位。Manning 公式提供理論形狀：</p>
+  <div class="eq">Q = (1/n) · A · R^(2/3) · S^(1/2)         A：斷面積，R = A / P：水力半徑，S：河床坡降
+寬淺渠道 R ≈ h：Q ∝ h^(5/3)，所以曲線常用 Q = a h^b，b 約 1.7</div>
+  <div class="callout term"><b>粗糙係數 n</b><p>反映河床阻力，查表而來。Chow (1959) 的天然山區河流：礫石、卵石、少量大塊石約 0.030–0.050；卵石夾大塊石約 0.040–0.070。陡峭河流與低流量時，這個表可能偏低。</p></div>
+  <div class="callout demo"><b>示範：只用低水位的實測，外插到高水位</b><p>第二部分用寬 20 m、坡降 0.004、n = 0.04 的矩形河道，水位 0.2–0.8 m 有 20 次實測（誤差 8%）：</p>
+    <div class="eq">擬合 Q = 27.5 h^1.53（理論指數 1.67）
+h = 0.5 m：曲線  9.5，Manning  9.6 m3/s，差  −1.2%（範圍內）
+h = 0.8 m：曲線 19.6，Manning 20.7 m3/s，差  −5.5%（範圍內）
+h = 1.2 m：曲線 36.4，Manning 39.7 m3/s，差  −8.4%（外插）
+h = 2.0 m：曲線 79.6，Manning 88.9 m3/s，差 −10.5%（外插）</div>
+    <p>範圍內只差幾 %，外插越遠差越多。洪水剛好都發生在沒有實測的高水位，這是水文最麻煩的地方。美國地質調查所比較多種方法：簡單斷面的中位數流量不確定度約 3% 到 17%，外插的高流量可達 41% 到 200%。</p></div>
+
+  <h3 data-day="4"><span class="day-mark">Day 4</span>4. 誤差預算：把差距拆成幾項，再合起來</h3>
+  <p>總誤差不是一個數字，是幾個來源的合成。互相獨立的相對誤差，用方均根合成。以這個系統為例（數字來源見 <code>docs/parameters.md</code>）：</p>
+  <div class="tbl"><table><thead><tr><th>來源</th><th>大小</th><th>依據</th></tr></thead><tbody>
+    <tr><td>雨量量測</td><td class="mono">5%</td><td>雨量計準確度等級 ±3% 至 ±10%</td></tr>
+    <tr><td>流量量測</td><td class="mono">8%</td><td>水位流量曲線 95% 不確定度的中位數範圍</td></tr>
+    <tr><td>時間離散（顯式歐拉）</td><td class="mono">4.6%</td><td>第 1 週例題</td></tr>
+    <tr><td>合成（方均根）</td><td class="mono">√(5² + 8² + 4.6²) ≈ 10.5%</td><td>假設三者互相獨立</td></tr>
+  </tbody></table></div>
+  <p>誤差預算還有一個作用：告訴你哪一項最值得改善。這裡流量量測最大，把數值方法再改精細，總誤差幾乎不會變。</p>
+
+  <h3>5. 數字要能手算量級</h3>
+  <p>AI 給出的數字，先用手算檢查量級，不必精確：</p>
+  <div class="eq">水量：1 mm 雨 × 1 km² = 1000 m³
+水力發電功率：P = ρ g Q H η
+　例：Q = 5 m³/s、H = 60 m、η = 0.9　→　P = 1000 × 9.81 × 5 × 60 × 0.9 ≈ 2.65 × 10⁶ W = 2.65 MW
+Manning 水深（寬淺渠道）：h = (q n / √S)^(3/5)，q = Q / 寬度</div>
+</section>
+
+<section data-day="4">
+  <h2><span class="stage-no">二</span>例題（完整示範）</h2>
+  <div class="callout predict"><b>例題</b><p>水位流量曲線外插到 2.0 m，比 Manning 少 10.5%。是資料不夠，還是方法的問題？請拆出來源，並各自估計大小。</p></div>
+  <p><b>步驟 1：列出可能的來源。</b>程式和 Manning 有兩個不同：流量實測有 8% 的誤差；以及冪函數 Q = a h^b 的形狀是固定的，真實斷面的指數會隨水深改變。</p>
+  <p><b>步驟 2：一次只改一個條件，看落差怎麼變。</b>把實測誤差設成 0（只剩形狀的影響）再擬合：</p>
+  <div class="tbl"><table><thead><tr><th>條件</th><th>擬合指數 b</th><th>h = 2.0 m 的差</th></tr></thead><tbody>
+    <tr><td>實測誤差 0（只有形狀）</td><td class="mono">1.64</td><td class="mono">+5.0%</td></tr>
+    <tr><td>實測誤差 8%（原條件）</td><td class="mono">1.53</td><td class="mono">−10.5%</td></tr>
+  </tbody></table></div>
+  <p><b>步驟 3：解釋每個來源。</b></p>
+  <ul>
+    <li><b>形狀</b>：低水位時近似寬淺渠道，指數接近 5/3；水深增加，側壁摩擦的比重變大，真實指數變小，擬合的冪函數外插後略為偏高，約 +5.0%。</li>
+    <li><b>實測誤差</b>：20 筆各有 8% 的亂數誤差，擬合出的指數被拉低到 1.53，外插後偏低，約 −15.5%（兩者合成是 −10.5%）。換一組實測誤差，這項的方向與大小都會變。</li>
+  </ul>
+  <p><b>步驟 4：下結論。</b>在這個斷面，水位 0.8 m 以內曲線可信（差 5% 以內）；外插到 2.0 m，不確定度已經大過 10%，而且兩個來源方向相反，不能互相抵銷當作安全。結論的寫法：<i>水位流量曲線只在實測範圍內採信；外插時必須同時說明範圍與預期誤差，並優先補測高水位。</i></p>
+  <div class="callout job"><b>這個例題教的方法</b><p>差距要拆成「系統性的」與「隨機的」。系統性的來源（形狀）換資料也不會消失，隨機的來源（實測誤差）換一組資料就不同。審查時，兩種都要找。</p></div>
+</section>
+
+<section data-day="5">
+  <h2><span class="stage-no">三</span>變化題</h2>
+  <p class="lead">先自己做，卡住再看提示；答案寫進 <code>week06/notes.md</code>。</p>
+
+  <h3><span class="day-mark">Day 5</span>變化 1：雨量被少量，C 會怎麼變</h3>
+  <p>在 <code>part1()</code> 把雨量縮放改成 0.8 與 0.4，先預測率定出來的 C 與驗證期 NSE，再執行。C 的值落在哪裡？有沒有碰到格點的邊界？</p>
+  <details class="hint"><summary>提示</summary><p>模型的流量與 C × 雨量成正比。雨量少量了多少，C 就要補多少。</p></details>
+  <details class="hint"><summary>參考答案</summary><p>縮放 0.8 時 C = 0.50（0.4 ÷ 0.8），驗證期 NSE 0.995；縮放 0.4 時 C 應該是 1.0，但格點上限只有 0.90，所以停在 0.90，k 也被拉到 1.0 去補償，驗證期 NSE 仍有 0.983。兩個教訓：NSE 一直很高，所以它抓不到這類錯；率定結果卡在搜尋範圍的邊界，是參數不合理的警訊。</p></details>
+
+  <h3>變化 2：讓 AI 寫水位流量曲線，用外插抓錯</h3>
+  <p>請 AI 寫一個 <code>fit_rating(df)</code>，由 <code>stage</code> 與 <code>discharge</code> 兩欄擬合曲線並回傳外插到 2.0 m 的流量。不要提示任何陷阱。先寫好兩個檢查再執行：實測範圍內的誤差、已知答案的外插值（用本週範例的 Manning 真值）。它通過嗎？有沒有告訴你外插風險？</p>
+  <details class="hint"><summary>提示</summary><p>注意單位（水位是公分還是公尺）、有沒有扣掉零流量水位、誤差有沒有回報，以及它對外插有沒有任何警示。</p></details>
+
+  <h3><span class="day-mark">Day 5</span>變化 3：審查成品，寫進 audit_log.md</h3>
+  <p>這是本週的主要練習。對下面三塊各做一次「手算已知答案 → 跟程式比較 → 差距拆成來源」，每發現一項就記進 <code>audit_log.md</code>（含證據與影響大小，查過沒問題的也要記為「排除」）：</p>
+  <ol>
+    <li><b>ChannelWatch 的 Manning 水深與 Froude 數</b>：讀 <code>channelwatch/sample_data/README.md</code> 的河床描述，查 Chow 表選 n，手算 Q = 100 m³/s 的正常水深與流速，再跟 <code>python -m channelwatch run</code> 的報告比較。</li>
+    <li><b>ChannelWatch 的水位流量曲線與水躍</b>：對照實測資料的單位與範圍；手算水躍的共軛水深。</li>
+    <li><b>HydroWatch 的率定與水庫發電量</b>：看 <code>report.json</code> 的 <code>runoff</code> 與 <code>reservoir</code>，檢查率定怎麼評分、發電功率與水量平衡的量級。</li>
+  </ol>
+  <details class="hint"><summary>提示</summary><p>每一項都先寫下「我預期是多少、依據是什麼」，再執行。對不上的數字就是線索，用例題的四步拆開。</p></details>
+</section>
+
+<section data-day="6">
+  <h2><span class="stage-no">四</span>回答本週大問題</h2>
+  <p>用一段話回答「模型跟真實世界差多少，差距來自哪裡？」，寫進 <code>week06/notes.md</code>，並整理成一頁驗證報告放進 repo 的 <code>README.md</code>。至少包含：</p>
+  <ol>
+    <li><b>可信範圍</b>：模型在哪些條件下可採信，哪些不行（例如水位流量曲線只在實測範圍內）。</li>
+    <li><b>誤差預算表</b>：至少四項來源，各自的大小與依據，以及合成後的總誤差。</li>
+    <li><b>審查結果</b>：<code>audit_log.md</code> 中本週三塊的紀錄，每筆都有證據與影響大小。</li>
+  </ol>
+  <p>另外寫本週閱讀的 5 行摘要：<code>papers/output/2002_oberkampf.md</code>。閱讀時留意作者如何定義 verification 與 validation，對照你這週的做法。</p>
+  <div class="callout job"><b>下週預告：神經網路與資料洩漏</b><p>第 7 週學 PyTorch 與訓練迴圈，並審查成品的殘差修正：標準化、時間序列切分與資料洩漏。這週學的「率定與驗證要分開」，下週會變成「訓練、驗證、測試要分開」。</p></div>
+</section>
