@@ -95,6 +95,8 @@ def daily_stats(eta: pd.Series) -> pd.DataFrame:
     # resample("D") 把資料依「日」分組，類似 Excel 樞紐分析。
     daily = eta.resample("D").agg(["max", "min", "mean"])
     daily["range"] = daily["max"] - daily["min"]  # 潮差 = 高 - 低
+    high_count = eta.resample("D").apply(lambda x: (x > 1).sum())  # 每日超過 0.5 m 的小時數
+    daily["high_count"] = high_count
     return daily
 
 
