@@ -1,0 +1,101 @@
+<section class="bigq-intro">
+  <p>這週只回答一個問題。理論、例題、變化題都是為了回答它，週末你要用自己的話寫出答案。</p>
+  <div class="callout job"><b>為什麼這週重要</b><p>職缺要求「判斷哪些環節對數值誤差最敏感，據此選擇求解策略並設計驗證流程」。AI 很容易寫出能跑的求解器，卻不會告訴你它在哪個步長以上會悄悄發散。這週學的穩定性與收斂，是審查任何數值程式的第一道檢查。</p></div>
+  <p>範例在 <code>week04/diffusion_fdm.py</code>，用河道的水力擴散係數（D = 0.60 km²/hr，推導見 <code>docs/parameters.md</code>）解一維擴散方程。本週審查成品 HydroWatch 的河道洪水演算 <code>hydrowatch/model/routing.py</code>。</p>
+</section>
+
+<section data-day="1">
+  <h2><span class="stage-no">一</span>理論與示範</h2>
+  <p class="lead">要回答「什麼時候爆掉、什麼時候悄悄不準」，需要四個觀念：有限差分怎麼寫、誤差怎麼隨網格下降、穩定性條件從哪來、隱式格式換掉了什麼。</p>
+
+  <h3><span class="day-mark">Day 1</span>1. 擴散方程與顯式格式</h3>
+  <div class="callout term"><b>名詞</b>
+    <p><b>擴散方程</b>：u<sub>t</sub> = D u<sub>xx</sub>。u 變化的快慢，取決於它在空間上彎曲的程度。洪水波在河道裡越走越平，就是這種現象。</p>
+    <p><b>有限差分</b>：把 x 與 t 切成網格，用相鄰格點的差近似導數。</p>
+    <p><b>FTCS（顯式）</b>：用「現在」的值算「下一步」。</p>
+    <p><b>擴散數 r</b> = D·dt / dx²。</p></div>
+  <div class="eq">u_j^(n+1) = u_j^n + r (u_(j+1)^n − 2 u_j^n + u_(j−1)^n)
+問題：u(x,0) = sin(πx/L)，兩端為 0；精確解 u(x,t) = exp(−Dπ²t/L²) sin(πx/L)</div>
+  <p>有精確解，程式對不對就能直接量。這是 verification 最直接的方法。執行 <code>python week04/diffusion_fdm.py</code>，三段輸出分別對應下面三個觀念。</p>
+
+  <h3 data-day="2"><span class="day-mark">Day 2</span>2. 收斂：網格加密，誤差應該怎麼降</h3>
+  <p>FTCS 在空間上是二階精度：dx 縮小一半，誤差應縮小約 4 倍。要驗證這一點，必須讓 dt 跟著 dx² 縮小（保持 r 固定），否則時間誤差會干擾判斷。</p>
+  <div class="callout demo"><b>示範：第二段輸出（r = 0.25 固定）</b>
+    <div class="eq">格點數  dx [km]    L2 誤差   誤差比
+   11    1.000  6.105e-04
+   21    0.500  1.733e-04    3.52
+   41    0.250  4.438e-05    3.90
+   81    0.125  1.123e-05    3.95</div>
+    <p>誤差比趨近 4，確認是二階。如果誤差比不是 4，要不是程式有錯，就是別的誤差來源（時間、邊界）蓋過了空間誤差。</p></div>
+
+  <h3 data-day="3"><span class="day-mark">Day 3</span>3. 穩定性：r ≤ 0.5 從哪來</h3>
+  <p>把 FTCS 整理成 u<sub>j</sub><sup>n+1</sup> = r u<sub>j−1</sub> + (1 − 2r) u<sub>j</sub> + r u<sub>j+1</sub>。r &gt; 0.5 時中間那項的係數變成負的：一個高點會讓下一步在原處變成低點，來回震盪。對最高頻的格點震盪（相鄰格點正負交錯），每一步的放大倍數是 1 − 4r：</p>
+  <div class="eq">|1 − 4r| ≤ 1   ⇒   r ≤ 0.5          （只有擴散）
+對流（upwind）加擴散：|1 − 2C − 4r| ≤ 1   ⇒   2C + 4r ≤ 2        （C = a·dt/dx，之後審查會用到）</div>
+  <div class="callout demo"><b>示範：第一段輸出（dx = 0.5 km，r ≤ 0.5 ⇔ dt ≤ 0.208 hr，初始加 1e-6 擾動，模擬 6 小時）</b>
+    <div class="eq"> dt [hr]      r      L2 誤差       max|u|
+   0.10  0.240   1.559e-04    7.007e-01
+   0.20  0.480   6.683e-04    7.000e-01
+   0.25  0.600   1.050e-03    7.003e-01     ← r 已超過 0.5，看起來還好
+   0.30  0.720   5.200e-02    7.684e-01
+   0.40  0.960   1.216e+00    2.919e+00
+   0.50  1.200   1.880e+00    4.205e+00</div>
+    <p>r = 0.6 時每一步放大 1.4 倍，只走 24 步，微小擾動長大了約 3,000 倍，仍然看不出來；步數再多一點就會爆。<b>略超過穩定條件，短時間的結果看起來完全正常。</b></p></div>
+
+  <h3 data-day="4"><span class="day-mark">Day 4</span>4. 隱式格式：換掉了什麼</h3>
+  <p>Backward Euler 用「下一步」的值算空間差分，每一步要解一組聯立方程（三對角矩陣），換來沒有步長限制，但精度只有一階，而且每步的成本更高。</p>
+  <div class="callout demo"><b>示範：第三段輸出（dx = 0.5 km）</b>
+    <div class="eq">dt = 1.0 hr（r = 2.4，顯式早已不穩定）：L2 誤差 5.258e-03，穩定
+dt = 0.1  hr：L2 誤差 8.586e-04
+dt = 0.01 hr：L2 誤差 4.039e-04     ← 降到空間誤差就不再下降</div></div>
+  <div class="tbl"><table><thead><tr><th>情況</th><th>選顯式</th><th>選隱式</th></tr></thead><tbody>
+    <tr><td>要追蹤快速變化（洪峰通過）</td><td>步長本來就要小，顯式夠用</td><td>可以用大步長，但會抹平快速變化</td></tr>
+    <tr><td>只關心長時間的緩慢演變</td><td>步長被穩定條件綁住，很慢</td><td>大步長，省很多步數</td></tr>
+    <tr><td>程式複雜度</td><td>幾行</td><td>要解線性方程組</td></tr>
+  </tbody></table></div>
+</section>
+
+<section data-day="4">
+  <h2><span class="stage-no">二</span>例題（完整示範）</h2>
+  <div class="callout predict"><b>例題</b><p>dt = 0.25 hr、dx = 0.5 km 時 r = 0.6，輸出 max|u| = 0.700，看起來完全正常。它真的穩定嗎？要模擬多久才看得出來？</p></div>
+  <p><b>步驟 1：列出可以檢查的東西。</b>穩定條件的理論值（r ≤ 0.5）、每步放大倍數 |1 − 4r| = 1.4、模擬長度。</p>
+  <p><b>步驟 2：一次只改一個條件。</b>只延長模擬時間，其他不動：</p>
+  <div class="tbl"><table><thead><tr><th>模擬時間</th><th>步數</th><th>max|u|（有 1e-6 擾動）</th><th>max|u|（無擾動，只有捨入誤差）</th></tr></thead><tbody>
+    <tr><td class="mono">6 hr</td><td class="mono">24</td><td class="mono">0.700</td><td class="mono">0.700</td></tr>
+    <tr><td class="mono">15 hr</td><td class="mono">60</td><td class="mono">84.7</td><td class="mono">0.409</td></tr>
+    <tr><td class="mono">25 hr</td><td class="mono">100</td><td class="mono">3.7 × 10⁷</td><td class="mono">0.225</td></tr>
+  </tbody></table></div>
+  <p><b>步驟 3：解釋。</b>放大是指數的：1.4 的 60 次方約 6 × 10⁸，乘上 1e-6 的擾動就是幾百。沒有刻意擾動時，只有 1e-16 左右的捨入誤差，要再多很多步才會長大，所以這個例子「看起來沒事」其實是還沒爆。</p>
+  <p><b>步驟 4：下結論。</b>不能因為 6 小時內沒問題，就說 r = 0.6 穩定。結論的寫法：<i>r = 0.6 不穩定，擾動每步放大 1.4 倍；在這個擾動量下，約 15 小時就會明顯失真。穩定性只能用條件判斷，不能靠短時間的輸出驗證。</i></p>
+  <div class="callout job"><b>這個例題教的方法</b><p>穩定性是條件，不是結果。拿到求解器，先算條件有沒有滿足，再用比預期長得多的模擬確認。</p></div>
+</section>
+
+<section data-day="5">
+  <h2><span class="stage-no">三</span>變化題</h2>
+  <p class="lead">先自己做，卡住再看提示；答案寫進 <code>week04/notes.md</code>。</p>
+
+  <h3><span class="day-mark">Day 4</span>變化 1：改網格，預測最大步長</h3>
+  <p>把 dx 改成 0.25 km，先用 r ≤ 0.5 算出最大的 dt，再用 <code>ftcs(41, dt, perturb=1e-6)</code> 驗證：dt = 0.05 與 0.06 各會怎樣？</p>
+  <details class="hint"><summary>提示</summary><p>dt ≤ 0.5 dx² / D。dx 縮小一半，最大步長縮小幾倍？</p></details>
+  <details class="hint"><summary>參考答案</summary><p>最大 dt = 0.5 × 0.0625 ÷ 0.60 ≈ 0.052 hr，比 dx = 0.5 km 時小 4 倍。dt = 0.05（r = 0.48）穩定，L2 誤差 1.7e-4；dt = 0.06（r = 0.576）發散，L2 誤差約 5.7e4。網格加密會讓可用的步長縮小得更快，總計算量是 dx 的三次方。</p></details>
+
+  <h3>變化 2：讓 AI 改程式，用精確解抓錯</h3>
+  <p>請 AI「把 <code>ftcs</code> 改成 Backward Euler」，不要提示任何陷阱。先寫兩個檢查再執行它的版本：L2 誤差要接近 8.6e-4（dt = 0.1、dx = 0.5）；dt 縮小 10 倍時，時間誤差應該約縮小 10 倍。檢查沒過，指出錯在哪一行。</p>
+  <details class="hint"><summary>提示</summary><p>常見錯誤：矩陣的邊界列處理、r 少乘了 dt、把下一步的解直接寫回邊界。用精確解與收斂階一起查。</p></details>
+
+  <h3 data-day="5"><span class="day-mark">Day 5</span>變化 3：審查成品的河道洪水演算</h3>
+  <p>HydroWatch 的 <code>hydrowatch/model/routing.py</code> 解的是對流加擴散方程，用 upwind 加顯式。從檔案讀出 U、D、DX、DT，算出 C 與 r，再用上面的組合條件 2C + 4r ≤ 2 判斷。然後用 <code>routing.solve</code> 分別跑 15、400、1000 步，看輸出。先寫下預期，再執行，結果記進 <code>audit_log.md</code>。</p>
+  <details class="hint"><summary>提示</summary><p>C 與 r 單獨檢查，各自都有自己的限制，但組合條件才是對的。跑得夠長才會看到結果。</p></details>
+</section>
+
+<section data-day="6">
+  <h2><span class="stage-no">四</span>回答本週大問題</h2>
+  <p>用一段話回答「數值解什麼時候會爆掉，什麼時候會悄悄不準？」，寫進 <code>week04/notes.md</code>，並整理成一頁「穩定性與誤差」筆記放進 repo 的 <code>README.md</code>，附一張收斂圖（log-log，誤差對 dx，並畫二階斜率線）。至少包含：</p>
+  <ol>
+    <li><b>爆掉的條件</b>：顯式擴散的 r ≤ 0.5、對流加擴散的 2C + 4r ≤ 2，以及略超過時為什麼短時間看不出來。</li>
+    <li><b>悄悄不準的條件</b>：時間與空間誤差各自的階數，以及什麼時候其中一項蓋過另一項。</li>
+    <li><b>審查結果</b>：<code>audit_log.md</code> 中對 routing.py 的紀錄，含證據與影響。</li>
+  </ol>
+  <p>另外寫本週閱讀的 5 行摘要：<code>papers/output/2021_karniadakis.md</code>。</p>
+  <div class="callout job"><b>下週預告：對流與 Burgers</b><p>第 5 週看對流帶來的數值擴散與激波，把求解器包成 <code>solve(params)</code>，並用你自己的版本換掉成品的河道洪水演算。</p></div>
+</section>

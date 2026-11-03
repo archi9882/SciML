@@ -112,6 +112,7 @@
 - 2026-11-03：進度重置，從第 1 週重新開始。
 - 2026-11-04：專案情境由潮汐改為水力工程（流域降雨 → 逕流 → 河道洪水演算 → 水庫水量平衡與發電量），成品更名為 HydroWatch，W1–W3 的範例、練習與成品重做；埋錯清單重建（40 筆）。學習站講解與動畫尚未同步。
 - 2026-11-04：第 6 週交付：講解 `site/content/w06.html`、範例 `week06/validation_example.py`、`exercises.md`、`notes.md`；本週交付第二個成品 ChannelWatch，審查 HydroWatch 的率定與水庫發電、ChannelWatch 的水深與水位流量曲線。
+- 2026-11-04：補齊第 4、5 週：講解 `site/content/w04.html`、`w05.html`，範例 `week04/diffusion_fdm.py`、`week05/advection_burgers.py`、`exercises.md`、`notes.md`。已有講解的週次：1–6；尚未撰寫：7–26（其中 7–12、16–22、24–25 需要額外套件或工具，見對話記錄的清點）。
 - 2026-11-04：參數改為以鯉魚潭水庫集水區為參考，逐項查證或推導，來源與假設見 `docs/parameters.md`、推導程式見 `scripts/derive_parameters.py`；資料期間改為 2026 年 8 月。新增第二個成品 ChannelWatch（明渠水力學：Manning 水深、水面線、水躍、水位流量曲線，`channelwatch/`），埋錯清單存入學習站 db 的 `sealed-answer-key-channel`（11 筆）；預計在第 6 週交接時交付，於第 6 週與第 15 週審查。HydroWatch 埋錯清單更新為 41 筆。
 - 2026-11-04：依職缺條件重新檢驗後補強：HydroWatch 新增測站分割（`spatial/partition.py`）與代理模型（`model/surrogate.py`）；W4 加入顯式與隱式格式比較；W14 併入因果推論與實驗設計；W17 加入自動維運與 runbook。W11 的多格式空間資料與 mesh generation 尚未補。
 - 2026-11-03：產出第 1–3 週教材與 HydroWatch 成品（`hydrowatch/`、`deploy/`、`legacy/`、`.github/`、`tests/`），埋錯清單存入學習站 db 的 `sealed-answer-key`；第 3 週講解 `site/content/w03.html` 與 `week03/`（含 `audit_log.md` 模板）。
