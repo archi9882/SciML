@@ -6,6 +6,13 @@
 ## 目前待辦（下次對話先看這裡）
 - **位置**：從第 1 週重新開始（2026-11-03 決定），專案情境為水力工程（2026-11-04）。第 1–3 週的範例程式、`exercises.md`、`notes.md` 題目與 HydroWatch 成品已產出，`sealed-answer-key` 已重建；學習站講解（`site/content/w01–w03.html`）、動畫與計畫資料已同步為水力工程版。
 - **學習站**：追蹤頁勾選以重新開始後的實際進度為準。
+- **講解進度**：已有講解、範例、練習的週次為 1–6。其餘 7–26 週待寫。
+- **待辦（依序）**：
+  1. 套件已核准安裝（torch、scipy、shapely、scikit-learn、fastapi、uvicorn、httpx、mlflow、optuna、pymoo）；裝好後寫第 7–12 週、第 24–25 週。Prefect 與 DVC 另行評估。
+  2. 目前環境就能寫的週次：13、14、15、23、26（pandas、pytest、gfortran 都有）。
+  3. 第 16–18 週（Docker、compose、Kubernetes）：使用者安裝 Docker 時遇到阻礙，目前這台電腦沒有 docker、kubectl。先寫成「審查型」練習（讀 Dockerfile 與 manifest 找地雷），指令與輸出標示為未實際執行驗證；待 Docker 可用再補驗證。
+  4. 第 19–22 週：fastapi、mlflow、optuna 裝好後驗證；Prefect、DVC 另行評估。
+- **Artifact 能力的結論（2026-11-04 實測）**：頁面可載入 pyodide.js 腳本，但 `fetch` 到 CDN 被 CSP 擋下，`loadPyodide` 無法完成，所以不能直接在學習站執行 Python。可能的替代是把 Pyodide 核心與所需套件檔一併發布為頁面的附屬檔案（相對路徑 fetch 可用，單檔上限 15 MB），需要下載 Pyodide 發行檔，尚未嘗試。Artifact 可做的：講解、動畫、進度與筆記（db）、審查紀錄表單、頁內 AI 問答（sample）、匯出檔案（downloads）；不能做：git、torch、Docker、Kubernetes、Fortran、啟動伺服器。
 - **下一個里程碑**：第 3 週交接時批改 `audit_log.md` 初版（只公布已審查模組的答案）；第 4 週起每週審查一個模組（見下方）。
 
 ## 學習者背景
