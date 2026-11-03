@@ -60,7 +60,7 @@
 | A 打底 | 1 | 讀懂資料處理程式：潮位時間序列 | — | Kratzert 2019 HESS（經典） |
 | | 2 | 命令列參數與第一個批次工作 | — | Shen 2023 Nat Rev Earth Env |
 | S AI 成品交付 | 3 | 跑起來、畫架構圖、建立 `audit_log.md` | 全系統（只看輸入輸出） | Sculley 2015 NeurIPS（經典） |
-| B 數值方法與物理判斷 | 4 | FDM 1D 擴散：穩定性、收斂、批次掃描 | transport（穩定條件） | Karniadakis 2021 Nat Rev Phys |
+| B 數值方法與物理判斷 | 4 | FDM 1D 擴散：穩定性、收斂、顯式與隱式格式的選擇、批次掃描 | transport（穩定條件） | Karniadakis 2021 Nat Rev Phys |
 | | 5 | 對流與 Burgers＋可重現實驗框架；失敗報告 #1 | transport（數值擴散、邊界）→ **替換** | Raissi 2019 PINN（經典） |
 | | 6 | 模式驗證 V&V：實測潮位、誤差預算 | harmonic → **替換** | Oberkampf & Trucano 2002（經典） |
 | | 7 | PyTorch autograd 與神經網路訓練 | ml（訓練迴圈、資料洩漏） | Cuomo 2022 PINN 綜述 |
@@ -70,10 +70,10 @@
 | C 空間資訊與地理統計 | 11 | 計算幾何、拓撲、座標系統、mesh | spatial（座標、分割） | SciPy spatial、Shapely 官方文件 |
 | | 12 | 空間內插（IDW、克利金、spline）與假設 | spatial → **替換** | Li & Heap 2014 EMS |
 | D ETL 與資料工程 | 13 | 異質多源資料 ETL | ingest → **替換** | pandas time series 官方文件 |
-| | 14 | 資料品質監控與統計前提；失敗報告 #3 | quality → **替換** | Breck 2019 MLSys |
+| | 14 | 資料品質、統計前提、因果與實驗設計；失敗報告 #3 | quality → **替換** | Breck 2019 MLSys |
 | V AI 協作與驗證 | 15 | 系統性否證 AI：錯誤分類、性質測試、檢查表 | 全系統掃描 | Zhang 2024 LLM 程式幻覺 |
 | E 自有基礎建設 | 16 | Linux 服務＋Docker 容器化 | deploy（Dockerfile） | Docker 官方文件、MIT Missing Semester |
-| | 17 | docker compose 多服務；PaaS/CaaS/FaaS 決策 | deploy（compose、架構選擇） | The Twelve-Factor App |
+| | 17 | docker compose 多服務；PaaS/CaaS/FaaS 決策；自動維運與 runbook | deploy（compose、架構選擇） | The Twelve-Factor App |
 | | 18 | Kubernetes manifest、10 倍擴展；失敗報告 #4 | deploy → **替換** | Kubernetes config best practices |
 | F REST API 與模型服務 | 19 | FastAPI 格網查詢 API | api（介面、錯誤處理） | FastAPI 官方教學 |
 | | 20 | 模型服務化、pytest、GitHub Actions CI/CD | api、ops（CI）→ api **替換** | GitHub Actions 官方文件 |
@@ -110,5 +110,6 @@
 - 2026-11-03：計畫第三版：改為「AI 先交成品、逐塊拆解」。新增第 3 週 TideWatch 交付，其後各單元加入審查與替換；拿掉原第 23 週最佳化回顧（Optuna 併入 W21、NSGA-II 併入 W24），維持 26 週。學習站首頁新增成品模組卡，審查週頁面顯示「本週審查成品」。
 - 2026-11-02：計畫第二版：W1 Day 3–4 合併、原 W5 併入 W4、原 W9–10 合併、原 W14–15 合併；省下 3 週新增 W5 模式驗證、W9 Hybrid、W14 系統性驗證 AI。學習站首頁加入單元連動圖，參考來源收在頁末。
 - 2026-11-03：進度重置，從第 1 週重新開始。
+- 2026-11-04：依職缺條件重新檢驗後補強：TideWatch 新增測站分割（`spatial/partition.py`）與代理模型（`model/surrogate.py`）；W4 加入顯式與隱式格式比較；W14 併入因果推論與實驗設計；W17 加入自動維運與 runbook。W11 的多格式空間資料與 mesh generation 尚未補。
 - 2026-11-03：產出第 1–3 週教材與 TideWatch 成品（`tidewatch/`、`deploy/`、`legacy/`、`.github/`、`tests/`），埋錯清單存入學習站 db 的 `sealed-answer-key`；第 3 週講解 `site/content/w03.html` 與 `week03/`（含 `audit_log.md` 模板）。
 - 2026-11-02：追蹤頁改版為「SciML 半年學習站」（同一網址、進度保留），原始碼放 `site/`；第 1、2 週講解與 7 個動畫上線。

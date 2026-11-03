@@ -29,3 +29,16 @@ def test_transport_mass_is_conserved():
 
 def test_health_endpoint():
     assert handle("/health", {}) == (200, {"status": "ok"})
+
+
+def test_partition_weights_sum_to_one():
+    from tidewatch.spatial.partition import partition_weights
+    w = partition_weights(ingest.stations())
+    assert abs(w.sum() - 1.0) < 1e-9
+    assert (w > 0).all()
+
+
+def test_surrogate_runs():
+    from tidewatch.model import surrogate
+    _, m = surrogate.train(n=60, epochs=200)
+    assert m["mae"] >= 0

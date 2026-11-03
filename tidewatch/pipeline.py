@@ -7,8 +7,9 @@ import matplotlib.pyplot as plt
 
 from tidewatch import ingest, quality
 from tidewatch.config import OUT_DIR, TRAIN_DAYS
-from tidewatch.model import harmonic, ml, transport
+from tidewatch.model import harmonic, ml, surrogate, transport
 from tidewatch.ops import drift, tracking
+from tidewatch.spatial.partition import basin_mean, partition_weights
 
 
 def run() -> dict:
@@ -25,6 +26,11 @@ def run() -> dict:
     _, ml_metrics = ml.train(resid)
 
     x, c0, c1 = transport.run_default()
+    _, sur_metrics = surrogate.train()
+
+    st = ingest.stations().set_index("id").loc[list(df.columns)].reset_index()
+    w = partition_weights(st)
+    mean_level = basin_mean(df.iloc[-1], w)
 
     n_ref = TRAIN_DAYS * 24
     dr = {sid: drift.check_drift(df[sid].iloc[:n_ref], df[sid].iloc[n_ref:]) for sid in df.columns}
@@ -34,6 +40,8 @@ def run() -> dict:
         "stations": list(df.columns),
         "harmonic": metrics,
         "ml": ml_metrics,
+        "surrogate": sur_metrics,
+        "partition": {"weights": dict(zip(df.columns, map(float, w))), "basin_mean_last_hour_m": mean_level},
         "quality": qc.to_dict(orient="index"),
         "drift": dr,
         "transport": {"peak_initial": float(c0.max()), "peak_final": float(c1.max()),
