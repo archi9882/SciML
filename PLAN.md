@@ -7,6 +7,11 @@
 - **位置**：從第 1 週重新開始（2026-11-03 決定），專案情境為水力工程（2026-11-04）。第 1–3 週的範例程式、`exercises.md`、`notes.md` 題目與 HydroWatch 成品已產出，`sealed-answer-key` 已重建；學習站講解（`site/content/w01–w03.html`）、動畫與計畫資料已同步為水力工程版。
 - **學習站**：追蹤頁勾選以重新開始後的實際進度為準。
 - **講解進度**：已有講解、範例、練習的週次為 1–6。其餘 7–26 週待寫。
+- **明天（2026-11-05）待辦**：
+  1. 第 7 週（PyTorch autograd 與訓練迴圈）：範例 `week07/`、講解 `site/content/w07.html`、`exercises.md`、`notes.md`；審查 `hydrowatch/model/ml.py` 的標準化、切分與資料洩漏。
+  2. 第 8 週（PINN 與失敗模式）、第 9 週（神經運算元入門）、第 10 週（hybrid），順序同上；torch 已安裝（CPU 版）。
+  3. 每週寫完後：跑範例確認數字、更新 `site/index.html` 的 `content` 欄位、重新發布學習站、commit 與 push。
+  4. 未完成的先留在下面的「待辦（依序）」。
 - **待辦（依序）**：
   1. 套件已核准安裝（torch、scipy、shapely、scikit-learn、fastapi、uvicorn、httpx、mlflow、optuna、pymoo）；裝好後寫第 7–12 週、第 24–25 週。Prefect 與 DVC 另行評估。
   2. 目前環境就能寫的週次：13、14、15、23、26（pandas、pytest、gfortran 都有）。
