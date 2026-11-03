@@ -1,6 +1,6 @@
 # Day1
 ## Q1.
-跑 `python -m tidewatch run`，`report.json` 有哪些區塊？每個區塊你猜對應哪個模組？
+跑 `python -m hydrowatch run`，`report.json` 有哪些區塊？每個區塊你猜對應哪個模組？
 > 
 
 # Day2
@@ -15,5 +15,5 @@
 
 # Day4
 ## Q1.
-先預測：4 個測站、30 天、每小時一筆，`report.json` 的 `n_hours` 應該是多少？`quality` 哪些欄位預期是 0？跑完比對，寫下對不上的地方。
+先預測：5 個測站、30 天、每小時一筆，`report.json` 的 `n_hours` 應該是多少？`quality` 哪些欄位預期是 0？跑完比對，寫下對不上的地方。
 > 

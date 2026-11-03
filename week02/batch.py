@@ -4,7 +4,7 @@
 
 流程（每一步都可以單獨重跑）：
   1. 定義參數網格：哪些參數要變、各取哪些值
-  2. 對每一組參數，「送出一個工作」：用 subprocess 呼叫 tide_cli.py
+  2. 對每一組參數，「送出一個工作」：用 subprocess 呼叫 runoff_cli.py
   3. 已經跑過、設定相同的就跳過（冪等性：重跑整個批次不會重複做事）
   4. 讀回每個資料夾的 config.json + metrics.json，彙整成 summary.csv
   5. 畫「參數 vs 結果」，並疊上理論線檢查
@@ -33,7 +33,7 @@ RUNS = HERE / "runs"
 
 # 1. 參數網格：改這裡就能改整個實驗
 GRID = {
-    "s2_amp": [0.20, 0.45, 0.70, 0.90, 1.00],
+    "k_hours": [6.0, 10.0, 20.0, 40.0, 60.0],
     "seed": [1, 2],
 }
 
@@ -52,7 +52,7 @@ def already_done(folder: Path, params: dict) -> bool:
 
 
 def submit(params: dict, folder: Path) -> int:
-    cmd = [sys.executable, str(HERE / "tide_cli.py"), "--out", str(folder)]
+    cmd = [sys.executable, str(HERE / "runoff_cli.py"), "--out", str(folder)]
     for k, v in params.items():
         cmd += [f"--{k.replace('_', '-')}", str(v)]
     result = subprocess.run(cmd, capture_output=True, text=True)
@@ -74,18 +74,22 @@ def collect() -> pd.DataFrame:
 
 
 def plot(summary: pd.DataFrame, path: Path) -> None:
-    fig, ax = plt.subplots(figsize=(7, 4.5))
-    g = summary.groupby("s2_amp")
-    x = sorted(summary["s2_amp"].unique())
-    ax.plot(x, g["max_range_m"].mean(), "o-", color="#c0392b", label="max daily range (mean of seeds)")
-    ax.plot(x, g["min_range_m"].mean(), "o-", color="#1f5f8b", label="min daily range (mean of seeds)")
-    ax.plot(x, g["theory_max_range_m"].first(), "--", color="#c0392b", alpha=0.6, label="theory 2(M2+S2)")
-    ax.plot(x, g["theory_min_range_m"].first(), "--", color="#1f5f8b", alpha=0.6, label="theory 2|M2−S2|")
-    ax.set_xlabel("S2 amplitude [m]")
-    ax.set_ylabel("Daily tidal range [m]")
-    ax.set_title("Spring/neap range vs S2 amplitude (M2 = 1.00 m)")
-    ax.grid(alpha=0.3)
-    ax.legend(fontsize=8)
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4.2))
+    g = summary.groupby("k_hours")
+    x = sorted(summary["k_hours"].unique())
+    ax1.plot(x, g["peak_true_m3s"].mean(), "o-", color="#1f5f8b", label="peak flow, model (mean of seeds)")
+    ax1.set_xlabel("Recession constant k [hr]")
+    ax1.set_ylabel("Peak discharge [m3/s]")
+    ax1.set_title("Longer k: flatter, lower peaks")
+    ax1.grid(alpha=0.3)
+    ax1.legend(fontsize=8)
+    ax2.plot(x, g["recession_ratio"].mean(), "o-", color="#c0392b", label="pulse test: remaining after k hr")
+    ax2.plot(x, g["theory_recession_ratio"].first(), "--", color="#c0392b", alpha=0.6, label="theory e^-1")
+    ax2.set_xlabel("Recession constant k [hr]")
+    ax2.set_ylabel("Fraction remaining")
+    ax2.set_title("Explicit Euler vs theory")
+    ax2.grid(alpha=0.3)
+    ax2.legend(fontsize=8)
     fig.tight_layout()
     fig.savefig(path, dpi=150)
     plt.close(fig)

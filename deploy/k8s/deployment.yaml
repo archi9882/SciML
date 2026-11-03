@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: tidewatch-api
+  name: hydrowatch-api
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: tidewatch-api
+      app: hydrowatch-api
   template:
     metadata:
       labels:
-        app: tidewatch-api
+        app: hydrowatch-api
     spec:
       containers:
         - name: api
-          image: tidewatch:latest
+          image: hydrowatch:latest
           ports:
             - containerPort: 8000
           env:
@@ -24,10 +24,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: tidewatch-api
+  name: hydrowatch-api
 spec:
   selector:
-    app: tidewatch-api
+    app: hydrowatch-api
   ports:
     - port: 80
       targetPort: 8000

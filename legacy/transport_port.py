@@ -12,7 +12,7 @@ def main() -> None:
 
     for _ in range(NSTEPS):
         cn = np.zeros(N)
-        cn[0] = 0.0                                   # 上游端：濃度固定為 0
+        cn[0] = 0.0                                   # 上游端：擾動固定為 0
         for i in range(2, N - 1):
             cn[i] = (c[i] - U * DT * (c[i] - c[i - 1]) / dx
                      + D * DT * (c[i + 1] - 2.0 * c[i] + c[i - 1]) / dx ** 2)

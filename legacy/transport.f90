@@ -1,4 +1,4 @@
-! 舊版河口傳輸求解器（Fortran 90）：1D 對流擴散，upwind + 中央差分，顯式時間積分。
+! 舊版河道洪水演算求解器（Fortran 90）：1D 對流擴散，upwind + 中央差分，顯式時間積分。
 ! 編譯：gfortran -O2 legacy/transport.f90 -o transport
 program transport
   implicit none
@@ -9,14 +9,14 @@ program transport
 
   dx = l / n
 
-  ! 初始條件：靠近上游端的高斯污染團
+  ! 初始條件：靠近下游出口的高斯形洪峰
   do i = 1, n
     x = (i - 0.5d0) * dx
     c(i) = exp(-((x - 8.0d0) / 0.5d0)**2)
   end do
 
   do step = 1, nsteps
-    cn(1) = 0.0d0                        ! 上游端：濃度固定為 0
+    cn(1) = 0.0d0                        ! 上游端：擾動固定為 0
     do i = 2, n - 1
       cn(i) = c(i) - u * dt * (c(i) - c(i-1)) / dx &
               + d * dt * (c(i+1) - 2.0d0 * c(i) + c(i-1)) / dx**2

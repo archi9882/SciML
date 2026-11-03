@@ -49,7 +49,7 @@ pip install numpy pandas matplotlib
 
 ```bash
 python -c "import numpy, pandas, matplotlib; print('OK')"
-python week01/tide_example.py
+python week01/runoff_example.py
 ```
 
 第一行印出 `OK`，第二行能跑完並印出每日統計，就表示環境正確。

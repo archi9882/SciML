@@ -9,6 +9,6 @@ services:
     build:
       context: ..
       dockerfile: deploy/Dockerfile
-    command: python -m tidewatch run
+    command: python -m hydrowatch run
     depends_on:
       - api
