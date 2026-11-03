@@ -1,0 +1,14 @@
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    ports:
+      - "8000:8000"
+  worker:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    command: python -m tidewatch run
+    depends_on:
+      - api
