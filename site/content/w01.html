@@ -23,7 +23,7 @@
     <div class="eq">最大潮差：3.00 m（理論約 2.90 m）
 最小潮差：1.09 m（理論約 1.10 m）
 理論大小潮週期：14.79 天</div>
-    <p class="muted" style="font-size:.84rem">以上是 SEED = 42 的輸出；你的 SEED 是 50，數字會差一點，結論相同。</p>
+    <p class="muted" style="font-size:.84rem">以上是 SEED = 42 的輸出；換 SEED 數字會差一點，結論相同。</p>
     <p>最小潮差幾乎吻合，最大潮差卻多了 0.10 m。這 0.10 m 從哪來，就是下面例題要回答的。</p></div>
 
   <h3 data-day="2"><span class="day-mark">Day 2</span>2. t 的單位由取樣頻率決定</h3>
@@ -33,7 +33,7 @@
   <div class="code"><pre><code class="language-python">t_hours = (time - time[0]) / pd.Timedelta(hours=1)</code></pre></div>
 
   <h3>3. 亂數只影響雜訊，seed 讓結果可重現</h3>
-  <p>分潮由公式算出，跟 seed 無關；雜訊由亂數產生器產生，seed 決定這串亂數。你用 <code>seed_check.py</code> 驗證過：只有分潮 <code>comp</code> 不受 seed 影響。固定 seed，才能確定前後結果的差異來自你改的參數，而不是雜訊剛好不同。</p>
+  <p>分潮由公式算出，跟 seed 無關；雜訊由亂數產生器產生，seed 決定這串亂數。驗證方法：寫一支 <code>seed_check.py</code>，換不同 seed 跑，比較輸出，只有分潮不受 seed 影響。固定 seed，才能確定前後結果的差異來自你改的參數，而不是雜訊剛好不同。</p>
   <div data-anim="seed-noise"></div>
 
   <h3 data-day="3"><span class="day-mark">Day 3</span>4. 從每小時到每日：resample</h3>

@@ -368,14 +368,14 @@ const AUD={
  26:{m:"*",what:"把 AI 原版與你的最終版並排比較，算出抓錯率"}};
 const W=[
  {st:"潮位時間序列",t:"用 AI 協作讀懂一支資料處理程式：潮位時間序列",g:"讀懂一支 100 行的資料處理程式：每個數字的單位、每段在做什麼、改哪裡會影響什麼。開始用 Git 記錄進度。",sk:["AI 驗證","資料分析"],
-  d:["理論 1：跑程式，拿輸出對大潮、小潮、週期的理論值","理論 2–3：時間單位與 seed（對照你已完成的 Q1–Q3）","理論 4＋例題：resample，拆解最大潮差多出 0.10 m 的來源","變化 1、2：S2 = M2 時的小潮潮差；讓 AI 改取樣再用理論抓錯","變化 3：自己寫 find_high_tides()，再用雜訊讓它失敗"],s:"回答大問題：這支程式的潮差可信嗎（notes＋README 一張圖）；閱讀摘要",
+  d:["理論 1：跑程式，拿輸出對大潮、小潮、週期的理論值","理論 2–3：時間單位與 seed（寫 seed_check.py 驗證）","理論 4＋例題：resample，拆解最大潮差多出 0.10 m 的來源","變化 1、2：S2 = M2 時的小潮潮差；讓 AI 改取樣再用理論抓錯","變化 3：自己寫 find_high_tides()，再用雜訊讓它失敗"],s:"回答大問題：這支程式的潮差可信嗎（notes＋README 一張圖）；閱讀摘要",
   r:R("paper","Towards learning universal, regional, and local hydrological behaviors via machine learning applied to large-sample datasets","Kratzert et al.",2019,"HESS","https://doi.org/10.5194/hess-23-5089-2019",1),why:"同樣是水文時間序列，看 LSTM 如何在 531 個集水區超越傳統模式。",content:"content/w01.html"},
  {st:"命令列與批次",t:"命令列參數與第一個批次工作",g:"把「改常數再手動跑」變成「用參數呼叫程式、批次執行、自動彙整」。這是排程、容器、API、MLOps 的共同起點。",sk:["基礎建設","AI 驗證"],
   d:["理論 1：讀 tide_cli.py，參數與結束碼，先預測再執行","理論 2：驗證單位陷阱已修正（h vs 30min）","理論 3–4：批次四步驟、冪等跳過、管線檢查","例題：加入 noise 維度，預測組數與列數，找出新舊結果混在一起的原因","變化 1–3：分離偏差來源、失敗也要跑完、抓 AI 檢查腳本的錯"],s:"回答大問題：批次流程圖與說明；閱讀摘要",
   r:R("paper","Differentiable modelling to unify machine learning and physical models for geosciences","Shen et al.",2023,"Nature Reviews Earth & Environment","https://arxiv.org/abs/2301.04027"),why:"物理模式與 ML 結合的全景，幫你判斷何時用 physics-based、data-driven 或 hybrid。",content:"content/w02.html"},
  {st:"AI 成品交付",t:"AI 成品交付：先看全貌，不求看懂",g:"拿到一套由 AI 寫好、從頭跑到尾的潮汐監測系統 TideWatch。這週只要讓它跑起來、畫出架構、建立錯誤紀錄表，內部細節之後逐塊拆解。",sk:["AI 驗證","基礎建設"],
   d:["clone 成品，照 README 在本機跑起來；遇到錯誤先自己讀錯誤訊息","畫架構圖：資料從哪來、經過哪些模組、輸出到哪裡","為每個模組寫一行：輸入、輸出、你猜它可能出錯的地方","用已知答案做第一次檢查：潮位單位、時區、M2 週期","建立錯誤紀錄表 audit_log.md：編號、模組、證據、狀態"],s:"架構圖＋錯誤紀錄表初版；閱讀摘要",
-  r:R("paper","Hidden Technical Debt in Machine Learning Systems","Sculley et al.",2015,"NeurIPS","https://proceedings.neurips.cc/paper/2015/file/86df7dcfd896fcaf2674f757a2463eba-Paper.pdf",1),why:"說明 ML 系統裡模型只佔一小塊，其餘的資料、設定、監控才是出錯的大宗，正好對照你畫的架構圖。"},
+  r:R("paper","Hidden Technical Debt in Machine Learning Systems","Sculley et al.",2015,"NeurIPS","https://proceedings.neurips.cc/paper/2015/file/86df7dcfd896fcaf2674f757a2463eba-Paper.pdf",1),why:"說明 ML 系統裡模型只佔一小塊，其餘的資料、設定、監控才是出錯的大宗，正好對照你畫的架構圖。",content:"content/w03.html"},
  {st:"FDM 擴散方程",t:"有限差分解 1D 擴散方程",g:"理解網格、時間步長、穩定性與誤差，再用這些知識審查成品的求解器。",sk:["物理判斷"],
   d:["讀範例 FTCS 求解器，逐行對照方程式","與解析解比較，畫誤差隨時間變化","增大 Δt 讓計算爆掉，找出穩定條件 r = αΔt/Δx² ≤ 0.5","用第 2 週的批次結構掃描 Δx、Δt，畫收斂與穩定區圖","審查成品求解器：時間步長是否滿足穩定條件，寫下證據"],s:"一頁「穩定性與誤差」筆記＋收斂圖；閱讀摘要",
   r:R("paper","Physics-informed machine learning","Karniadakis et al.",2021,"Nature Reviews Physics","https://doi.org/10.1038/s42254-021-00314-5"),why:"PIML 最常被引用的綜述，建立「物理 vs 資料」的整體地圖。"},
