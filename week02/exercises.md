@@ -11,7 +11,7 @@
 4. 管線：`ls runs | wc -l`、`grep -h peak_true runs/*/metrics.json`、`cat runs/*/config.json | grep seed | sort | uniq -c`。
 
 ## 二、例題（Day 4，學習站有完整解）
-在 `GRID` 加入 `"noise": [0.04, 0.12]`。先預測組數、跳過數、`summary.csv` 列數，再實際跑，找出新舊結果混在一起的原因與修正方式。
+在 `GRID` 加入 `"noise": [0.08, 0.2]`。先預測組數、跳過數、`summary.csv` 列數，再實際跑，找出新舊結果混在一起的原因與修正方式。
 
 ## 三、變化題（Day 5）
 1. 用 `--noise 0` 當基準，說明 `peak_obs` 比 `peak_true` 高多少（預設的 8% 相對誤差）、為什麼雜訊會讓洪峰系統性偏高。

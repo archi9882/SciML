@@ -4,7 +4,7 @@
 本文件同時存在 claude.ai 專案「All About LLM」（`claude/sciml-plan.md`）與 GitHub repo（`PLAN.md`），兩邊內容保持一致。
 
 ## 目前待辦（下次對話先看這裡）
-- **位置**：從第 1 週重新開始（2026-11-03 決定），專案情境為水力工程（2026-11-04）。第 1–3 週的範例程式、`exercises.md`、`notes.md` 題目與 HydroWatch 成品已產出，`sealed-answer-key` 已重建；學習站講解（`site/content/w01–w03.html`）與動畫仍是潮汐版，待改寫並重新發布。
+- **位置**：從第 1 週重新開始（2026-11-03 決定），專案情境為水力工程（2026-11-04）。第 1–3 週的範例程式、`exercises.md`、`notes.md` 題目與 HydroWatch 成品已產出，`sealed-answer-key` 已重建；學習站講解（`site/content/w01–w03.html`）、動畫與計畫資料已同步為水力工程版。
 - **學習站**：追蹤頁勾選以重新開始後的實際進度為準。
 - **下一個里程碑**：第 3 週交接時批改 `audit_log.md` 初版（只公布已審查模組的答案）；第 4 週起每週審查一個模組（見下方）。
 

@@ -1,7 +1,7 @@
 <section class="bigq-intro">
   <p>第 1 週你一次改一個常數、手動跑、手動比較。這樣做五次還行，做五十次就會出錯：忘了改回來、不記得這張圖是哪組參數跑的、新舊結果混在一起。</p>
   <div class="callout job"><b>為什麼要學這個</b><p>職缺說「系統性的控制變數，結果不如預期就砍掉換方向」。前提是「改一個參數、看結果」這件事要便宜而且不出錯。這週做的「用參數呼叫程式、批次執行、自動彙整」，也是之後排程、容器、API、MLOps 的共同起點：它們本質上都是用參數執行一支程式，再檢查結束碼與輸出檔。</p></div>
-  <p>這週在大圖裡屬於「ETL」與「部署與排程」兩格的最小版本。範例：<code>week02/tide_cli.py</code>（一次實驗）、<code>week02/batch.py</code>（一整組實驗）。</p>
+  <p>這週在大圖裡屬於「ETL」與「部署與排程」兩格的最小版本。範例：<code>week02/runoff_cli.py</code>（一次實驗）、<code>week02/batch.py</code>（一整組實驗）。</p>
 </section>
 
 <section data-day="1">
@@ -10,8 +10,8 @@
 
   <h3><span class="day-mark">Day 1</span>1. 一次執行＝一次實驗：參數與結束碼</h3>
   <p><code>argparse</code> 把命令列上的文字轉成程式裡的變數，每個參數有型別、預設值與說明，<code>--help</code> 會列出全部。參數不合理時，程式要明確失敗，而不是硬算出一個怪結果。</p>
-  <div class="code"><span class="file">week02/tide_cli.py（節錄）</span><pre><code class="language-python">p.add_argument("--s2-amp", type=float, default=0.45, help="S2 振幅 [m]")
-p.add_argument("--freq", default="h", help='取樣頻率，如 "h"、"30min"')
+  <div class="code"><span class="file">week02/runoff_cli.py（節錄）</span><pre><code class="language-python">p.add_argument("--k-hours", type=float, default=1.2, help="退水常數 k [hr]（預設 1.2）")
+p.add_argument("--freq", default="10min", help='取樣頻率，如 "10min"、"30min"')
 p.add_argument("--out", required=True, help="輸出資料夾")
 
 errors = validate(a)
@@ -24,23 +24,24 @@ if errors:
     <tr><td>stdout</td><td>下一個程式</td><td>一行 JSON 結果</td></tr>
     <tr><td>stderr</td><td>人</td><td>錯誤訊息</td></tr>
     <tr><td>結束碼</td><td>呼叫它的程式</td><td>0 成功、2 參數錯誤</td></tr>
-    <tr><td>輸出資料夾</td><td>三個月後的你</td><td>config.json、metrics.json、eta.csv</td></tr>
+    <tr><td>輸出資料夾</td><td>三個月後的你</td><td>config.json、metrics.json、flow.csv</td></tr>
   </tbody></table></div>
-  <div class="callout demo"><b>示範</b><p><code>python tide_cli.py --s2-amp -1 --out runs/bad</code> 會印出「參數錯誤：振幅不能是負數」，接著 <code>echo $?</code>（PowerShell：<code>$LASTEXITCODE</code>）得到 2，而且不會建立 <code>runs/bad</code>。</p></div>
+  <div class="callout demo"><b>示範</b><p><code>python runoff_cli.py --k-hours 0.2 --out runs/bad</code> 會印出「參數錯誤：k = 0.2 hr 小於 2 倍步長（0.333 hr），顯式計算會發散」，接著 <code>echo $?</code>（PowerShell：<code>$LASTEXITCODE</code>）得到 2，而且不會建立 <code>runs/bad</code>。</p></div>
 
   <h3 data-day="2"><span class="day-mark">Day 2</span>2. 第 1 週的單位陷阱在這裡修好</h3>
-  <p><code>tide_cli.py</code> 從時間軸算實際經過的小時數，並用結束時間決定筆數，不再寫死 <code>days * 24</code>。打開下方的「用實際小時數」，兩種頻率都會落在真實曲線上。</p>
+  <p><code>runoff_cli.py</code> 從時間軸算出每一步的實際小時數，並用結束時間決定筆數，不再寫死每步 600 秒與 <code>days * 144</code>。打開下方的「步長用實際取樣間隔」，兩種頻率的退水都會落在合理的位置。</p>
   <div class="code"><pre><code class="language-python">time = pd.date_range(start=a.start, end=pd.Timestamp(a.start) + pd.Timedelta(days=a.days),
                      freq=a.freq, inclusive="left")
-t_hours = (time - time[0]) / pd.Timedelta(hours=1)</code></pre></div>
-  <div data-anim="sampling-units"></div>
-  <div class="callout demo"><b>示範：用理論驗證修正</b><p><code>--freq h</code> 得到 1440 筆、最大潮差 3.00 m；<code>--freq 30min</code> 得到 2880 筆、最大潮差 3.03 m。筆數剛好兩倍，潮差接近，差異來自雜訊。修正成立。</p></div>
+dt_h = step_hours(a.freq)                              # 每一步實際幾小時
+t_hours = (time - time[0]) / pd.Timedelta(hours=1)   # 雨量依實際經過的小時數產生</code></pre></div>
+  <div data-anim="euler-step"></div>
+  <div class="callout demo"><b>示範：用理論驗證修正</b><p><code>--freq 10min</code> 得到 8640 筆、洪峰 116.9 m³/s、退水檢查 0.351；<code>--freq 30min</code> 得到 2880 筆、洪峰 123.6 m³/s、退水檢查 0.340。筆數剛好差 3 倍，洪峰差約 6%，來自步長不同；步長越大，歐拉的退水誤差越大（0.340 離理論 0.368 比 0.351 更遠）。修正成立。</p></div>
 
   <h3 data-day="3"><span class="day-mark">Day 3</span>3. 批次的四個步驟，以及為什麼要能安全重跑</h3>
   <p><code>batch.py</code> 做四件事：定義參數網格、每組送出一個工作並檢查結束碼、跳過已完成的、讀回所有結果彙整成 <code>summary.csv</code>。按「執行」看一次，再按一次看第二次有什麼不同。</p>
   <div data-anim="batch-flow"></div>
   <div class="code"><span class="file">week02/batch.py</span><pre><code class="language-python">GRID = {
-    "s2_amp": [0.20, 0.45, 0.70, 0.90, 1.00],
+    "k_hours": [0.4, 0.8, 1.2, 2.4, 4.8],
     "seed": [1, 2],
 }
 
@@ -59,15 +60,15 @@ def already_done(folder: Path, params: dict) -> bool:
 
 <section data-day="4">
   <h2><span class="stage-no">二</span>例題（完整示範）</h2>
-  <div class="callout predict"><b>例題</b><p>已經跑過一次 <code>batch.py</code>（10 組）。現在在 <code>GRID</code> 加入 <code>"noise": [0.05, 0.3]</code> 再跑。預測：應該有幾組、第二次執行會跳過幾組、<code>summary.csv</code> 會有幾列？然後實際跑，比對預測。</p></div>
-  <p><b>步驟 1：先算。</b>5 個振幅 × 2 個 seed × 2 個雜訊 = 20 組。直覺上，原本 noise = 0.05 的 10 組已經跑過，應該跳過 10 組、<code>summary.csv</code> 有 20 列。</p>
+  <div class="callout predict"><b>例題</b><p>已經跑過一次 <code>batch.py</code>（10 組）。現在在 <code>GRID</code> 加入 <code>"noise": [0.08, 0.2]</code> 再跑。預測：應該有幾組、第二次執行會跳過幾組、<code>summary.csv</code> 會有幾列？然後實際跑，比對預測。</p></div>
+  <p><b>步驟 1：先算。</b>5 個 k × 2 個 seed × 2 個雜訊 = 20 組。直覺上，原本沒有 noise 維度的 10 組用的是預設值 0.08，等於 noise = 0.08 的 10 組已經跑過，應該跳過 10 組、<code>summary.csv</code> 有 20 列。</p>
   <p><b>步驟 2：實際跑。</b></p>
   <div class="tbl"><table><thead><tr><th>項目</th><th>預測</th><th>實際</th></tr></thead><tbody>
     <tr><td>執行的組數</td><td class="mono">10</td><td class="mono">20（一組都沒跳過）</td></tr>
     <tr><td>summary.csv 列數</td><td class="mono">20</td><td class="mono">30</td></tr>
-    <tr><td>noise = 0.05 的每組筆數</td><td class="mono">2</td><td class="mono">4（重複）</td></tr>
+    <tr><td>noise = 0.08 的每組筆數</td><td class="mono">2</td><td class="mono">4（重複）</td></tr>
   </tbody></table></div>
-  <p><b>步驟 3：找原因。</b>資料夾名稱由參數組成，加了 noise 之後名稱從 <code>s2_amp0.2_seed1</code> 變成 <code>s2_amp0.2_seed1_noise0.05</code>，舊資料夾對不上，所以全部重跑。而 <code>collect()</code> 會讀 <code>runs/</code> 底下所有資料夾，舊的 10 個也被收進來，noise = 0.05 的結果因此出現兩次。</p>
+  <p><b>步驟 3：找原因。</b>資料夾名稱由參數組成，加了 noise 之後名稱從 <code>k_hours0.4_seed1</code> 變成 <code>k_hours0.4_seed1_noise0.08</code>，舊資料夾對不上，所以全部重跑。而 <code>collect()</code> 會讀 <code>runs/</code> 底下所有資料夾，舊的 10 個也被收進來，noise = 0.08 的結果因此出現兩次。</p>
   <p><b>步驟 4：判斷影響，下結論。</b>這次重複的兩份數值剛好一樣，所以平均值沒變；但筆數、標準差都錯了。如果舊結果是用不同的預設值跑的，平均值也會悄悄被拉偏，而且程式不會報錯。修正方式：彙整時只收「這次網格裡的組合」，或每次換網格前清空 <code>runs/</code>。</p>
   <div class="callout job"><b>這個例題教的方法</b><p>批次結果出錯時通常不會報錯，只會「多一些」或「少一些」。習慣用簡單的數字先預測（應該幾組、幾列），再跟實際比對。數字對不上，就是線索。</p></div>
 </section>
@@ -77,12 +78,12 @@ def already_done(folder: Path, params: dict) -> bool:
   <p class="lead">先自己做，卡住再看提示；答案寫進 <code>week02/notes.md</code> 再對照。</p>
 
   <h3><span class="day-mark">Day 5</span>變化 1：分離偏差來源</h3>
-  <p>例題跑完後，<code>noise = 0.3</code> 在 S2 = 1.00 時的最小潮差約 1.12 m，理論是 0。用第 1 週例題的四步，把落差拆成「一天的時間窗」和「雜訊」兩個來源。</p>
-  <details class="hint"><summary>提示</summary><p>加一組 <code>--noise 0</code> 當基準。雜訊為 0 時剩下的部分，就是時間窗造成的。</p></details>
-  <details class="hint"><summary>參考答案</summary><p>雜訊 0 時約 0.31 m（時間窗），雜訊 0.05 時約 0.34–0.38 m，雜訊 0.3 時約 1.1 m。雜訊越大，每日最高與最低被往外推得越多，偏差隨雜訊快速增加。</p></details>
+  <p>例題跑完後，預設參數下，觀測洪峰 130.9 m³/s，模型洪峰 116.9 m³/s，差了 14 m³/s（+12%）。用第 1 週例題的四步，說明這個落差從哪來，並預測 <code>--noise 0.2</code> 時會是多少。</p>
+  <details class="hint"><summary>提示</summary><p>加一組 <code>--noise 0</code> 當基準。雜訊為 0 時，觀測與模型的洪峰會一樣。</p></details>
+  <details class="hint"><summary>參考答案</summary><p>雜訊 0 時兩者相同（116.9）；雜訊 8% 時 130.9（+12%）；雜訊 20% 時 156.7（+34%）。流量計的誤差是乘性的，洪峰附近流量大，絕對誤差也大；整段資料取最大值，等於挑出被誤差往上推得最多的那一筆，所以洪峰系統性偏高，偏差隨雜訊快速增加。</p></details>
 
   <h3>變化 2：讓一組失敗，批次仍要跑完</h3>
-  <p>在網格加入一組 <code>s2_amp = -1</code>。現在的 <code>batch.py</code> 會怎麼處理？讓它跑完其他組，最後列出失敗清單，並決定失敗的那組要不要出現在 <code>summary.csv</code>。</p>
+  <p>在網格加入一組 <code>k_hours = 0.2</code>。現在的 <code>batch.py</code> 會怎麼處理？讓它跑完其他組，最後列出失敗清單，並決定失敗的那組要不要出現在 <code>summary.csv</code>。</p>
   <details class="hint"><summary>提示</summary><p><code>submit()</code> 已經回傳結束碼。失敗的那組不會產生 <code>metrics.json</code>，所以 <code>collect()</code> 不會收到它。問題是：你要不要在摘要裡明確記下「這組失敗了」？</p></details>
 
   <h3>變化 3：讓 AI 寫檢查腳本，再抓它的錯</h3>
@@ -99,5 +100,5 @@ def already_done(folder: Path, params: dict) -> bool:
     <li>什麼時候該重跑全部，什麼時候可以跳過。</li>
   </ol>
   <p>另外寫本週閱讀的 5 行摘要：<code>papers/output/2023_shen.md</code>。閱讀時留意作者如何區分 physics-based、data-driven 與 hybrid，這是第 10 週要做的判斷。</p>
-  <div class="callout job"><b>下週預告：AI 成品交付</b><p>第 3 週會拿到一套由 AI 寫好、能從頭跑到尾的潮汐監測系統 TideWatch。這兩週學的「拿理論對答案、先預測再比對、把落差拆成來源」，就是之後逐塊審查它的方法。</p></div>
+  <div class="callout job"><b>下週預告：AI 成品交付</b><p>第 3 週會拿到一套由 AI 寫好、能從頭跑到尾的流域降雨、逕流、洪水演算與水庫發電系統 HydroWatch。這兩週學的「拿理論對答案、先預測再比對、把落差拆成來源」，就是之後逐塊審查它的方法。</p></div>
 </section>

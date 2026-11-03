@@ -49,7 +49,7 @@ git push -u origin feat/w02-batch # 第一次推送，設定追蹤
 | 前綴 | 用途 | 範例 |
 |---|---|---|
 | `feat/` | 新功能或新練習 | `feat/w02-batch-script` |
-| `fix/` | 修正錯誤 | `fix/tide-resample-off-by-one` |
+| `fix/` | 修正錯誤 | `fix/runoff-resample-off-by-one` |
 | `docs/` | 文件 | `docs/venv-guide` |
 | `exp/` | 實驗（可能丟棄） | `exp/pinn-beta-sweep` |
 | `report/` | 失敗案例報告 | `report/w04-failure-1` |
@@ -82,7 +82,7 @@ git push -u origin feat/w02-batch # 第一次推送，設定追蹤
 **範例：**
 
 ```
-feat(w02): add argparse CLI for tide batch runs
+feat(w02): add argparse CLI for runoff batch runs
 
 Allow varying M2 amplitude and noise level from the command line
 so the batch summary can be produced without editing source.

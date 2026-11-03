@@ -1,65 +1,70 @@
 <section class="bigq-intro">
   <p>這週只回答一個問題。理論、例題、變化題都是為了回答它，週末你要用自己的話寫出答案。</p>
-  <div class="callout job"><b>為什麼從這裡開始</b><p>職缺的核心能力是「AI 給出數值結果時，判斷它可不可信」。可信不可信，靠的是拿理論對答案、把落差拆成來源。這週用一支 100 行的潮位程式練這件事，之後每個單元都是同一套思路，只是對象換成求解器、模型、API、部署設定。</p></div>
-  <p>這支程式在大圖裡屬於「觀測資料」與「物理模型」兩格：它產生一條潮位，再算出每日統計。範例在 repo 的 <code>week01/tide_example.py</code>。</p>
+  <div class="callout job"><b>為什麼從這裡開始</b><p>職缺的核心能力是「AI 給出數值結果時，判斷它可不可信」。可信不可信，靠的是拿理論對答案、把落差拆成來源。這週用一支 150 行的降雨逕流程式練這件事，之後每個單元都是同一套思路，只是對象換成求解器、模型、API、部署設定。</p></div>
+  <p>這支程式在大圖裡屬於「觀測資料」與「物理模型」兩格：它產生一段雨量，算出流域出口的流量，再算出每日統計。範例在 repo 的 <code>week01/runoff_example.py</code>。流域面積、退水常數等參數以鯉魚潭水庫集水區為參考，來源與推導見 <code>docs/parameters.md</code>。</p>
 </section>
 
 <section data-day="1">
   <h2><span class="stage-no">一</span>理論與示範</h2>
-  <p class="lead">要判斷潮差可不可信，需要四個觀念：潮差的理論值從哪來、時間的單位怎麼決定、亂數怎麼影響結果、每日統計怎麼算出來。每個觀念都附一個示範。</p>
+  <p class="lead">要判斷洪峰流量可不可信，需要四個觀念：流域怎麼把雨變成流量、時間步長怎麼決定、亂數怎麼影響結果、每日統計怎麼算出來。每個觀念都附一個示範。</p>
 
-  <h3><span class="day-mark">Day 1</span>1. 潮汐是兩個正弦波相加，潮差有理論值</h3>
-  <p>潮汐可以拆成好幾個固定頻率的正弦波，每一個叫做一個<b>分潮</b>。這支程式只用最主要的兩個：</p>
+  <h3><span class="day-mark">Day 1</span>1. 流域像一個水桶：線性水庫，退水有理論值</h3>
+  <p>降雨落到流域，經過坡面與河道才到出口，不會馬上流光。最簡單的模型把整個流域想成一個水桶：</p>
   <div class="callout term"><b>名詞</b>
-    <p><b>M2（主太陰半日潮）</b>：月球引力造成，週期 12.42 小時，一天約漲退兩次，通常是最強的分潮。</p>
-    <p><b>S2（主太陽半日潮）</b>：太陽引力造成，週期 12.00 小時，比 M2 弱。</p></div>
-  <div class="eq">η(t) = MSL + A_M2·cos(2πt / 12.42) + A_S2·cos(2πt / 12.00) + 雜訊     （t 的單位：小時）</div>
-  <p>兩個週期接近但不相等，所以兩個波會慢慢錯開：同向時互相加強叫<b>大潮</b>，反向時互相抵消叫<b>小潮</b>。由此得到三個理論值，之後所有檢查都拿它們當標準答案：</p>
-  <div class="eq">大潮潮差 = 2 × (A_M2 + A_S2) = 2 × (1.00 + 0.45) = 2.90 m
-小潮潮差 = 2 × |A_M2 − A_S2| = 2 × |1.00 − 0.45| = 1.10 m
-大小潮週期 = 1 / |1/12.42 − 1/12.00| ≈ 14.79 天</div>
-  <div data-anim="tide-beat"></div>
-  <div class="callout demo"><b>示範：拿程式輸出對理論</b><p>執行 <code>python week01/tide_example.py</code>，程式最後印出：</p>
-    <div class="eq">最大潮差：3.00 m（理論約 2.90 m）
-最小潮差：1.09 m（理論約 1.10 m）
-理論大小潮週期：14.79 天</div>
+    <p><b>逕流</b>：降雨落到流域後，流向河道出口的水。</p>
+    <p><b>逕流係數 C</b>：降雨有多少比例變成河道流量，其餘被蒸發或滲入地下。</p>
+    <p><b>線性水庫</b>：桶裡的水量 S 以固定比例流出，Q = S / k。</p>
+    <p><b>退水常數 k</b>：單位小時。雨停之後，流量每過 k 小時降為原來的 1/e（約 37%）。</p>
+    <p><b>基流</b>：沒下雨時河裡仍有的水。</p></div>
+  <div class="eq">dS/dt = C · A · P(t) − S / k          Q(t) = S / k + Q_base
+P：雨量 [mm/hr]　A：流域面積 [km²]　Q：流量 [m³/s]　S：蓄水量</div>
+  <p>這個模型有兩個理論值，之後所有檢查都拿它們當標準答案：</p>
+  <div class="eq">退水：雨停後經過 k 小時，（流量 − 基流）降為原來的 1/e = 0.368
+水量：流出的總水量 = C × 降雨總水量（扣掉期末還留在流域裡的水）</div>
+  <div data-anim="recession"></div>
+  <div class="callout demo"><b>示範：拿程式輸出對理論</b><p>執行 <code>python week01/runoff_example.py</code>，程式最後印出：</p>
+    <div class="eq">退水檢查：k 小時後剩 0.351（理論 e^-1 = 0.368）
+水量檢查：流出水量 / (C × 降雨水量) = 1.000（理論約 1）
+日最大流量：含雜訊比無雜訊平均高 +1.59 m3/s（相對誤差標準差 8%）</div>
     <p class="muted" style="font-size:.84rem">以上是 SEED = 42 的輸出；換 SEED 數字會差一點，結論相同。</p>
-    <p>最小潮差幾乎吻合，最大潮差卻多了 0.10 m。這 0.10 m 從哪來，就是下面例題要回答的。</p></div>
+    <p>水量檢查剛好吻合，退水檢查卻差了 0.017（4.6%）。這個差距從哪來，就是下面例題要回答的。</p></div>
 
-  <h3 data-day="2"><span class="day-mark">Day 2</span>2. t 的單位由取樣頻率決定</h3>
-  <p><code>t = np.arange(n)</code> 只是 0, 1, 2, …。它代表「小時」，是因為取樣間隔剛好 1 小時，而公式裡的週期 12.42 用的單位也是小時。把取樣改成 30 分鐘，每一步只過 0.5 小時，<code>t</code> 卻還是每步加 1，波形就快了一倍；而 <code>n = days * 24</code> 寫死，60 天只會模擬 30 天。</p>
-  <div data-anim="sampling-units"></div>
-  <div class="callout demo"><b>示範：正確的寫法</b><p>用時間軸本身算出實際經過的小時數，不管頻率是什麼，單位都對：</p></div>
-  <div class="code"><pre><code class="language-python">t_hours = (time - time[0]) / pd.Timedelta(hours=1)</code></pre></div>
+  <h3 data-day="2"><span class="day-mark">Day 2</span>2. 步長由取樣頻率決定</h3>
+  <p>範例程式每 10 分鐘一筆（台灣雨量站的原始資料就是 10 分鐘），所以每一步往前推 600 秒，一天有 144 筆。這兩個數字都寫死在程式裡：<code>s += 600 * (...)</code> 與 <code>n = days * 144</code>。把取樣改成每小時，每一步實際過了 3600 秒，程式卻還是只前進 600 秒，流量就退水得慢 6 倍；而 <code>n = days * 144</code> 寫死，每步變成 1 小時，60 天會變成模擬 360 天。</p>
+  <div data-anim="euler-step"></div>
+  <div class="callout demo"><b>示範：正確的寫法</b><p>用時間軸本身算出每一步的秒數，不管頻率是什麼，單位都對：</p></div>
+  <div class="code"><pre><code class="language-python">dt_sec = (rain.index[1] - rain.index[0]).total_seconds()
+s += dt_sec * (inflow[i] - s / (K_HOURS * 3600))</code></pre></div>
+  <p>還有一件事：步長不能比 k 大太多。顯式前進歐拉要求步長小於 2k，否則計算會發散；就算沒發散，步長和 k 同量級時誤差也很大。選小一點的步長，是數值模擬的第一個判斷。</p>
 
-  <h3>3. 亂數只影響雜訊，seed 讓結果可重現</h3>
-  <p>分潮由公式算出，跟 seed 無關；雜訊由亂數產生器產生，seed 決定這串亂數。驗證方法：寫一支 <code>seed_check.py</code>，換不同 seed 跑，比較輸出，只有分潮不受 seed 影響。固定 seed，才能確定前後結果的差異來自你改的參數，而不是雜訊剛好不同。</p>
+  <h3>3. 亂數只影響流量計的誤差，seed 讓結果可重現</h3>
+  <p>雨量由 seed 產生，模型流量由公式與雨量算出；流量計的量測誤差是一個相對誤差（標準差 8%），由亂數產生器產生。換 seed 會改變雨量與誤差，但公式本身不變。你可以寫一支 <code>seed_check.py</code> 驗證：換不同 seed 跑，比較哪些輸出變、哪些不變。固定 seed，才能確定前後結果的差異來自你改的參數，而不是亂數剛好不同。</p>
   <div data-anim="seed-noise"></div>
 
-  <h3 data-day="3"><span class="day-mark">Day 3</span>4. 從每小時到每日：resample</h3>
-  <p><code>resample("D")</code> 依日期把資料分組，<code>.agg()</code> 對每組算統計量。每日潮差就是「當天最高減當天最低」，這個算法本身會帶來偏差，例題會用到。</p>
+  <h3 data-day="3"><span class="day-mark">Day 3</span>4. 從每 10 分鐘到每日：resample</h3>
+  <p><code>resample("D")</code> 依日期把資料分組，<code>.agg()</code> 對每組算統計量。每日最大流量就是「當天最高那一筆」，這個算法遇到量測誤差會帶來偏差。</p>
   <div data-anim="resample"></div>
-  <div class="code"><span class="file">week01/tide_example.py</span><pre><code class="language-python">def daily_stats(eta: pd.Series) -> pd.DataFrame:
-    daily = eta.resample("D").agg(["max", "min", "mean"])
-    daily["range"] = daily["max"] - daily["min"]
-    return daily</code></pre></div>
+  <div class="code"><span class="file">week01/runoff_example.py</span><pre><code class="language-python">def daily_stats(q: pd.Series) -> pd.DataFrame:
+    return q.resample("D").agg(["max", "min", "mean"])</code></pre></div>
 </section>
 
 <section data-day="3">
   <h2><span class="stage-no">二</span>例題（完整示範）</h2>
-  <div class="callout predict"><b>例題</b><p>程式印出最大潮差 3.00 m，理論是 2.90 m。多出的 0.10 m 是程式錯了，還是另有原因？請拆出來源，並各自估計大小。</p></div>
-  <p><b>步驟 1：列出可能的來源。</b>理論值是「沒有雜訊、連續時間」的包絡線寬度。程式和理論有兩個不同：資料每小時取樣一次（可能錯過真正的峰值），以及每筆資料加了雜訊。</p>
-  <p><b>步驟 2：一次只改一個條件，看落差怎麼變。</b>把 <code>NOISE_STD</code> 改成 0，其他不動，再跑一次：</p>
-  <div class="tbl"><table><thead><tr><th>條件</th><th>最大潮差</th><th>跟理論 2.90 m 的差</th></tr></thead><tbody>
-    <tr><td>雜訊 0.05 m（原設定）</td><td class="mono">3.00 m</td><td class="mono">+0.10 m</td></tr>
-    <tr><td>雜訊 0</td><td class="mono">2.90 m</td><td class="mono">−0.003 m</td></tr>
+  <div class="callout predict"><b>例題</b><p>退水檢查印出 0.351，理論是 0.368，差 4.6%。這是程式錯了，還是另有原因？請拆出來源，並各自估計大小。</p></div>
+  <p><b>步驟 1：列出可能的來源。</b>理論值是「連續時間、剛好 k 小時」的結果。程式和理論有兩個不同：k = 1.2 小時乘上每小時 6 筆是 7.2，不是整數，程式用 7 步（1.167 小時）去量；以及顯式歐拉用每 10 分鐘一步去近似連續的衰減。</p>
+  <p><b>步驟 2：一次只改一個條件，看落差怎麼變。</b>依序用公式算出每個條件下的值：</p>
+  <div class="tbl"><table><thead><tr><th>條件</th><th>退水值</th><th>跟理論 0.368 的差</th></tr></thead><tbody>
+    <tr><td>理論：連續時間，量剛好 k 小時（e^-1）</td><td class="mono">0.368</td><td class="mono">—</td></tr>
+    <tr><td>連續時間，但量 7 步（1.167 小時，e^-7/7.2）</td><td class="mono">0.378</td><td class="mono">+0.010</td></tr>
+    <tr><td>顯式歐拉，7 步（(1 − 1/7.2)^7）= 程式印出的值</td><td class="mono">0.351</td><td class="mono">−0.017</td></tr>
   </tbody></table></div>
   <p><b>步驟 3：解釋每個來源。</b></p>
   <ul>
-    <li><b>取樣</b>：每小時取一筆，最多錯過峰值半小時，讓潮差略為偏小，這裡只有 −0.003 m，可以忽略。</li>
-    <li><b>雜訊</b>：當天最高那筆，傾向剛好被雜訊往上推；最低那筆，傾向被往下推。兩端都往外擴，所以潮差系統性偏大，約 +0.10 m，相當於兩倍的雜訊標準差。</li>
+    <li><b>取整</b>：少量了 0.033 小時，退水還沒降夠，值偏高 +0.010。</li>
+    <li><b>歐拉近似</b>：每一步用「現在的流量」推下一步，衰減比連續時間快，值偏低約 −0.027（相對 7%）。</li>
+    <li>兩者方向相反，部分抵銷，所以總差距只有 −0.017。</li>
   </ul>
-  <p><b>步驟 4：下結論。</b>程式沒有錯。0.10 m 的落差幾乎全部來自「每日最高減最低」遇上雜訊時的偏差。結論的寫法：<i>在雜訊 0.05 m 下，每日潮差會比真實值高約 0.1 m；需要更準時，應先平滑或改用擬合振幅的方法。</i></p>
+  <p><b>步驟 4：下結論。</b>程式沒有錯。4.6% 的落差來自時間離散。結論的寫法：<i>步長 10 分鐘、k = 1.2 小時時，顯式歐拉的退水比理論快約 7%；步長越接近 k，誤差越大，需要更小的步長或精確的指數解。</i></p>
   <div class="callout job"><b>這個例題教的方法</b><p>落差出現時：① 列出程式和理論的所有差異；② 一次只關掉一個差異；③ 量每個差異貢獻多少；④ 寫出「在什麼條件下可信、偏差多大」。之後審查 AI 成品，每一次都用這四步。</p></div>
 </section>
 
@@ -67,36 +72,36 @@
   <h2><span class="stage-no">三</span>變化題</h2>
   <p class="lead">三題都用例題的四步。先自己做，卡住再看提示；寫完答案進 <code>week01/notes.md</code> 再對照參考答案。</p>
 
-  <h3><span class="day-mark">Day 4</span>變化 1：改條件。S2 跟 M2 一樣大時</h3>
-  <p>把 <code>S2_AMP</code> 改成 1.00。理論小潮潮差是 2 × |1.00 − 1.00| = 0。程式印出的最小潮差是多少？為什麼不是 0？把落差拆成來源。</p>
-  <details class="hint"><summary>提示</summary><p>這次除了雜訊，還有一個例題沒出現的來源：理論值是包絡線最窄的「那一瞬間」，但每日統計看的是一整天。試試把雜訊設成 0，看看最小潮差還剩多少。</p></details>
-  <details class="hint"><summary>參考答案</summary><p>雜訊 0.05 時約 0.38 m；雜訊 0 時仍有約 0.31 m。所以主要來源是<b>一天的時間窗</b>：小潮那一刻包絡線最窄，但前後 12 小時已經變寬，當天的最高減最低不可能是 0。剩下約 0.07 m 來自雜訊。結論：小潮附近，每日潮差無法反映瞬間的理論值。</p></details>
+  <h3><span class="day-mark">Day 4</span>變化 1：改條件。k 和步長越來越近</h3>
+  <p>把 <code>K_HOURS</code> 改成 0.6、0.3、0.15，先用 (1 − 步長/k)^步數 預測退水檢查的值，其中步數 = int(k × 6)。再執行。k 和步長（10 分鐘）越接近，差距怎麼變？哪個 k 開始檢查本身不可信？</p>
+  <details class="hint"><summary>提示</summary><p>0.15 小時只有 0.9 個步長，int(0.9) 是 0。先想想這時候程式量的是什麼。</p></details>
+  <details class="hint"><summary>參考答案</summary><p>預測與實際都是：k = 0.6 時 0.377，k = 0.3 時 0.444，k = 0.15 時 1.000。k = 0.6 還在例題的範圍內；k = 0.3 時每步就衰減 56%，誤差很大；k = 0.15 時步數取整成 0，程式量的是同一個點的比值，永遠等於 1，<b>檢查本身失效</b>。這時 k 已經小於 2 倍步長（0.33 小時），顯式歐拉本來就不可信。結論：步長要遠小於 k，檢查也要先確認自己還在有效範圍。</p></details>
 
   <h3>變化 2：讓 AI 改程式，用理論抓錯</h3>
-  <p>請 AI「把取樣頻率改成 30 分鐘」，不要提示任何陷阱。先寫好兩個檢查，再執行它的版本：</p>
+  <p>請 AI「把取樣頻率改成每小時」，不要提示任何陷阱。先寫好兩個檢查，再執行它的版本：</p>
   <ul>
-    <li>筆數：60 天、30 分鐘取樣應該是 2880 筆。</li>
-    <li>物理：大小潮週期仍是 14.79 天，最大潮差仍接近 3.0 m。</li>
+    <li>筆數：60 天、每小時取樣應該是 1440 筆。</li>
+    <li>物理：步長改成 1 小時後，退水檢查的歐拉理論值是 (1 − 1/1.2)^1 = 0.167，水量檢查仍約 1。</li>
   </ul>
-  <p>檢查沒過，就指出錯在哪一行、為什麼錯；全部通過，換一個更難的要求再試，例如「改成 10 分鐘取樣、模擬 90 天」。</p>
-  <details class="hint"><summary>提示</summary><p>回頭看第 2 個觀念：正確的修改要動兩處，<code>t</code> 與 <code>n</code>。AI 常常只改 <code>FREQ</code> 一行。</p></details>
+  <p>檢查沒過，就指出錯在哪一行、為什麼錯；全部通過，換一個更難的要求再試，例如「改成每 30 分鐘、模擬 90 天」。</p>
+  <details class="hint"><summary>提示</summary><p>回頭看第 2 個觀念：正確的修改要動三處，每步 600 秒、<code>n = days * 144</code>，以及退水檢查裡的 <code>int(K_HOURS * 6)</code>。AI 常常只改 <code>FREQ</code> 一行。</p></details>
 
   <h3 data-day="5"><span class="day-mark">Day 5</span>變化 3：自己寫一個方法，再讓它失敗</h3>
-  <p>不靠 AI，寫 <code>find_high_tides(eta)</code>：找出「比前一筆和後一筆都高」的時間點。先用中文寫步驟，再寫程式。寫完後用理論檢查：每天應該約有 24 ÷ 12.42 ≈ 1.93 次高潮。接著把 <code>NOISE_STD</code> 調到 0.3，看它在什麼條件下失敗。</p>
+  <p>不靠 AI，寫 <code>find_storms(q)</code>：找出「比前一筆和後一筆都高，而且流量大於 3 m³/s」的時間點。先用中文寫步驟，再寫程式。寫完後用理論檢查：這份雨量（SEED = 42）共有 15 場暴雨。接著把 <code>NOISE_STD</code> 調到 0.5，看它在什麼條件下失敗。</p>
   <div data-anim="peak-find"></div>
-  <details class="hint"><summary>提示</summary><p>雜訊大時，一個真正的高潮附近會冒出好幾個假峰值。兩種修正：先平滑（代價是峰值被拉偏），或規定兩次高潮至少相隔幾小時（用半日潮週期約 12.4 小時的物理知識約束）。</p></details>
-  <details class="hint"><summary>參考答案</summary><p>雜訊 0.05 時通常正確；雜訊 0.3 時高潮數會明顯超過每天 2 次。加上「至少相隔 6 小時」後回到合理範圍。記下：雜訊多大開始失準、證據、哪種修正有效、修正的代價。這四點就是失敗案例報告的骨架。</p></details>
+  <details class="hint"><summary>提示</summary><p>誤差是乘性的，流量越大，絕對誤差越大。一場暴雨的洪峰附近會冒出很多假峰值。兩種修正：先平滑（代價是洪峰被削平、位置偏移），或規定兩場暴雨至少相隔幾小時（用這個流域的集流時間約 2 小時的知識約束）。</p></details>
+  <details class="hint"><summary>參考答案</summary><p>沒有誤差時找到 15 場；誤差 8% 時找到 97 個；誤差 50% 時找到 230 個。加上「至少相隔 6 小時」，8% 時回到 15 場；但 50% 時仍有 28 個，因為誤差大到連基流附近都超過 3 m³/s 的門檻，間隔限制無法補救，門檻也要隨誤差調整。記下：誤差多大開始失準、證據、哪種修正有效、修正的代價。這四點就是失敗案例報告的骨架。</p></details>
 </section>
 
 <section data-day="6">
   <h2><span class="stage-no">四</span>回答本週大問題</h2>
-  <p>用一段話回答「這支程式算出來的潮差，可信嗎？」，寫進 <code>week01/notes.md</code>，並放進 repo 的 <code>README.md</code>，附一張你改過的圖。答案至少要有三部分：</p>
+  <p>用一段話回答「這支程式算出來的洪峰流量，可信嗎？」，寫進 <code>week01/notes.md</code>，並放進 repo 的 <code>README.md</code>，附一張你改過的圖。答案至少要有三部分：</p>
   <ol>
     <li><b>可信的部分</b>：哪些數字跟理論吻合、吻合到多少。</li>
     <li><b>偏差與來源</b>：例題與變化 1 找到的偏差，各自多大、從哪來。</li>
-    <li><b>不可信的條件</b>：取樣、雜訊、小潮附近，在什麼情況下不能直接採信。</li>
+    <li><b>不可信的條件</b>：步長、誤差、k 接近步長時，在什麼情況下不能直接採信。</li>
   </ol>
-  <p>圖要能支撐你的答案：每個軸有單位、標題說明在比較什麼、畫出理論基準線（<code>ax2.axhline(...)</code>），同事不看程式 10 秒內看得懂重點。</p>
+  <p>圖要能支撐你的答案：每個軸有單位、標題說明在比較什麼、畫出基準線（例如基流的 <code>ax2.axhline(...)</code>），同事不看程式 10 秒內看得懂重點。</p>
   <p>另外寫本週閱讀的 5 行摘要：<code>papers/output/2019_kratzert.md</code>，21 天內開新對話說「grill 這篇」。</p>
-  <div class="callout term"><b>延伸（時間夠再做）</b><p>到中央氣象署開放資料平台下載一個潮位站的實測資料，取代 <code>make_tide()</code>。實測資料沒有標準答案，可信度要靠第 6 週的模式驗證來判斷。</p></div>
+  <div class="callout term"><b>延伸（時間夠再做）</b><p>到水利署開放資料下載一個雨量站與流量站的實測資料，取代 <code>make_rain()</code>。實測資料沒有標準答案，可信度要靠第 6 週的模式驗證來判斷。</p></div>
 </section>
