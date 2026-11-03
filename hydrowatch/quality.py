@@ -4,7 +4,7 @@ import pandas as pd
 
 from hydrowatch.config import REF_DAYS
 
-RANGE = {"rain": (0.0, 150.0), "flow": (0.0, 1000.0)}   # 雨量 mm/hr、流量 m3/s 的合理範圍
+RANGE = {"rain": (0.0, 250.0), "flow": (0.0, 600.0)}   # 雨量 mm/hr、流量 m3/s 的合理範圍
 SPIKE_Z = 4.0                                            # 突波門檻（標準差倍數）
 DRIFT_Z = 1.96                                           # 漂移檢定門檻（95%）
 

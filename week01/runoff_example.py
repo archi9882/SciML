@@ -24,14 +24,14 @@ import pandas as pd
 # ---------------------------------------------------------------------------
 # 0. 參數集中放在最上面
 # ---------------------------------------------------------------------------
-START = "2026-01-01"
+START = "2026-08-01"
 DAYS = 60                 # 模擬天數
-FREQ = "h"                # 取樣頻率：每小時一筆
-AREA_KM2 = 120.0          # 流域面積 [km^2]
-K_HOURS = 20.0            # 退水常數 [hr]
+FREQ = "10min"            # 取樣頻率：每 10 分鐘一筆（台灣雨量站的原始資料就是 10 分鐘）
+AREA_KM2 = 52.77          # 流域面積 [km^2]：鯉魚潭水庫集水區
+K_HOURS = 1.2             # 退水常數 [hr]：由 Kirpich 公式與 Hack 定律推導，見 docs/parameters.md
 RUNOFF_COEF = 0.4         # 逕流係數 C
-BASEFLOW = 2.0            # 基流 [m3/s]：沒下雨時河裡仍有的水
-NOISE_STD = 1.0           # 流量計量測雜訊標準差 [m3/s]
+BASEFLOW = 1.18           # 基流 [m3/s]：沒下雨時河裡仍有的水
+NOISE_STD = 0.08          # 流量計量測雜訊（相對誤差，標準差 8%）
 SEED = 42                 # 亂數種子：固定它，每次跑出來的結果才會一樣（可重現性）
 
 OUT_DIR = Path(__file__).parent
@@ -43,14 +43,14 @@ OUT_DIR = Path(__file__).parent
 def make_rain(start: str, days: int, freq: str, seed: int) -> pd.Series:
     """隨機產生雨量序列 [mm/hr]：大約每 4 天一場暴雨，半個正弦波形。"""
     rng = np.random.default_rng(seed)
-    n = days * 24
+    n = days * 144                                # 每天 144 筆（10 分鐘一筆）
     time = pd.date_range(start=start, periods=n, freq=freq)
     rain = np.zeros(n)
     i = 0
-    while i < n - 12:
-        i += int(rng.integers(48, 144))          # 兩場雨相隔 2–6 天
-        dur = int(rng.integers(4, 9))            # 一場雨持續 4–8 小時
-        amp = rng.uniform(5, 14)                 # 最大雨強 5–14 mm/hr
+    while i < n - 36:
+        i += int(rng.integers(288, 864))         # 兩場雨相隔 2–6 天（單位：筆）
+        dur = int(rng.integers(9, 25))           # 一場雨持續 1.5–4 小時
+        amp = rng.uniform(10, 30)                # 最大雨強 10–30 mm/hr（夏季雷雨）
         if i + dur < n:
             rain[i:i + dur] += amp * np.sin(np.pi * (np.arange(dur) + 0.5) / dur)
     return pd.Series(rain, index=time, name="rain_mm_h")
@@ -64,13 +64,13 @@ def simulate_flow(rain: pd.Series) -> pd.Series:
     q = np.zeros(len(rain))
     for i in range(len(rain)):
         q[i] = s / (K_HOURS * 3600) + BASEFLOW
-        s += 3600 * (inflow[i] - s / (K_HOURS * 3600))     # 每步 1 小時 = 3600 秒
+        s += 600 * (inflow[i] - s / (K_HOURS * 3600))      # 每步 10 分鐘 = 600 秒
     return pd.Series(q, index=rain.index, name="q_m3s")
 
 
 def add_noise(q: pd.Series, seed: int) -> pd.Series:
     rng = np.random.default_rng(seed + 1)
-    return q + rng.normal(0.0, NOISE_STD, size=len(q))
+    return q * (1 + rng.normal(0.0, NOISE_STD, size=len(q)))     # 乘性誤差：流量越大，絕對誤差越大
 
 
 # ---------------------------------------------------------------------------
@@ -91,13 +91,14 @@ def pulse_recession_ratio() -> float:
     rain = pd.Series(np.zeros(120), index=pd.date_range(START, periods=120, freq=FREQ))
     rain.iloc[0] = 10.0
     q = simulate_flow(rain) - BASEFLOW
-    return float(q.iloc[1 + int(K_HOURS)] / q.iloc[1])
+    steps = int(K_HOURS * 6)                              # k 小時 = 幾個 10 分鐘
+    return float(q.iloc[1 + steps] / q.iloc[1])
 
 
 def volume_ratio(rain: pd.Series, q: pd.Series) -> float:
     """理論：流出的總水量 ≈ C × 降雨總水量（差在期末還留在流域裡的水）。"""
-    rain_vol = rain.sum() * AREA_KM2 * 1000               # m3
-    flow_vol = (q - BASEFLOW).sum() * 3600                # m3
+    rain_vol = rain.sum() / 6 * AREA_KM2 * 1000           # m3（每筆是 1/6 小時的雨強）
+    flow_vol = (q - BASEFLOW).sum() * 600                 # m3（每筆 600 秒）
     return float(flow_vol / (RUNOFF_COEF * rain_vol))
 
 
@@ -106,7 +107,7 @@ def volume_ratio(rain: pd.Series, q: pd.Series) -> float:
 # ---------------------------------------------------------------------------
 def plot_overview(rain: pd.Series, q_true: pd.Series, q_obs: pd.Series, daily: pd.DataFrame, path: Path) -> None:
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 7), sharex=True)
-    ax1.bar(rain.index, rain.values, width=0.04, color="#1f5f8b")
+    ax1.bar(rain.index, rain.values, width=0.005, color="#1f5f8b")
     ax1.set_ylabel("Rain [mm/hr]")
     ax2.plot(q_obs.index, q_obs.values, lw=0.6, color="#8fb8d0", label="observed (noisy)")
     ax2.plot(q_true.index, q_true.values, lw=1.0, color="#1f5f8b", label="model (no noise)")
@@ -133,7 +134,7 @@ def main() -> None:
     print(f"退水檢查：k 小時後剩 {pulse_recession_ratio():.3f}（理論 e^-1 = 0.368）")
     print(f"水量檢查：流出水量 / (C × 降雨水量) = {volume_ratio(rain, q_true):.3f}（理論約 1）")
     bias = (daily["max"] - daily_true["max"]).mean()
-    print(f"日最大流量：含雜訊比無雜訊平均高 {bias:+.2f} m3/s（雜訊標準差 {NOISE_STD} m3/s）")
+    print(f"日最大流量：含雜訊比無雜訊平均高 {bias:+.2f} m3/s（相對誤差標準差 {NOISE_STD:.0%}）")
 
     daily.to_csv(OUT_DIR / "daily_stats.csv")
     plot_overview(rain, q_true, q_obs, daily, OUT_DIR / "runoff_overview.png")

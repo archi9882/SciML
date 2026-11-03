@@ -6,19 +6,19 @@
 """
 import numpy as np
 
-L_KM = 10.0     # 河道長度 [km]
-N = 100         # 網格數
+L_KM = 20.0     # 河道長度 [km]
+N = 40          # 網格數
 DX = L_KM / N   # 網格間距 [km]
-D = 0.5         # 擴散係數 [km^2/hr]
-U = 0.68        # 平均流速 [km/hr]
-DT = 0.0096     # 時間步長 [hr]
-NSTEPS = 400    # 步數（共 3.84 hr）
+D = 0.60        # 擴散係數 [km^2/hr]，Hayami：Q/(2 B S0)，見 docs/parameters.md
+U = 14.7        # 洪水波速 [km/hr]，運動波波速 (5/3) 倍流速
+DT = 0.03       # 時間步長 [hr]
+NSTEPS = 15     # 步數（共 0.45 hr）
 
 
 def initial() -> tuple[np.ndarray, np.ndarray]:
     """初始洪水波：靠近下游出口的高斯形洪峰。"""
     x = (np.arange(N) + 0.5) * DX
-    return x, np.exp(-((x - 8.0) / 0.5) ** 2)
+    return x, np.exp(-((x - 14.0) / 1.0) ** 2)
 
 
 def solve(c0: np.ndarray, u: float, d: float, dx: float, dt: float, nsteps: int) -> np.ndarray:

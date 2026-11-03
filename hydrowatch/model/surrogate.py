@@ -1,6 +1,6 @@
 """代理模型：用小型神經網路取代洪水演算求解器。
 
-輸入 (波速 u、擴散係數 D)，輸出 3.84 小時後的洪峰值。訓練資料由 routing.solve 產生。
+輸入 (波速 u、擴散係數 D)，輸出 0.45 小時後的洪峰值。訓練資料由 routing.solve 產生。
 """
 import time
 
@@ -8,8 +8,8 @@ import numpy as np
 
 from hydrowatch.model import routing
 
-U_RANGE = (0.3, 0.9)    # 波速範圍 [km/hr]
-D_RANGE = (0.2, 0.5)    # 擴散係數範圍 [km^2/hr]
+U_RANGE = (7.0, 17.0)   # 波速範圍 [km/hr]
+D_RANGE = (0.3, 0.9)    # 擴散係數範圍 [km^2/hr]
 
 
 def make_dataset(n: int = 200, seed: int = 1) -> tuple[np.ndarray, np.ndarray]:

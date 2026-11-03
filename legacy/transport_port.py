@@ -1,14 +1,14 @@
 """transport.f90 的 Python 翻譯版（由 AI 翻譯）。"""
 import numpy as np
 
-N, NSTEPS = 100, 400
-L, D, U, DT = 10.0, 0.5, 0.68, 0.0096
+N, NSTEPS = 40, 15
+L, D, U, DT = 20.0, 0.60, 14.7, 0.03
 
 
 def main() -> None:
     dx = L / N
     x = (np.arange(N) + 0.5) * dx
-    c = np.exp(-((x - 8.0) / 0.5) ** 2)
+    c = np.exp(-((x - 14.0) / 1.0) ** 2)
 
     for _ in range(NSTEPS):
         cn = np.zeros(N)

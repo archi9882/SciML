@@ -16,7 +16,7 @@ def test_ingest_has_five_stations():
 
 def test_runoff_recession_is_exponential():
     # 一場短雨後，流量（扣掉基流）應以 exp(-t/k) 衰退
-    rain = np.zeros(200)
+    rain = np.zeros(300)
     rain[0] = 10.0
     q = runoff.simulate(rain, k_h=20.0, c=0.4) - runoff.Q_BASE
     ratio = q[60] / q[40]

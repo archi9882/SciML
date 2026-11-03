@@ -11,13 +11,13 @@
 
 和第 1 週的差別（請對照）：
   1. 時間步長 dt 從時間軸算出實際的小時數，雨量也用「實際經過的小時數」產生。
-     不管 --freq 是 "h" 還是 "30min"，結果都對；第 1 週把 dt 與筆數寫死的陷阱在這裡修好。
+     不管 --freq 是 "10min" 還是 "30min"，結果都對；第 1 週把 dt 與筆數寫死的陷阱在這裡修好。
   2. 參數檢查失敗時以非 0 的結束碼（exit code）離開，批次腳本才知道這次失敗了。
      顯式前進歐拉要求 dt < 2k，否則計算會發散，所以這也是一項參數檢查。
 
 執行範例：
-  python runoff_cli.py --k-hours 20 --out runs/demo
-  python runoff_cli.py --k-hours 10 --freq 30min --seed 7 --out runs/demo2
+  python runoff_cli.py --k-hours 1.2 --out runs/demo
+  python runoff_cli.py --k-hours 2.4 --freq 30min --seed 7 --out runs/demo2
   python runoff_cli.py --help
 """
 
@@ -29,19 +29,19 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-AREA_KM2 = 120.0   # 流域面積 [km^2]
-BASEFLOW = 2.0     # 基流 [m3/s]
+AREA_KM2 = 52.77   # 流域面積 [km^2]：鯉魚潭水庫集水區
+BASEFLOW = 1.18    # 基流 [m3/s]
 
 
 def parse_args(argv=None) -> argparse.Namespace:
     p = argparse.ArgumentParser(description="合成降雨逕流：隨機暴雨 → 線性水庫 → 流量，輸出設定與統計結果")
-    p.add_argument("--k-hours", type=float, default=20.0, help="退水常數 k [hr]（預設 20）")
+    p.add_argument("--k-hours", type=float, default=1.2, help="退水常數 k [hr]（預設 1.2）")
     p.add_argument("--runoff-coef", type=float, default=0.4, help="逕流係數 C，0 到 1（預設 0.4）")
-    p.add_argument("--noise", type=float, default=1.0, help="流量計雜訊標準差 [m3/s]（預設 1.0）")
+    p.add_argument("--noise", type=float, default=0.08, help="流量計相對誤差標準差（預設 0.08，即 8%%）")
     p.add_argument("--days", type=int, default=60, help="模擬天數（預設 60）")
-    p.add_argument("--freq", default="h", help='取樣頻率，pandas 寫法，如 "h"、"30min"（預設 "h"）')
+    p.add_argument("--freq", default="10min", help='取樣頻率，pandas 寫法，如 "10min"、"30min"（預設 "10min"）')
     p.add_argument("--seed", type=int, default=42, help="亂數種子（預設 42）")
-    p.add_argument("--start", default="2026-01-01", help="開始日期（預設 2026-01-01）")
+    p.add_argument("--start", default="2026-08-01", help="開始日期（預設 2026-08-01）")
     p.add_argument("--out", required=True, help="輸出資料夾，例如 runs/k_20")
     return p.parse_args(argv)
 
@@ -75,7 +75,7 @@ def make_rain(t_hours: np.ndarray, seed: int, days: int) -> np.ndarray:
     start = 0.0
     while True:
         start += rng.integers(48, 144)           # 兩場雨相隔 2–6 天
-        dur, amp = int(rng.integers(4, 9)), rng.uniform(5, 14)
+        dur, amp = rng.uniform(1.5, 4.0), rng.uniform(10, 30)     # 歷時 1.5–4 小時，最大雨強 10–30 mm/hr
         if start + dur >= days * 24:
             break
         inside = (t_hours >= start) & (t_hours < start + dur)
@@ -111,7 +111,7 @@ def build(a: argparse.Namespace) -> tuple[pd.Series, pd.Series, pd.Series]:
     rain = make_rain(t_hours, a.seed, a.days)
     q_true = simulate_flow(rain, a.k_hours, a.runoff_coef, dt_h)
     rng = np.random.default_rng(a.seed + 1)
-    q_obs = q_true + rng.normal(0.0, a.noise, size=len(time))
+    q_obs = q_true * (1 + rng.normal(0.0, a.noise, size=len(time)))     # 乘性誤差
     return (pd.Series(rain, index=time, name="rain_mm_h"),
             pd.Series(q_true, index=time, name="q_true_m3s"),
             pd.Series(q_obs, index=time, name="q_obs_m3s"))

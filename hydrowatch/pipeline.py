@@ -67,7 +67,7 @@ def _plot(df, rain, sim, x, c0, c1) -> None:
     a2.set_ylabel("Discharge [m3/s]")
     a2.legend()
     a3.plot(x, c0, label="initial")
-    a3.plot(x, c1, label="after 3.84 h")
+    a3.plot(x, c1, label="after 0.45 h")
     a3.set_xlabel("Distance along reach [km]")
     a3.set_ylabel("Flood wave")
     a3.legend()

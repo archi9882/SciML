@@ -9,7 +9,7 @@ import pandas as pd
 
 from hydrowatch.config import AREA_KM2
 
-Q_BASE = 2.0   # 基流 [m3/s]
+Q_BASE = 1.18  # 基流 [m3/s]
 
 
 def simulate(rain_mm_h: np.ndarray, k_h: float, c: float, dt_h: float = 1.0) -> np.ndarray:
@@ -27,7 +27,7 @@ def simulate(rain_mm_h: np.ndarray, k_h: float, c: float, dt_h: float = 1.0) -> 
 def fit(rain: pd.Series, q: pd.Series) -> dict:
     """格點搜尋 k 與 C，使模擬流量與觀測流量的 RMSE 最小。"""
     best = None
-    for k in np.arange(4.0, 61.0, 2.0):
+    for k in np.arange(0.6, 8.01, 0.2):
         for c in np.arange(0.1, 0.91, 0.05):
             rmse = float(np.sqrt(np.mean((simulate(rain.values, k, c) - q.values) ** 2)))
             if best is None or rmse < best["rmse"]:
