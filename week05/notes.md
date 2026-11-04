@@ -1,3 +1,9 @@
+**本週大問題：數值方法本身會造成哪些失真，怎麼系統性地找出它的邊界？**
+
+講解：學習站第 5 週（https://claude.ai/artifact/Vq3vHXDt4AjtTW9tTbeGQL#w5）。題號與講解的「筆記 Day N・Qn」一致，答案寫在每題下方的 `> ` 之後。
+閱讀摘要：`papers/output/2019_raissi.md`
+<!-- 題目由 python scripts/sync_questions.py 從學習站講解產生；改題目請改講解再重跑 -->
+
 # Day1
 ## Q1.
 CFL 數的定義是什麼？範例的上游端與下游端邊界各是什麼？

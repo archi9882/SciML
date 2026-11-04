@@ -1,3 +1,9 @@
+**本週大問題：這套系統由哪些部分組成，每一塊可能在哪裡出錯？**
+
+講解：學習站第 3 週（https://claude.ai/artifact/Vq3vHXDt4AjtTW9tTbeGQL#w3）。題號與講解的「筆記 Day N・Qn」一致，答案寫在每題下方的 `> ` 之後。
+閱讀摘要：`papers/output/2015_sculley.md`
+<!-- 題目由 python scripts/sync_questions.py 從學習站講解產生；改題目請改講解再重跑 -->
+
 # Day1
 ## Q1.
 跑 `python -m hydrowatch run`，`report.json` 有哪些區塊？每個區塊你猜對應哪個模組？

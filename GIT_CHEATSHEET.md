@@ -87,7 +87,7 @@ feat(w02): add argparse CLI for runoff batch runs
 Allow varying M2 amplitude and noise level from the command line
 so the batch summary can be produced without editing source.
 
-Refs: week02/exercises.md Day 3
+Refs: week02/notes.md Day 3
 ```
 
 ---

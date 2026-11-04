@@ -10,7 +10,7 @@
 
 | 資料夾 | 內容 |
 |---|---|
-| `week01/` … `week26/` | 每週範例程式、練習題（`exercises.md`）與自己的練習 |
+| `week01/` … `week26/` | 每週範例程式、題目與答案（`notes.md`，題號對應學習站講解） |
 | `papers/` | `input/` 放論文 PDF，`output/` 放自己的反芻（模板 `output/TEMPLATE.md`）；流程見 `.claude/skills/verifying-paper-comprehension/SKILL.md`，期限檢查用 `python papers/check.py` |
 | `reports/` | 失敗案例報告：現行方法在哪裡預測不準、原因與佐證（格式見 `reports/TEMPLATE.md`） |
 | `backups/` | 進度追蹤頁的勾選與筆記備份 |
@@ -54,5 +54,5 @@
 
 ```bash
 pip install -r requirements.txt
-python weekNN/<範例程式>.py   # 各週範例程式放在對應的 weekNN/，依該週 exercises.md 執行
+python weekNN/<範例程式>.py   # 各週範例程式放在對應的 weekNN/，依該週 notes.md 的題目執行
 ```

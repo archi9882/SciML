@@ -1,3 +1,9 @@
+**本週大問題：這支程式算出來的洪峰流量，可信嗎？**
+
+講解：學習站第 1 週（https://claude.ai/artifact/Vq3vHXDt4AjtTW9tTbeGQL#w1）。題號與講解的「筆記 Day N・Qn」一致，答案寫在每題下方的 `> ` 之後。
+閱讀摘要：`papers/output/2019_kratzert.md`
+<!-- 題目由 python scripts/sync_questions.py 從學習站講解產生；改題目請改講解再重跑 -->
+
 # Day1
 ## Q1.
 執行 `python week01/runoff_example.py`，把程式印出的三項檢查結果跟理論值對照。差多少？

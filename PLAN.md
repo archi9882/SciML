@@ -4,12 +4,12 @@
 本文件以 GitHub repo（`PLAN.md`）為唯一正本。claude.ai 專案「All About LLM」的 `claude/sciml-plan.md` 只是舊副本，Claude Code 無法更新，不再同步，內容以 repo 為準。
 
 ## 目前待辦（下次對話先看這裡）
-- **位置**：從第 1 週重新開始（2026-11-03 決定），專案情境為水力工程（2026-11-04）。第 1–3 週的範例程式、`exercises.md`、`notes.md` 題目與 HydroWatch 成品已產出，`sealed-answer-key` 已重建；學習站講解（`site/content/w01–w03.html`）、動畫與計畫資料已同步為水力工程版。
+- **位置**：從第 1 週重新開始（2026-11-03 決定），專案情境為水力工程（2026-11-04）。第 1–3 週的範例程式、`notes.md` 題目與 HydroWatch 成品已產出，`sealed-answer-key` 已重建；學習站講解（`site/content/w01–w03.html`）、動畫與計畫資料已同步為水力工程版。
 - **學習站**：追蹤頁勾選以重新開始後的實際進度為準。
 - **計畫第四版（2026-11-04）**：前段 W1–14 HydroWatch（水文）學會方法，後段 W15–26 VPPWatch（虛擬電廠，對準安瑟樂威）再走一次完整循環。週次編號自 W8 起改變，見下方大綱；學習站與本文件已同步。
 - **講解進度**：已有講解、範例、練習的週次為 1–6。其餘 7–26 週待寫。
 - **明天（2026-11-05）待辦**：
-  1. 第 7 週（PyTorch autograd 與訓練迴圈）：範例 `week07/`、講解 `site/content/w07.html`、`exercises.md`、`notes.md`；審查 `hydrowatch/model/ml.py` 的標準化、切分與資料洩漏。
+  1. 第 7 週（PyTorch autograd 與訓練迴圈）：範例 `week07/`、講解 `site/content/w07.html`、`notes.md`（由同步腳本產生）；審查 `hydrowatch/model/ml.py` 的標準化、切分與資料洩漏。
   2. 第 8 週（PINN 與失敗模式，延伸最小版 FNO）、第 9 週（hybrid），順序同上；torch 已安裝（CPU 版）。
   3. 每個模組的講解都照四步寫：先預測該滿足什麼 → 親手做最小版 → 拿前兩步當基準審查 AI 版 → 替換並記錄。
   4. 第 1–14 週的講解頁要附「本週小基建任務」（資料在 `site/index.html` 的 `INF` 陣列）。
@@ -48,7 +48,7 @@
 - 單一入口：所有教材集中在學習站，講解要簡潔、語意流暢、上下文連貫，必要時用動畫。
 - 方便管理、追蹤進度。
 - **題目單一來源**：所有要學習者作答的題目只寫在學習站講解 `site/content/wNN.html` 裡：理論段落用 `<div class="callout ask"><b>寫進筆記</b><p>…</p></div>`（放在對應 Day 的段落末尾），例題用 `callout predict`，變化題用第三節的 `<h3>`；大問題在 `index.html` 的 `Q` 陣列，第四節的 `<li>` 是要求。
-  寫完或修改講解後執行 `python scripts/sync_questions.py NN`：它會產生 `weekNN/notes.md` 與 `weekNN/exercises.md`，並在講解標上「筆記 Day N・Qn」，三處題號一致。數學在 Markdown 裡轉成 `$...$`。
+  寫完或修改講解後執行 `python scripts/sync_questions.py NN`：它會產生 `weekNN/notes.md`（開頭有大問題、講解連結與閱讀摘要檔名），並在講解標上「筆記 Day N・Qn」，兩處題號一致。每週不再有 `exercises.md`。數學在 Markdown 裡轉成 `$...$`。
   筆記裡已有答案的週次，腳本會跳過不覆蓋；之後要新增題目，就在 `notes.md` 對應的 `# DayN` 下手動追加 `## Qn.`＋題目＋`> `，並同步加進講解，不修改學習者已寫的答案。
 
 ## 存放位置
@@ -59,7 +59,7 @@
   - db：collection `data/users/me`，doc `progress`。欄位：`start`、`done`（key `w{週}d{日}c` 練習、`w{週}d{日}p` 閱讀、`w{週}inf` 小基建任務、`iv-q{n}` 面試題）、`notes`（`w{週}` → `{paper, fail}`）、`ev`（證據庫陣列：`kind` 為 ai／adr／exp，另有 `title`、`cat`、`sys`、`week` 等欄位）、`bugs`（埋錯圖鑑，由交接時的 Claude 寫入：`hw`／`ch`／`vpp` → `{total, found:[{n, mod, cat, title}], missed:[…]}`，`cat` 為數值／物理／基建／統計／空間；只寫已審查模組的項目）、`score`（舊計分板欄位，首頁已改用 `bugs`，保留不用）、`track`（舊欄位，保留不用）。
   - 讀取：ArtifactData `get`，url 如上，collection `data/users/me`，doc_id `progress`。
 - **GitHub repo（正本）**：https://github.com/archi9882/SciML
-  - `weekNN/`：範例程式與 `exercises.md`（Claude 放）＋學習者的 `notes.md` 與練習
+  - `weekNN/`：範例程式（Claude 放）＋`notes.md`（題目由同步腳本產生，答案由學習者寫）與練習
   - `papers/input/`：論文 PDF（不進版控）；`papers/output/`：論文反芻（模板 `papers/output/TEMPLATE.md`）
   - 反芻後開新 session 讓 agent grill，期限為 `output_started` 起 21 天；流程見 `.claude/skills/verifying-paper-comprehension/SKILL.md`，`python papers/check.py` 列出剩餘天數
   - `reports/`：失敗案例報告（模板 `reports/TEMPLATE.md`）
@@ -120,10 +120,11 @@ W14 揭曉 HydroWatch 前段模組的答案卷，W26 揭曉 VPPWatch 與 HydroWa
 1. 學習者在新對話說「第 N 週進度」。
 2. 讀學習站 db 的勾選與筆記；pull repo，看 `weekNN/notes.md`、`papers/output/`、`reports/`；給回饋。
 3. 若本週有審查模組：先收學習者的 `audit_log.md`，再讀 `sealed-answer-key` 只公布該模組答案並記錄抓錯率。抓到的寫進 db `progress.bugs.<系統>.found`；揭曉週（W14、W26）把該範圍沒抓到的寫進 `missed`。寫入前先 `get` 取得版本，用 `update` 只改 `bugs` 欄位。
-4. 產出第 N+1 週（若尚未產出）：`weekNN/` 範例程式＋`exercises.md`（每日任務、先預測再執行、讓 AI 出錯的題目、週六產出），以及 `site/content/wNN.html` 講解（理論、程式導讀、必要時新增動畫），重新發布學習站。
+4. 產出第 N+1 週（若尚未產出）：`weekNN/` 範例程式，以及 `site/content/wNN.html` 講解（題目放在講解裡：每日任務、先預測再執行、讓 AI 出錯的題目、週六產出），再執行 `python scripts/sync_questions.py NN` 產生 `notes.md`（理論、程式導讀、必要時新增動畫），重新發布學習站。
 5. 更新 `backups/progress.md`、本文件「目前待辦」與「進度紀錄」。
 
 ## 進度紀錄
+- 2026-11-04：拿掉每週的 `exercises.md`（與 `notes.md` 題目重複）；大問題、學習站連結與閱讀摘要檔名移到 `notes.md` 開頭，同步腳本只產生 `notes.md`。
 - 2026-11-04：題目改為單一來源。W1–W6 講解加入「寫進筆記」題目框與「筆記 Day N・Qn」題號；新增 `scripts/sync_questions.py`，由講解重新產生 `notes.md`（補上缺少的變化題與 Day 6 大問題，W1 變化 1 移到 Day 4）與 `exercises.md`（任務與題號跟講解一致；原本只在 `exercises.md` 的少數任務，例如 W1 加每日雨量總和，已移除）。
 - 2026-11-04：學習站改用 LaTeX 表示數學式（MathJax 3.2.2 SVG 輸出，從 cdnjs 載入，不需外部字型）。W1–W6 講解與 W 陣列、動畫說明裡的公式、變數與科學記號全部轉換；程式碼、程式輸出、canvas 文字維持原樣。
 - 2026-11-04：學習站首頁加入「你的系統」剖面圖（HydroWatch 流域到電廠、VPPWatch 案場到電網，模組依 AI 原版／審查中／已替換改變外觀並顯示接管比例）與「埋錯圖鑑」（每個埋錯一格，抓到翻綠、漏抓翻紅），取代原本的數字計分板。

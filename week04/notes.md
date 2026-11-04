@@ -1,3 +1,9 @@
+**本週大問題：數值解什麼時候會爆掉，什麼時候會悄悄不準？**
+
+講解：學習站第 4 週（https://claude.ai/artifact/Vq3vHXDt4AjtTW9tTbeGQL#w4）。題號與講解的「筆記 Day N・Qn」一致，答案寫在每題下方的 `> ` 之後。
+閱讀摘要：`papers/output/2021_karniadakis.md`
+<!-- 題目由 python scripts/sync_questions.py 從學習站講解產生；改題目請改講解再重跑 -->
+
 # Day1
 ## Q1.
 執行 `python week04/diffusion_fdm.py`。$r$ 的定義是什麼？為什麼可以用精確解檢查程式？

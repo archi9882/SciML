@@ -1,3 +1,9 @@
+**本週大問題：模型跟真實世界差多少，差距來自哪裡？**
+
+講解：學習站第 6 週（https://claude.ai/artifact/Vq3vHXDt4AjtTW9tTbeGQL#w6）。題號與講解的「筆記 Day N・Qn」一致，答案寫在每題下方的 `> ` 之後。
+閱讀摘要：`papers/output/2002_oberkampf.md`
+<!-- 題目由 python scripts/sync_questions.py 從學習站講解產生；改題目請改講解再重跑 -->
+
 # Day1
 ## Q1.
 各舉一個前幾週的例子，說明什麼是 verification、什麼是 validation。

@@ -1,3 +1,9 @@
+**本週大問題：怎麼讓「改一個參數、看結果」變得便宜又不出錯？**
+
+講解：學習站第 2 週（https://claude.ai/artifact/Vq3vHXDt4AjtTW9tTbeGQL#w2）。題號與講解的「筆記 Day N・Qn」一致，答案寫在每題下方的 `> ` 之後。
+閱讀摘要：`papers/output/2023_shen.md`
+<!-- 題目由 python scripts/sync_questions.py 從學習站講解產生；改題目請改講解再重跑 -->
+
 # Day1
 ## Q1.
 執行 `python week02/runoff_cli.py --k-hours 0.2 --out runs/bad`，看到什麼訊息、結束碼是多少？為什麼批次系統只看結束碼？
