@@ -71,6 +71,7 @@ def already_done(folder: Path, params: dict) -> bool:
     <tr><td>summary.csv 列數</td><td class="mono">20</td><td class="mono">30</td></tr>
     <tr><td>noise = 0.08 的每組筆數</td><td class="mono">2</td><td class="mono">4（重複）</td></tr>
   </tbody></table></div>
+  <div data-anim="grid-dup"></div>
   <p><b>步驟 3：找原因。</b>資料夾名稱由參數組成，加了 noise 之後名稱從 <code>k_hours0.4_seed1</code> 變成 <code>k_hours0.4_seed1_noise0.08</code>，舊資料夾對不上，所以全部重跑。而 <code>collect()</code> 會讀 <code>runs/</code> 底下所有資料夾，舊的 10 個也被收進來，noise = 0.08 的結果因此出現兩次。</p>
   <p><b>步驟 4：判斷影響，下結論。</b>這次重複的兩份數值剛好一樣，所以平均值沒變；但筆數、標準差都錯了。如果舊結果是用不同的預設值跑的，平均值也會悄悄被拉偏，而且程式不會報錯。修正方式：彙整時只收「這次網格裡的組合」，或每次換網格前清空 <code>runs/</code>。</p>
   <div class="callout job"><b>這個例題教的方法</b><p>批次結果出錯時通常不會報錯，只會「多一些」或「少一些」。習慣用簡單的數字先預測（應該幾組、幾列），再跟實際比對。數字對不上，就是線索。</p></div>

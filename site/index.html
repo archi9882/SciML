@@ -351,6 +351,15 @@ details.hint p{margin:0}
 @keyframes bugflip{from{transform:rotateY(90deg)}to{transform:none}}
 .bug-list{margin:8px 0 0;padding-left:1.1em;display:grid;gap:4px;font-size:.86rem}
 @media (prefers-reduced-motion:reduce){.sx .mg *,.bug{animation:none!important}}
+/* 第 2 週例題動畫 */
+.gd-lanes{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:12px}
+@media (max-width:760px){.gd-lanes{grid-template-columns:minmax(0,1fr)}}
+.gd-lane{display:grid;gap:6px;align-content:start;min-width:0}
+.gd-h{font-size:.8rem;font-weight:500}
+.gd-lanes .job span:first-child{overflow-wrap:normal;word-break:keep-all}
+.gd-ghost{border-style:dashed;opacity:.35;min-height:38px}
+.job.gd-plan{border-style:dashed}
+.gd-bad{color:var(--miss);font-weight:600}
 /* 寫進筆記的題目與題號 */
 .callout.ask{border-left:4px solid var(--vio)}
 .callout.ask > b:first-child{color:var(--vio)}
@@ -934,7 +943,52 @@ const ANIMS={
   let n=0;function paint(){pipe.innerHTML=ST.map((s,i)=>`<div class="stage ${i<n?"":"dim"} ${i===n-1?"on":""}"><span class="cmd">${i?"| ":""}${esc(s[0])}</span>${(i<n?s[1]:[]).map(x=>`<span class="ln">${esc(x)}</span>`).join("")}</div>`).join("");
     cap.textContent=n?ST[n-1][2]:"按「下一個指令」，看資料怎麼一步步被處理。";ctl.querySelector("#pp-next").disabled=n>=4}
   ctl.querySelector("#pp-next").addEventListener("click",()=>{n=Math.min(4,n+1);paint()});
-  ctl.querySelector("#pp-reset").addEventListener("click",()=>{n=0;paint()});paint()}
+  ctl.querySelector("#pp-reset").addEventListener("click",()=>{n=0;paint()});paint()},
+
+ // 8. 第 2 週例題：加入 noise 維度後，新舊結果混在一起
+ "grid-dup"(host){host.innerHTML="";
+  host.append(el("div",{class:"a-title"},"GRID 加入 noise 之後：為什麼一組都沒跳過，summary 卻多了 10 列"));
+  const ctl=el("div",{class:"ctl"},`<button class="btn" type="button" id="gd-prev">上一步</button><button class="btn primary" type="button" id="gd-next">下一步</button><button class="btn" type="button" id="gd-play">自動播放</button><span class="mono" id="gd-step"></span>`);
+  const lanes=el("div",{class:"gd-lanes"}),read=el("div",{class:"gd-read"}),cap=el("p",{class:"cap"});
+  host.append(ctl,lanes,read,cap);
+  const K=[.4,.8,1.2,2.4,4.8],S=[1,2],N=[.08,.2];
+  const OLD=K.flatMap(k=>S.map(s=>({k,s,name:`k_hours${k}_seed${s}`})));
+  const NEW=K.flatMap(k=>S.flatMap(s=>N.map(n=>({k,s,n,name:`k_hours${k}_seed${s}_noise${n}`}))));
+  // 每一步：舊資料夾、新資料夾的狀態，以及三個數字（預測／實際）
+  const ST=[
+   {o:"ok",n:"none",cap:"第一次執行 batch.py：GRID 是 5 個 k × 2 個 seed，產生 10 個資料夾。沒有 noise 參數，所以用的是預設值 0.08。",run:"10",skip:"—",rows:"10",dup:"1"},
+   {o:"ok",n:"plan",cap:'在 GRID 加入 "noise": [0.08, 0.2]，先預測：5 × 2 × 2 = 20 組；noise = 0.08 的 10 組看起來已經跑過，應該跳過 10 組，summary 有 20 列。',run:"預測 10",skip:"預測 10",rows:"預測 20",dup:"預測 1"},
+   {o:"ok",n:"run",cap:"實際執行：資料夾名稱由參數組成，新名稱多了 _noise0.08，already_done() 找不到同名的舊資料夾，於是 20 組全部重跑，一組都沒跳過。",run:"20",skip:"0",rows:"—",dup:"—"},
+   {o:"dup",n:"dupnew",cap:"collect() 讀的是 runs/ 底下所有資料夾：舊的 10 個也被收進來。舊資料夾其實就是 noise = 0.08，所以這 10 組各出現兩次，summary 變成 30 列。",run:"20",skip:"0",rows:"30",dup:"2"},
+   {o:"skip",n:"ok",cap:"修正：彙整時只收這次網格裡的組合（或換網格前清空 runs/）。舊資料夾不再被讀進來，summary 回到 20 列，每組 1 筆。",run:"20",skip:"0",rows:"20",dup:"1"}];
+  const LAB={ok:"完成",dup:"重複收進",skip:"不收",none:"",plan:"",run:"執行中",dupnew:"完成"};
+  let stp=0,timer=0,anim=[];
+  function tile(f,st,i,isNew){
+    if(st==="none")return `<div class="job gd-ghost" aria-hidden="true"></div>`;
+    let cls=st==="ok"||st==="dupnew"?"ok":st==="dup"?"fail":st==="skip"?"skip":st==="run"?"run":"";
+    let lab=LAB[st];
+    if(st==="plan")lab=f.n===.08?"預期跳過":"預期執行";
+    if(st==="dupnew"&&f.n===.08){cls="fail";lab="重複收進"}
+    return `<div class="job ${cls} ${st==="plan"?"gd-plan":""}" data-i="${i}"><span>${f.name.replace(/_/g,"_<wbr>")}</span><span class="st">${lab}</span></div>`}
+  function draw(){const s=ST[stp];
+    lanes.innerHTML=`<div class="gd-lane"><div class="gd-h">runs/ 裡的舊資料夾 <span class="mono muted">10</span></div><div class="jobs">${OLD.map((f,i)=>tile(f,s.o,i,false)).join("")}</div></div>
+      <div class="gd-lane"><div class="gd-h">加入 noise 後的新資料夾 <span class="mono muted">${s.n==="none"?"0":"20"}</span></div><div class="jobs">${NEW.map((f,i)=>tile(f,s.n,i,true)).join("")}</div></div>`;
+    read.innerHTML=`<div class="tbl"><table><thead><tr><th>項目</th><th>這一步</th><th>例題的預測</th></tr></thead><tbody>
+      <tr><td>執行的組數</td><td class="mono">${s.run}</td><td class="mono">10</td></tr>
+      <tr><td>跳過的組數</td><td class="mono">${s.skip}</td><td class="mono">10</td></tr>
+      <tr><td>summary.csv 列數</td><td class="mono ${s.rows==="30"?"gd-bad":""}">${s.rows}</td><td class="mono">20</td></tr>
+      <tr><td>noise = 0.08 每組筆數</td><td class="mono ${s.dup==="2"?"gd-bad":""}">${s.dup}</td><td class="mono">1</td></tr></tbody></table></div>`;
+    cap.textContent=s.cap;ctl.querySelector("#gd-step").textContent=`${stp+1} / ${ST.length}`;
+    ctl.querySelector("#gd-prev").disabled=stp===0;ctl.querySelector("#gd-next").disabled=stp===ST.length-1;
+    // 執行中的那一步：逐一變成完成
+    anim.forEach(clearTimeout);anim=[];
+    if(s.n==="run"){const tiles=lanes.querySelectorAll(".gd-lane:nth-child(2) .job");
+      tiles.forEach((t,i)=>anim.push(setTimeout(()=>{t.classList.remove("run");t.classList.add("ok");t.querySelector(".st").textContent="完成（重跑）"},RM.matches?0:120+i*90)))}}
+  const go=n=>{stp=Math.max(0,Math.min(ST.length-1,n));draw()};
+  ctl.querySelector("#gd-prev").addEventListener("click",()=>{clearInterval(timer);go(stp-1)});
+  ctl.querySelector("#gd-next").addEventListener("click",()=>{clearInterval(timer);go(stp+1)});
+  ctl.querySelector("#gd-play").addEventListener("click",()=>{clearInterval(timer);go(0);timer=setInterval(()=>{if(stp>=ST.length-1){clearInterval(timer);return}go(stp+1)},RM.matches?2500:3600)});
+  draw();return()=>{clearInterval(timer);anim.forEach(clearTimeout)}},
 };
 
 
