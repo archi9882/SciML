@@ -8,7 +8,7 @@
 :root{
   --bg:#f3f6f7; --paper:#ffffff; --ink:#14232b; --muted:#5b6d76; --line:#d5dfe3;
   --sea:#0e5a73; --sea-soft:#dcebf0; --kelp:#2f7d5b; --kelp-soft:#ddefe5; --buoy:#d9822b; --buoy-soft:#fbead6;
-  --miss:#b5452f; --miss-soft:#f8ddd5; --vio:#6b4fbb;
+  --miss:#b5452f; --miss-soft:#f8ddd5; --vio:#6b4fbb; --sun:#b07800;
   --code-bg:#eef3f5; --code-ink:#1b2f38; --tok-kw:#8a3ffc; --tok-str:#2f7d5b; --tok-num:#b5452f; --tok-com:#6f838c; --tok-fn:#0e5a73;
   --font-display:"Noto Serif TC","Songti TC",serif;
   --font-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
@@ -17,12 +17,12 @@
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#0d171c; --paper:#14222a; --ink:#e3ecef; --muted:#93a6ae; --line:#26363e;
   --sea:#5fb3cf; --sea-soft:#173543; --kelp:#6cc49b; --kelp-soft:#173528; --buoy:#f0a65a; --buoy-soft:#3a2a17;
-  --miss:#f0847a; --miss-soft:#3a2420; --vio:#b39cf0;
+  --miss:#f0847a; --miss-soft:#3a2420; --vio:#b39cf0; --sun:#f2c14e;
   --code-bg:#0f1c22; --code-ink:#d6e3e8; --tok-kw:#c4a7ff; --tok-str:#8fd6b0; --tok-num:#f3a291; --tok-com:#7d939b; --tok-fn:#7cc6de; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0d171c; --paper:#14222a; --ink:#e3ecef; --muted:#93a6ae; --line:#26363e;
   --sea:#5fb3cf; --sea-soft:#173543; --kelp:#6cc49b; --kelp-soft:#173528; --buoy:#f0a65a; --buoy-soft:#3a2a17;
-  --miss:#f0847a; --miss-soft:#3a2420; --vio:#b39cf0;
+  --miss:#f0847a; --miss-soft:#3a2420; --vio:#b39cf0; --sun:#f2c14e;
   --code-bg:#0f1c22; --code-ink:#d6e3e8; --tok-kw:#c4a7ff; --tok-str:#8fd6b0; --tok-num:#f3a291; --tok-com:#7d939b; --tok-fn:#7cc6de; color-scheme:dark}
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.7;
@@ -310,6 +310,47 @@ details.hint p{margin:0}
 .ev-item{border:1px solid var(--line);border-radius:6px;padding:10px 12px;display:grid;gap:4px;min-width:0}
 .ev-p{margin:0;font-size:.86rem;white-space:pre-wrap;overflow-wrap:anywhere}
 .ev-del{padding:1px 8px;font-size:.72rem}
+/* 系統剖面 */
+.sx-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--bg)}
+.sx-wrap svg{display:block;min-width:720px;width:100%;height:auto}
+.sx-bg{fill:none;stroke:var(--line);stroke-width:1.5}
+.sx-lab{font-family:var(--font-body);font-size:11px;fill:var(--ink);font-weight:500}
+.sx-st{font-family:var(--font-mono);font-size:9.5px;fill:var(--muted)}
+.sx .mg{cursor:pointer}
+.sx .mg .ln{fill:none;stroke:var(--muted);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.sx .mg .fl{fill:var(--paper);stroke:var(--muted);stroke-width:1.6;stroke-linejoin:round}
+.sx .mg .riv{stroke-width:5}
+.sx .mg .flow{stroke-dasharray:6 8}
+.sx .mg.st-wait{opacity:.38}
+.sx .mg.st-wait .ln,.sx .mg.st-wait .fl{stroke-dasharray:3 3}
+.sx .mg.st-audit .ln,.sx .mg.st-audit .fl{stroke:var(--buoy);animation:sxpulse 1.6s ease-in-out infinite}
+.sx .mg.st-audit .sx-st{fill:var(--buoy)}
+.sx .mg.st-swap .ln{stroke:var(--c)}
+.sx .mg.st-swap .fl{fill:var(--c);stroke:var(--c);fill-opacity:.85}
+.sx .mg.st-swap .sx-st{fill:var(--kelp)}
+.sx .mg.st-swap .flow{animation:sxflow 1.4s linear infinite}
+.sx .mg.st-swap .rk-t{fill:var(--paper)}
+.sx .mg:hover .fl,.sx .mg:hover .ln,.sx .mg:focus-visible .fl,.sx .mg:focus-visible .ln{stroke-width:2.6}
+.sx .mg:focus{outline:none}
+@keyframes sxflow{to{stroke-dashoffset:-28}}
+@keyframes sxpulse{50%{stroke-opacity:.25}}
+.sx-legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.78rem;color:var(--muted)}
+.sx-legend i{display:inline-block;width:14px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px;border:1.5px solid var(--muted);background:var(--paper)}
+.sx-legend i.lg-audit{border-color:var(--buoy)}
+.sx-legend i.lg-swap{background:var(--kelp);border-color:var(--kelp)}
+.sx-legend i.lg-wait{border-style:dashed;opacity:.5}
+/* 埋錯圖鑑 */
+.bug-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(38px,1fr));gap:5px}
+.bug{position:relative;aspect-ratio:1;max-width:100%;border-radius:5px;display:grid;place-content:center;border:1.5px solid var(--line);background:var(--bg)}
+.bug b{font-size:.9rem;font-family:var(--font-display)}
+.bug-n{position:absolute;top:1px;left:3px;font-family:var(--font-mono);font-size:.55rem;color:inherit;opacity:.8}
+.bug.hid{border-style:dashed;color:var(--muted)}
+.bug.hid b{opacity:.5}
+.bug.ok{background:var(--kelp);border-color:var(--kelp);color:var(--paper);animation:bugflip .5s ease-out both}
+.bug.miss{background:var(--miss-soft);border-color:var(--miss);color:var(--miss)}
+@keyframes bugflip{from{transform:rotateY(90deg)}to{transform:none}}
+.bug-list{margin:8px 0 0;padding-left:1.1em;display:grid;gap:4px;font-size:.86rem}
+@media (prefers-reduced-motion:reduce){.sx .mg *,.bug{animation:none!important}}
 </style>
 
 <div class="app">
@@ -572,6 +613,7 @@ function renderHome(){const pos=todayPos();let today="";
   let map="",ph="";for(let n=1;n<=NW;n++){const pct=weekPct(n);map+=`<a href="#w${n}" class="${pos.w===n?"cur":""}" aria-label="第 ${n} 週，完成 ${Math.round(pct*100)}%"><span class="col"><span class="fill" style="height:${pct*100}%"></span></span><span class="n">${n}</span></a>`}
   ph=PHASES.map(p=>`<div style="grid-column:${p.from} / ${p.to+1}" title="${esc(p.name)}">${esc(p.id)}</div>`).join("");
   $("#main").innerHTML=`
+  ${sceneHTML()}
   <section class="card" aria-labelledby="big-h"><div class="row"><h2 id="big-h">大圖：你要建立的系統</h2><span class="muted" style="font-size:.82rem">職缺描述的工作，就是讓這條鏈可靠地運轉</span></div>
     ${bigMapHTML(pos.w||1,false)}
     <p class="muted" style="margin:0;font-size:.84rem">橘框是本週所在的位置。每週都只回答一個大問題，讓其中一格從「看不懂」變成「審得出錯」。點方塊可跳到對應的週。</p></section>
@@ -599,7 +641,7 @@ function renderHome(){const pos=todayPos();let today="";
       <tr><td>找錯誤訊息的原因</td><td>寫 commit message 與失敗報告</td></tr></tbody></table></div>
     <p class="muted" style="margin:0;font-size:.86rem">職缺要的是「AI 出錯時能判斷錯在哪」。每週都有一題「讓 AI 寫，再找出它錯在哪」。</p></section>
   ${coverageHTML()}
-  ${scoreHTML()}
+  ${bugsHTML()}
   ${evidenceHTML()}
   ${interviewHTML()}
   ${sourcesHTML(W.map((_,i)=>i+1),"全部參考來源")}`;
@@ -696,7 +738,9 @@ document.addEventListener("click",e=>{const hm=e.target.closest(".hm[data-k]");i
 let noteTimer=null;
 document.addEventListener("input",e=>{const t=e.target;if(!t.dataset||!t.dataset.note||view.kind!=="week")return;
   const key="w"+view.n;state.notes[key]=Object.assign({},state.notes[key],{[t.dataset.note]:t.value});clearTimeout(noteTimer);noteTimer=setTimeout(persist,600)});
-document.addEventListener("click",e=>{const kb=e.target.closest("[data-evk]");if(kb){evKind=kb.dataset.evk;renderHome();document.getElementById("evidence")?.setAttribute("open","");return}
+document.addEventListener("click",e=>{const sx=e.target.closest("[data-sx]");if(sx){sceneSys=sx.dataset.sx;renderHome();return}
+  const bg=e.target.closest("[data-bug]");if(bg){bugSys=bg.dataset.bug;renderHome();return}
+  const kb=e.target.closest("[data-evk]");if(kb){evKind=kb.dataset.evk;renderHome();document.getElementById("evidence")?.setAttribute("open","");return}
   const del=e.target.closest("[data-del]");if(del){if(del.dataset.armed!=="1"){del.dataset.armed="1";del.textContent="再按一次確認";setTimeout(()=>{if(del.isConnected){del.dataset.armed="";del.textContent="刪除"}},3000);return}
     state.ev=(state.ev||[]).filter(x=>x.id!==del.dataset.del);persist();renderHome();document.getElementById("evidence")?.setAttribute("open","")}});
 document.addEventListener("submit",e=>{if(e.target.id!=="ev-form")return;e.preventDefault();const fd=new FormData(e.target),rec={kind:evKind,id:"e"+Date.now().toString(36),week:todayPos().w||0,at:new Date().toISOString()};
@@ -917,6 +961,61 @@ function interviewHTML(){const done=IVQ.filter(q=>state.done["iv-"+q[0]]).length
   return `<details class="card dep"><summary><h2 style="display:inline;font-size:1.15rem">面試題庫</h2> <span class="muted mono" style="font-size:.8rem">能用自己的數據回答 ${done}/${IVQ.length}</span></summary>
    <div class="dep-body" style="gap:10px">${IVQ.map(([id,t])=>taskHTML("iv-"+id,"能用專案數據回答才勾",t)).join("")}
    <p class="muted" style="margin:0;font-size:.82rem">個人專案補不到、面試時要坦白說明的：設備通訊協定（Modbus、IEC 61850）、毫秒級控制、市場結算細節、真實營運經驗。</p></div></details>`}
+// ======================= 系統剖面：AI 原版 → 你的版本 =======================
+// 每個模組一個群組；狀態 wait/ai/audit/swap 決定線稿、警示閃爍或上色流動
+const SXC={sea:"var(--sea)",kelp:"var(--kelp)",vio:"var(--vio)",ink:"var(--ink)",sun:"var(--sun)"};
+const SX={
+ HW:{title:"HydroWatch：流域到電廠",bg:`<path class="sx-bg" d="M0 232Q70 150 150 178Q200 128 260 170Q300 200 330 232H960"/><path class="sx-bg" d="M0 272H960"/>`,
+  parts:[
+   ["ingest","kelp",`<path class="fl" d="M120 62q-2-20 20-22q10-16 32-8q20-6 28 12q20 2 18 18z"/><path class="ln flow" d="M140 74l-6 26M166 74l-6 26M192 74l-6 26"/><path class="ln" d="M96 186v-26M176 160v-26M254 184v-26"/><rect class="fl" x="90" y="150" width="12" height="10" rx="2"/><rect class="fl" x="170" y="124" width="12" height="10" rx="2"/><rect class="fl" x="248" y="148" width="12" height="10" rx="2"/>`,232,40],
+   ["spatial","kelp",`<path class="ln" d="M40 214L136 200L216 192L300 214M136 200L150 172M216 192L222 160"/><circle class="fl" cx="96" cy="188" r="3"/><circle class="fl" cx="176" cy="162" r="3"/><circle class="fl" cx="254" cy="186" r="3"/>`,40,254],
+   ["routing","sea",`<path class="ln flow riv" d="M300 206Q316 220 330 234C370 248 400 222 470 240"/>`,350,272],
+   ["runoff","sea",`<path class="fl" d="M470 228H600V266H476z"/><path class="fl" d="M600 196h18l10 76h-38z"/><circle class="fl" cx="660" cy="262" r="12"/><path class="ln" d="M660 250v24M648 262h24M652 254l16 16M668 254l-16 16"/><path class="ln flow" d="M628 262h20"/>`,486,212],
+   ["channel","sea",`<path class="ln" d="M700 228l18 34h64l18-34"/><path class="fl" d="M709 245l9 17h64l9-17z"/><path class="ln flow" d="M674 262h28"/>`,668,212]],
+  rack:["ml","quality","legacy","hwdeploy","hwapi","hwops"]},
+ VPP:{title:"VPPWatch：案場到電網",bg:`<path class="sx-bg" d="M50 232V150H170V232M180 232V150H300V232M0 232H960"/><path class="sx-bg" d="M0 272H960"/>`,
+  parts:[
+   ["pv","sun",`<circle class="fl" cx="70" cy="58" r="18"/><path class="ln" d="M70 28v-10M70 98v-10M40 58h-10M110 58h-10M49 37l-7-7M91 79l7 7M91 37l7-7M49 79l-7 7"/><path class="fl" d="M60 150l26-16h60l-26 16z"/><path class="fl" d="M190 150l26-16h60l-26 16z"/><path class="ln flow" d="M96 80l20 50"/>`,118,40],
+   ["telemetry","vio",`<path class="ln" d="M160 134v-22M290 134v-22"/><path class="ln flow" d="M152 106a10 10 0 0 1 16 0M148 100a16 16 0 0 1 24 0M282 106a10 10 0 0 1 16 0M278 100a16 16 0 0 1 24 0"/><rect class="fl" x="100" y="190" width="18" height="14" rx="2"/><rect class="fl" x="230" y="190" width="18" height="14" rx="2"/>`,190,92],
+   ["storage","kelp",`<rect class="fl" x="330" y="190" width="54" height="42" rx="3"/><rect class="fl" x="392" y="190" width="54" height="42" rx="3"/><path class="ln" d="M342 202h30M342 212h30M342 222h30M404 202h30M404 212h30M404 222h30"/><path class="ln flow" d="M300 222h30"/>`,330,178],
+   ["dr","sea",`<rect class="fl" x="480" y="132" width="70" height="100" rx="2"/><path class="ln" d="M492 148h12M514 148h12M536 148h4M492 168h12M514 168h12M492 188h12M514 188h12M492 208h12M514 208h12"/><path class="ln flow" d="M446 222h34"/>`,476,120],
+   ["bid","sea",`<path class="ln" d="M640 232l20-110l20 110M646 200h28M652 166h16M630 140h60"/><path class="ln flow" d="M550 150Q595 130 640 140M690 140Q735 130 780 150"/><path class="ln" d="M600 96l14-10 14 6 14-16 14 8"/>`,596,72]],
+  rack:["deploy","api","ops"]}};
+let sceneSys=null;
+function sceneHTML(){const pos=todayPos();const sys=sceneSys||((pos.w||1)>=15?"VPP":"HW"),S=SX[sys];
+  const mods=MODS.filter(m=>m.sys===sys),st=mods.map(modState),cnt=k=>st.filter(x=>x[0]===k).length;
+  const grp=(id,col,inner,body)=>{const m=MODS.find(x=>x.id===id),[s,lab]=modState(m);
+    return `<a href="#w${m.swap}" class="mg st-${s}" style="--c:${SXC[col]}" aria-label="${esc(m.name)}：${lab}，第 ${m.swap} 週替換"><title>${esc(m.name)}：${lab}（審查 ${m.weeks.map(w=>"W"+w).join("、")}，替換 W${m.swap}）</title>${inner}${body(m,lab)}</a>`};
+  const parts=S.parts.map(([id,col,inner,lx,ly])=>grp(id,col,inner,(m,lab)=>`<text class="sx-lab" x="${lx}" y="${ly}">${esc(m.name)}</text><text class="sx-st" x="${lx}" y="${ly+14}">${lab}</text>`)).join("");
+  const rack=S.rack.map((id,i)=>{const y=44+i*38;return grp(id,"ink",`<rect class="fl rk" x="830" y="${y}" width="122" height="28" rx="4"/>`,(m,lab)=>`<text class="sx-lab rk-t" x="840" y="${y+18}">${esc(m.name.replace(/^HydroWatch /,""))}</text>`)}).join("");
+  const own=mods.length?Math.round(cnt("swap")/mods.length*100):0;
+  return `<section class="card sx" aria-labelledby="sx-h"><div class="row"><h2 id="sx-h">你的系統：${S.title}</h2>
+    <div class="btns">${["HW","VPP"].map(k=>`<button type="button" class="btn ${k===sys?"primary":""}" data-sx="${k}">${SYSN[k]}</button>`).join("")}</div></div>
+    <div class="sx-wrap"><svg viewBox="0 0 960 300" role="img" aria-label="${S.title}，已替換 ${cnt("swap")} 個模組，共 ${mods.length} 個">${S.bg}${parts}
+      <text class="sx-lab" x="830" y="30">控制室</text>${rack}</svg></div>
+    <div class="row"><div class="sx-legend"><span><i class="lg-ai"></i>AI 原版</span><span><i class="lg-audit"></i>審查中</span><span><i class="lg-swap"></i>你的版本</span><span><i class="lg-wait"></i>尚未交付</span></div>
+      <span class="mono" style="font-size:.84rem">你接管了 <b>${own}%</b>（${cnt("swap")}／${mods.length} 個模組）</span></div>
+    <p class="muted" style="margin:0;font-size:.82rem">審查週有進度時，該模組開始閃橘色；替換週全部勾完，就變成你的顏色，水流或電流開始流過。點任一模組跳到它的替換週。</p></section>`}
+
+// ======================= 埋錯圖鑑 =======================
+// 由交接時的 Claude 寫入 progress.bugs：{hw|ch|vpp:{total, found:[{n,mod,cat,title}], missed:[…]}}；頁面只顯示，不讀答案卷
+const BUGSYS=[["hw","HydroWatch",41,"前段 W14、後段 W26"],["ch","ChannelWatch",11,"W14"],["vpp","VPPWatch",0,"W26"]];
+const CATS=["數值","物理","基建","統計","空間"];
+let bugSys="hw";
+function bugsHTML(){const all=state.bugs||{};
+  const tabs=BUGSYS.map(([k,n,t])=>{const b=all[k]||{},tot=b.total||t,f=(b.found||[]).length;return `<button type="button" class="btn ${k===bugSys?"primary":""}" data-bug="${k}">${n} <span class="mono">${tot?f+"/"+tot:"—"}</span></button>`}).join("");
+  const [k,name,def,when]=BUGSYS.find(x=>x[0]===bugSys),b=all[k]||{},tot=b.total||def,found=b.found||[],missed=b.missed||[];
+  const hidden=Math.max(0,tot-found.length-missed.length);
+  const tile=(e,cls)=>`<div class="bug ${cls}" title="${esc("#"+e.n+" "+(e.title||"")+"（"+(e.mod||"")+"・"+(e.cat||"")+"）")}"><span class="bug-n">${esc(e.n)}</span><b>${esc((e.cat||"?").slice(0,1))}</b></div>`;
+  const tiles=found.map(e=>tile(e,"ok")).join("")+missed.map(e=>tile(e,"miss")).join("")+Array.from({length:hidden},()=>`<div class="bug hid" aria-hidden="true"><b>?</b></div>`).join("");
+  const rate=CATS.map(c=>{const f=found.filter(e=>e.cat===c).length,m=missed.filter(e=>e.cat===c).length;if(!f&&!m)return"";
+    return `<span>${c} <b class="mono">${f}${m?"／"+(f+m)+"（"+Math.round(f/(f+m)*100)+"%）":""}</b></span>`}).join("");
+  const list=[...found.map(e=>[e,"抓到"]),...missed.map(e=>[e,"漏抓"])].sort((a,c)=>(+a[0].n||0)-(+c[0].n||0)).map(([e,s])=>`<li><span class="mono muted">#${esc(e.n)}</span> <span class="cv-pill ${s==="抓到"?"p2":"p1"}">${s}</span> ${esc(e.title||"")} <span class="muted">（${esc(e.mod||"")}・${esc(e.cat||"")}）</span></li>`).join("");
+  return `<section class="card" aria-labelledby="bug-h"><div class="row"><h2 id="bug-h">埋錯圖鑑</h2><div class="btns">${tabs}</div></div>
+    ${tot?`<div class="bug-grid" role="img" aria-label="${name}：抓到 ${found.length}、漏抓 ${missed.length}、尚未揭曉 ${hidden}">${tiles}</div>`:`<p class="muted" style="margin:0">VPPWatch 的埋錯在 W15 交付時產生，到時這裡會出現對應數量的空格。</p>`}
+    <div class="ev-targets"><span>抓到 <b class="mono">${found.length}</b></span><span>漏抓 <b class="mono">${missed.length}</b></span><span>尚未揭曉 <b class="mono">${hidden}</b></span>${rate}</div>
+    ${list?`<details><summary class="muted" style="cursor:pointer;font-size:.84rem">已翻開的卡</summary><ul class="bug-list">${list}</ul></details>`:""}
+    <p class="muted" style="margin:0;font-size:.82rem">每個方格是一個埋好的錯。交接時你先交出 audit log，確認抓到的就翻成綠色；${esc(when)} 揭曉時，沒抓到的翻成紅色。方格上的字是類別：數值、物理、基建、統計、空間。</p></section>`}
 // ======================= 大圖 =======================
 function bigMapHTML(cur,compact){const here=b=>b.weeks.includes(cur);
   const boxes=BIG.map((b,i)=>`${i?'<span class="bm-arrow" aria-hidden="true">→</span>':""}<a class="bm-box ${here(b)?"here":""} ${b.weeks.some(w=>weekPct(w)>=1)?"some":""}" href="#w${(b.weeks.find(w=>w>=cur)||b.weeks[0])}"><b>${esc(b.name)}</b><span>${esc(b.sub)}</span>${compact?"":`<span class="mono bm-w">${b.weeks.map(w=>"W"+w).join(" ")}</span>`}${here(b)?'<span class="bm-here">本週</span>':""}</a>`).join("");

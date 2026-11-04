@@ -54,7 +54,7 @@
   - 原始碼在 repo 的 `site/`：`index.html`（26 週資料、進度、動畫引擎）＋ `content/wNN.html`（每週講解片段）。
   - 發布：Artifact publish，`url` 為上述網址，`file_path` = `site/index.html`，`files` 帶上所有 `content/wNN.html`。
   - 新增一週講解：依「理論與示範 → 例題 → 變化題 → 回答大問題」寫 `site/content/wNN.html`（大問題在 `Q` 陣列），在 `index.html` 的 `W[NN-1]` 加上 `content:"content/wNN.html"`，需要新動畫就加進 `ANIMS`，然後重新發布。
-  - db：collection `data/users/me`，doc `progress`。欄位：`start`、`done`（key `w{週}d{日}c` 練習、`w{週}d{日}p` 閱讀、`w{週}inf` 小基建任務、`iv-q{n}` 面試題）、`notes`（`w{週}` → `{paper, fail}`）、`ev`（證據庫陣列：`kind` 為 ai／adr／exp，另有 `title`、`cat`、`sys`、`week` 等欄位）、`score`（計分板：`hw`／`vpp` → `num`／`phys`／`infra` → `[抓到, 植入]`）、`track`（舊欄位，保留不用）。
+  - db：collection `data/users/me`，doc `progress`。欄位：`start`、`done`（key `w{週}d{日}c` 練習、`w{週}d{日}p` 閱讀、`w{週}inf` 小基建任務、`iv-q{n}` 面試題）、`notes`（`w{週}` → `{paper, fail}`）、`ev`（證據庫陣列：`kind` 為 ai／adr／exp，另有 `title`、`cat`、`sys`、`week` 等欄位）、`bugs`（埋錯圖鑑，由交接時的 Claude 寫入：`hw`／`ch`／`vpp` → `{total, found:[{n, mod, cat, title}], missed:[…]}`，`cat` 為數值／物理／基建／統計／空間；只寫已審查模組的項目）、`score`（舊計分板欄位，首頁已改用 `bugs`，保留不用）、`track`（舊欄位，保留不用）。
   - 讀取：ArtifactData `get`，url 如上，collection `data/users/me`，doc_id `progress`。
 - **GitHub repo（正本）**：https://github.com/archi9882/SciML
   - `weekNN/`：範例程式與 `exercises.md`（Claude 放）＋學習者的 `notes.md` 與練習
@@ -117,11 +117,12 @@ W14 揭曉 HydroWatch 前段模組的答案卷，W26 揭曉 VPPWatch 與 HydroWa
 ## 每週交接流程
 1. 學習者在新對話說「第 N 週進度」。
 2. 讀學習站 db 的勾選與筆記；pull repo，看 `weekNN/notes.md`、`papers/output/`、`reports/`；給回饋。
-3. 若本週有審查模組：先收學習者的 `audit_log.md`，再讀 `sealed-answer-key` 只公布該模組答案並記錄抓錯率。
+3. 若本週有審查模組：先收學習者的 `audit_log.md`，再讀 `sealed-answer-key` 只公布該模組答案並記錄抓錯率。抓到的寫進 db `progress.bugs.<系統>.found`；揭曉週（W14、W26）把該範圍沒抓到的寫進 `missed`。寫入前先 `get` 取得版本，用 `update` 只改 `bugs` 欄位。
 4. 產出第 N+1 週（若尚未產出）：`weekNN/` 範例程式＋`exercises.md`（每日任務、先預測再執行、讓 AI 出錯的題目、週六產出），以及 `site/content/wNN.html` 講解（理論、程式導讀、必要時新增動畫），重新發布學習站。
 5. 更新 `backups/progress.md`、本文件「目前待辦」與「進度紀錄」。
 
 ## 進度紀錄
+- 2026-11-04：學習站首頁加入「你的系統」剖面圖（HydroWatch 流域到電廠、VPPWatch 案場到電網，模組依 AI 原版／審查中／已替換改變外觀並顯示接管比例）與「埋錯圖鑑」（每個埋錯一格，抓到翻綠、漏抓翻紅），取代原本的數字計分板。
 - 2026-11-04：計畫第四版。前段 W1–14 HydroWatch、後段 W15–26 VPPWatch（虛擬電廠，對準安瑟樂威），兩套都走「預測 → 最小版 → 審查 → 替換」。W8 併入 FNO、拿掉 W24–25 生成式設計選修；新增 W15 VPPWatch 交付、W16 串流遙測、W19 光電、W20 儲能與熱傳導、W21 需量反應因果、W22 NSGA-II 投標、W23 壓測與故障演練。學習站首頁新增職缺覆蓋度矩陣、抓錯率計分板、證據庫（AI 錯誤、ADR、實驗）、面試題庫；W1–14 每週加小基建任務。HydroWatch 的 deploy、api、ops、legacy 改在後段與 VPPWatch 同週審查，答案於 W26 揭曉。
 - 2026-10-27：計畫建立。
 - 2026-10-27：建立 GitHub repo archi9882/SciML 作為正本；開始日提前至當天。
