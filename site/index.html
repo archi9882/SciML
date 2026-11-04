@@ -292,13 +292,31 @@ details.hint p{margin:0}
 .dep-legend i.sum{background:var(--buoy-soft);border:3px solid var(--buoy)}
 .dep-legend b{display:inline-block;width:18px;height:3px;border-radius:2px;margin-right:5px;vertical-align:3px}
 .dep-info{font-size:.86rem;min-height:2.6em;margin:0}
+.cv-bar{height:6px;border-radius:99px;background:var(--sea-soft);overflow:hidden}
+.cv-bar>i{display:block;height:100%;background:var(--sea)}
+.cv-pill{font-family:var(--font-mono);font-size:.7rem;padding:1px 8px;border-radius:999px;white-space:nowrap}
+.cv-pill.p0{background:var(--bg);color:var(--muted);border:1px solid var(--line)}
+.cv-pill.p1{background:var(--buoy-soft);color:var(--buoy)}
+.cv-pill.p2{background:var(--kelp-soft);color:var(--kelp)}
+.cv-pill.p3{background:var(--kelp);color:var(--paper)}
+.sc-in{display:inline-flex;align-items:center;gap:3px;color:var(--muted)}
+.sc-in input{width:3.2em;border:1px solid var(--line);border-radius:5px;background:var(--paper);padding:2px 5px;font-family:var(--font-mono)}
+.ev-targets{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:.84rem}
+.ev-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;border:1px solid var(--line);border-radius:6px;padding:12px;background:var(--bg)}
+.ev-f{display:grid;gap:4px;font-size:.8rem;font-weight:500;color:var(--muted);min-width:0}
+.ev-f.full{grid-column:1/-1}
+.ev-f input,.ev-f select,.ev-f textarea{width:100%;border:1px solid var(--line);border-radius:6px;background:var(--paper);padding:6px 9px;color:var(--ink);font-weight:400}
+@media (max-width:640px){.ev-form{grid-template-columns:minmax(0,1fr)}}
+.ev-item{border:1px solid var(--line);border-radius:6px;padding:10px 12px;display:grid;gap:4px;min-width:0}
+.ev-p{margin:0;font-size:.86rem;white-space:pre-wrap;overflow-wrap:anywhere}
+.ev-del{padding:1px 8px;font-size:.72rem}
 </style>
 
 <div class="app">
   <header class="bar">
     <div class="title">
       <h1><a href="#home">SciML 半年學習站</a></h1>
-      <span class="muted" style="font-size:.82rem">數值模擬・空間資訊・資料工程・自有基礎建設・MLOps｜每天 60–90 分鐘</span>
+      <span class="muted" style="font-size:.82rem">數值模擬・空間資訊・資料工程・自有基礎建設・MLOps・虛擬電廠｜HydroWatch → VPPWatch｜每天 60–90 分鐘</span>
     </div>
     <div class="stats">
       <div class="stat"><b id="st-pct">0%</b><span>總進度</span></div>
@@ -317,56 +335,70 @@ details.hint p{margin:0}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <script>
 // ======================= 課程資料 =======================
+// 前段 W1–14：HydroWatch（水文）學會方法；後段 W15–26：VPPWatch（虛擬電廠）用同一套方法再走一次完整循環
 const PHASES=[
  {id:"A",name:"A 打底",from:1,to:2},
- {id:"S",name:"S AI 成品交付",from:3,to:3},
- {id:"B",name:"B 數值方法與物理判斷",from:4,to:8},
- {id:"B2",name:"B2 神經網路與 hybrid",from:9,to:10},
- {id:"C",name:"C 空間資訊與地理統計",from:11,to:12},
- {id:"D",name:"D ETL 與資料工程",from:13,to:14},
- {id:"V",name:"V AI 協作與驗證",from:15,to:15},
- {id:"E",name:"E 自有基礎建設",from:16,to:18},
- {id:"F",name:"F REST API 與模型服務",from:19,to:20},
- {id:"G",name:"G MLOps 工具鏈",from:21,to:22},
- {id:"H",name:"H Legacy 科學程式碼",from:23,to:23},
- {id:"J",name:"J 選修：生成式設計",from:24,to:25},
+ {id:"S",name:"S HydroWatch 交付",from:3,to:3},
+ {id:"B",name:"B 數值方法與物理判斷",from:4,to:6},
+ {id:"B2",name:"B2 神經網路與 hybrid",from:7,to:9},
+ {id:"C",name:"C 空間資訊與地理統計",from:10,to:11},
+ {id:"D",name:"D 資料工程與統計",from:12,to:13},
+ {id:"V",name:"V 否證 AI 與第一次計分",from:14,to:14},
+ {id:"P",name:"P VPPWatch 交付與串流",from:15,to:16},
+ {id:"E",name:"E 自有基礎建設",from:17,to:18},
+ {id:"M",name:"M 能源模型與市場",from:19,to:22},
+ {id:"O",name:"O 平台、服務與維運",from:23,to:25},
  {id:"K",name:"K 作品集與面試",from:26,to:26}];
 const R=(kind,t,a,y,v,u,classic)=>({kind,t,a,y,v,u,classic:!!classic});
-// 成品系統 HydroWatch 的模組：W3 由 AI 交付，之後逐塊審查與替換
+// 兩套成品的模組：W3 交付 HydroWatch、W15 交付 VPPWatch，之後逐塊「預測 → 最小版 → 審查 → 替換」
 const MODS=[
- {id:"routing",name:"河道洪水演算",path:"hydrowatch/model/routing.py",desc:"1D 對流擴散（擴散波）的有限差分求解",weeks:[4,5],swap:5},
- {id:"runoff",name:"降雨逕流與水庫發電",path:"hydrowatch/model/runoff.py、reservoir.py",desc:"線性水庫率定、NSE 驗證、水庫水量平衡與發電量",weeks:[6],swap:6},
- {id:"ml",name:"殘差修正與代理模型",path:"hydrowatch/model/ml.py",desc:"神經網路修正降雨逕流殘差、洪水演算代理模型",weeks:[7,9,10],swap:10},
- {id:"spatial",name:"測站內插與座標",path:"hydrowatch/spatial/",desc:"座標轉換、雨量站分割（徐昇多邊形）、空間內插",weeks:[11,12],swap:12},
- {id:"ingest",name:"資料擷取 ETL",path:"hydrowatch/ingest/",desc:"多個雨量站與流量站的時區、單位、缺值、重採樣",weeks:[13],swap:13},
- {id:"quality",name:"資料品質檢查",path:"hydrowatch/quality.py",desc:"範圍、缺值、連續性與統計檢定",weeks:[14],swap:14},
- {id:"deploy",name:"部署設定",path:"deploy/",desc:"Dockerfile、docker-compose、Kubernetes manifest",weeks:[16,17,18],swap:18},
- {id:"api",name:"REST API",path:"hydrowatch/api/",desc:"格網查詢與推論端點",weeks:[19,20],swap:20},
- {id:"ops",name:"維運與監控",path:".github/、hydrowatch/ops/",desc:"CI、實驗追蹤、排程、漂移監控",weeks:[20,21,22],swap:22},
- {id:"channel",name:"明渠水力（第二個成品）",path:"channelwatch/",desc:"Manning 水深、水面線、水躍、水位流量曲線",weeks:[6,15],swap:6},
- {id:"legacy",name:"Fortran 參考實作",path:"legacy/",desc:"舊版 Fortran 求解器與 AI 翻譯版本",weeks:[23],swap:23}];
+ {sys:"HW",id:"routing",name:"河道洪水演算",path:"hydrowatch/model/routing.py",desc:"1D 對流擴散（擴散波）的有限差分求解",weeks:[4,5],swap:5},
+ {sys:"HW",id:"runoff",name:"降雨逕流與水庫發電",path:"hydrowatch/model/runoff.py、reservoir.py",desc:"線性水庫率定、NSE 驗證、水庫水量平衡與發電量",weeks:[6],swap:6},
+ {sys:"HW",id:"ml",name:"殘差修正與代理模型",path:"hydrowatch/model/ml.py",desc:"神經網路修正降雨逕流殘差、洪水演算代理模型",weeks:[7,8,9],swap:9},
+ {sys:"HW",id:"spatial",name:"測站內插與座標",path:"hydrowatch/spatial/",desc:"座標轉換、雨量站分割（徐昇多邊形）、空間內插",weeks:[10,11],swap:11},
+ {sys:"HW",id:"ingest",name:"資料擷取 ETL",path:"hydrowatch/ingest/",desc:"多個雨量站與流量站的時區、單位、缺值、重採樣",weeks:[12],swap:12},
+ {sys:"HW",id:"quality",name:"資料品質檢查",path:"hydrowatch/quality.py",desc:"範圍、缺值、連續性與統計檢定",weeks:[13],swap:13},
+ {sys:"HW",id:"channel",dw:6,name:"明渠水力（ChannelWatch）",path:"channelwatch/",desc:"Manning 水深、水面線、水躍、水位流量曲線",weeks:[6,14],swap:6},
+ {sys:"HW",id:"legacy",name:"Fortran 參考實作",path:"legacy/",desc:"transport.f90 與 AI 翻譯的 Python 版",weeks:[20],swap:20},
+ {sys:"HW",id:"hwdeploy",name:"HydroWatch 部署設定",path:"deploy/",desc:"Dockerfile、docker-compose、Kubernetes manifest",weeks:[17,18,23],swap:23},
+ {sys:"HW",id:"hwapi",name:"HydroWatch REST API",path:"hydrowatch/api/",desc:"格網查詢與推論端點",weeks:[24],swap:24},
+ {sys:"HW",id:"hwops",name:"HydroWatch 維運",path:".github/、hydrowatch/ops/",desc:"CI、實驗追蹤、排程、漂移監控",weeks:[24,25],swap:25},
+ {sys:"VPP",id:"telemetry",name:"電表遙測串流",path:"vppwatch/telemetry/",desc:"MQTT 秒級遙測、時序資料庫寫入、亂序與重複訊息",weeks:[16],swap:16},
+ {sys:"VPP",id:"deploy",name:"部署與基礎建設",path:"vppwatch/deploy/",desc:"Dockerfile、docker-compose、Kubernetes manifest、備份",weeks:[17,18,23],swap:23},
+ {sys:"VPP",id:"pv",name:"光電預測與日射量",path:"vppwatch/model/pv.py、spatial/",desc:"pvlib 物理模型、ML、殘差修正；測站與衛星日射量內插",weeks:[19],swap:19},
+ {sys:"VPP",id:"storage",name:"儲能與熱傳導",path:"vppwatch/model/storage.py、legacy/",desc:"SoC 電量平衡、貨櫃 2D 熱傳導",weeks:[20],swap:20},
+ {sys:"VPP",id:"dr",name:"需量反應基準",path:"vppwatch/settlement/",desc:"用戶基準負載與減量結算",weeks:[21],swap:21},
+ {sys:"VPP",id:"bid",name:"日前投標最佳化",path:"vppwatch/bidding/",desc:"NSGA-II：收益、電池衰退、未達標風險",weeks:[22],swap:22},
+ {sys:"VPP",id:"api",name:"REST API 與模型服務",path:"vppwatch/api/",desc:"預測、投標、案場查詢、事件回放端點與 CI",weeks:[24],swap:24},
+ {sys:"VPP",id:"ops",name:"維運與監控",path:"vppwatch/ops/",desc:"實驗追蹤、版本、編排、漂移監控",weeks:[25],swap:25}];
+const SYSN={HW:"HydroWatch",VPP:"VPPWatch"};
 // 每週審查的成品模組與重點
 const AUD={
  4:{m:"routing",what:"對流加擴散的組合穩定條件、網格解析度是否足夠"},
  5:{m:"routing",what:"數值擴散與邊界條件；換成你自己的求解器"},
  6:{m:"runoff",what:"驗證是否拿率定用的資料評分、誤差預算是否完整、水庫發電量的單位與水量守恆；第二個成品 ChannelWatch 的 Manning 與水位流量曲線"},
  7:{m:"ml",what:"訓練迴圈：正規化、時間序列切分、資料洩漏"},
- 9:{m:"ml",what:"代理模型的評估：只看平均誤差、測試集是否在訓練範圍外"},
- 10:{m:"ml",what:"殘差修正的設計；換成你自己的 hybrid 版本"},
- 11:{m:"spatial",what:"座標順序、投影選擇、測站分割（最近測站與面積權重）的拓撲"},
- 12:{m:"spatial",what:"內插方法與它的假設是否吻合資料；換成你自己的版本"},
- 13:{m:"ingest",what:"時區、單位、重採樣、缺值處理；換成你自己的 ETL"},
- 14:{m:"quality",what:"品質規則與統計檢定前提；換成你自己的版本"},
- 15:{m:"*",what:"用性質測試掃描整套成品，找出前面漏掉的錯"},
- 16:{m:"deploy",what:"Dockerfile：版本固定、執行身分、秘密、建置快取"},
- 17:{m:"deploy",what:"docker-compose 的相依、健康檢查，以及當初的架構選擇"},
- 18:{m:"deploy",what:"Kubernetes manifest 的資源限制與 10 倍擴展；換成你自己的部署"},
- 19:{m:"api",what:"介面設計、輸入驗證、錯誤處理與邊界情境"},
- 20:{m:"api",what:"推論服務與 CI 測試；換成你自己的 API"},
- 21:{m:"ops",what:"實驗追蹤是否可回溯、模型版本是否對得上資料"},
- 22:{m:"ops",what:"排程重試與漂移監控門檻；換成你自己的版本"},
- 23:{m:"legacy",what:"AI 把 Fortran 翻成 Python 時改錯的地方"},
- 26:{m:"*",what:"把 AI 原版與你的最終版並排比較，算出抓錯率"}};
+ 8:{m:"ml",what:"代理模型的評估：只看平均誤差、測試集是否在訓練範圍外"},
+ 9:{m:"ml",what:"殘差修正的設計；換成你自己的 hybrid 版本"},
+ 10:{m:"spatial",what:"座標順序、投影選擇、測站分割（最近測站與面積權重）的拓撲"},
+ 11:{m:"spatial",what:"內插方法與它的假設是否吻合資料；換成你自己的版本"},
+ 12:{m:"ingest",what:"時區、單位、重採樣、缺值處理；換成你自己的 ETL"},
+ 13:{m:"quality",what:"品質規則與統計檢定前提；換成你自己的版本"},
+ 14:{m:"*HW",what:"用性質測試掃描 HydroWatch 與 ChannelWatch，再揭曉前段模組的答案卷計算抓錯率"},
+ 15:{m:"*VPP",what:"套用 W14 的檢查表做第一輪掃描，預測哪些錯誤類型會再出現"},
+ 16:{m:"telemetry",what:"時間戳用誰的時鐘、重複與亂序訊息、W 與 kW 單位；換成你的管線"},
+ 17:{m:"deploy",what:"Dockerfile：版本固定、執行身分、秘密、備份是否演練過還原；HydroWatch 的 deploy/Dockerfile 一起審"},
+ 18:{m:"deploy",what:"docker-compose 的相依、健康檢查，以及時序資料庫自架的理由；HydroWatch 的 docker-compose 一起審"},
+ 19:{m:"pv",what:"太陽角度定義、時區、斜面轉換、日射量單位與座標；換成你的版本"},
+ 20:{m:"storage",what:"SoC 上下限與效率、熱傳導穩定條件；HydroWatch 的 legacy/transport.f90 與 AI 翻譯版的索引與陣列順序；換成你的版本"},
+ 21:{m:"dr",what:"基準負載算法、事件日排除、是否容易被墊高操弄；換成你的版本"},
+ 22:{m:"bid",what:"功率與 SoC 限制是否真的被滿足、衰退成本有沒有被忽略；換成你的版本"},
+ 23:{m:"deploy",what:"Kubernetes manifest 的資源限制與 10 倍擴展；換成你的部署；HydroWatch 的 deploy/k8s 一起審"},
+ 24:{m:"api",what:"介面設計、邊界情境、版本相容與 CI 測試；換成你的 API；HydroWatch 的 api/ 與 CI 一起審"},
+ 25:{m:"ops",what:"實驗是否可回溯、模型版本對得上資料、漂移門檻；換成你的版本；HydroWatch 的 ops/ 一起審"},
+ 26:{m:"*",what:"兩套系統各自揭曉答案卷，並排比較抓錯率"}};
+// 前段每週的小基建任務（約 30 分鐘），讓 Docker 與 Linux 不要拖到 W17 才第一次碰
+const INF=["在 Linux 或 WSL 建立專案資料夾，用 Git 管理並推上 GitHub","用 cron 每天定時跑一次 batch.py，用 tail 看 log","用 docker compose 把 HydroWatch 起起來，用 docker ps、docker logs 看狀態","把求解器包成容器，用命令列參數執行","批次掃描改成在容器裡跑，結果掛載回主機","寫一支每日備份 runs/ 的腳本，實際演練一次還原","用 docker stats 觀察訓練時的 CPU 與記憶體","限制容器記憶體，讓訓練故意被 OOM 中止，讀懂錯誤訊息","用 systemd timer 取代 cron，比較兩者的除錯方式","在容器裡安裝 pyproj 與 GDAL，比較不同基底映像的大小","內插程式加上健康檢查端點，用 curl 測試","ETL 改用 docker compose 加上 PostgreSQL","品質檢查失敗時寫入日誌並發出通知","請 AI 產生一份 docker-compose，找出至少 3 個地雷並記進證據庫"];
 const W=[
  {st:"降雨逕流時間序列",t:"用 AI 協作讀懂一支資料處理程式：降雨逕流時間序列",g:"讀懂一支 100 行的資料處理程式：每個數字的單位、每段在做什麼、改哪裡會影響什麼。開始用 Git 記錄進度。",sk:["AI 驗證","資料分析"],
   d:["理論 1：跑程式，拿輸出對退水與水量平衡的理論值","理論 2–3：時間單位與 seed（寫 seed_check.py 驗證）","理論 4＋例題：resample 與退水檢查，拆解 4.6% 差距的來源","變化 1、2：k 與步長越來越近；讓 AI 改取樣再用理論抓錯","變化 3：自己寫 find_storms()，再用雜訊讓它失敗"],s:"回答大問題：這支程式算出來的洪峰流量可信嗎（notes＋README 一張圖）；閱讀摘要",
@@ -374,7 +406,7 @@ const W=[
  {st:"命令列與批次",t:"命令列參數與第一個批次工作",g:"把「改常數再手動跑」變成「用參數呼叫程式、批次執行、自動彙整」。這是排程、容器、API、MLOps 的共同起點。",sk:["基礎建設","AI 驗證"],
   d:["理論 1：讀 runoff_cli.py，參數與結束碼，先預測再執行","理論 2：驗證單位陷阱已修正（10min vs 30min）","理論 3–4：批次四步驟、冪等跳過、管線檢查","例題：加入 noise 維度，預測組數與列數，找出新舊結果混在一起的原因","變化 1–3：分離偏差來源、失敗也要跑完、抓 AI 檢查腳本的錯"],s:"回答大問題：批次流程圖與說明；閱讀摘要",
   r:R("paper","Differentiable modelling to unify machine learning and physical models for geosciences","Shen et al.",2023,"Nature Reviews Earth & Environment","https://arxiv.org/abs/2301.04027"),why:"物理模式與 ML 結合的全景，幫你判斷何時用 physics-based、data-driven 或 hybrid。",content:"content/w02.html"},
- {st:"AI 成品交付",t:"AI 成品交付：先看全貌，不求看懂",g:"拿到一套由 AI 寫好、從頭跑到尾的流域降雨、逕流、洪水演算與水庫發電系統 HydroWatch。這週只要讓它跑起來、畫出架構、建立錯誤紀錄表，內部細節之後逐塊拆解。",sk:["AI 驗證","基礎建設"],
+ {st:"HydroWatch 交付",t:"HydroWatch 交付：先看全貌，不求看懂",g:"拿到一套由 AI 寫好、從頭跑到尾的流域降雨、逕流、洪水演算與水庫發電系統 HydroWatch。這週只要讓它跑起來、畫出架構、建立錯誤紀錄表，內部細節之後逐塊拆解。",sk:["AI 驗證","基礎建設"],
   d:["clone 成品，照 README 在本機跑起來；遇到錯誤先自己讀錯誤訊息","畫架構圖：資料從哪來、經過哪些模組、輸出到哪裡","為每個模組寫一行：輸入、輸出、你猜它可能出錯的地方","用已知答案做第一次檢查：水量平衡、退水常數、雨量單位與時區、發電功率量級","建立錯誤紀錄表 audit_log.md：編號、模組、證據、狀態"],s:"架構圖＋錯誤紀錄表初版；閱讀摘要",
   r:R("paper","Hidden Technical Debt in Machine Learning Systems","Sculley et al.",2015,"NeurIPS","https://proceedings.neurips.cc/paper/2015/file/86df7dcfd896fcaf2674f757a2463eba-Paper.pdf",1),why:"說明 ML 系統裡模型只佔一小塊，其餘的資料、設定、監控才是出錯的大宗，正好對照你畫的架構圖。",content:"content/w03.html"},
  {st:"FDM 擴散方程",t:"有限差分解 1D 擴散方程",g:"理解網格、時間步長、穩定性與誤差，比較顯式與隱式格式並學會依問題選求解策略，再用這些知識審查成品的求解器。",sk:["物理判斷"],
@@ -389,12 +421,10 @@ const W=[
  {st:"PyTorch 基礎",t:"PyTorch 基礎：autograd 與神經網路訓練",g:"親手寫出神經網路的訓練迴圈，理解自動微分，再審查成品的訓練程式。",sk:["ML 訓練"],
   d:["autograd：算 sin(x) 的導數並驗證等於 cos(x)","用小型 MLP 擬合 sin(x)","故意過擬合與欠擬合，觀察訓練／測試誤差","逐行理解訓練迴圈：forward、loss、backward、step","審查成品的訓練迴圈：正規化、時間序列切分、資料洩漏"],s:"訓練迴圈註解版筆記；閱讀摘要",
   r:R("paper","Scientific Machine Learning through Physics-Informed Neural Networks: Where we are and What's next","Cuomo et al.",2022,"J. Sci. Comput.","https://arxiv.org/abs/2201.05624"),why:"PINN 綜述，依方程類型分類，方便對照練習。"},
- {st:"PINN 與失敗模式",t:"PINN 解擴散與對流，並讓它失敗",g:"用 PINN 解第 4、5 週的同一批問題，與 FDM 直接比較，找出 PINN 失敗的條件。",sk:["物理判斷","ML 訓練"],
-  d:["讀 PINN 範例：loss 拆成 PDE、初始條件、邊界條件三項","PINN 解 1D 擴散，與第 4 週 FDM 比較誤差與時間","PINN 解 1D 對流，β 從 1 批次掃到 40","找出失敗臨界點，蒐集佐證圖","判斷題：成品為什麼沒有用 PINN？這個選擇對嗎？"],s:"失敗案例報告 #2；閱讀摘要",
-  r:R("paper","Characterizing possible failure modes in physics-informed neural networks","Krishnapriyan et al.",2021,"NeurIPS","https://arxiv.org/abs/2109.01050"),why:"本週要重現的失敗實驗，論文有公開程式碼可對照。"},
- {st:"神經運算元入門",t:"神經運算元入門：訓練一個代理模型",g:"用自己的求解器產生資料，訓練最小版 FNO，判斷代理模型何時值得，並審查成品的代理模型評估方式。",sk:["ML 訓練"],
-  d:["用第 5 週求解器批次產生 200 組 Burgers 資料","讀 FNO 最小範例：spectral convolution 在做什麼","訓練並看測試誤差分佈：平均之外看最差案例","比較推論速度與求解器速度","審查成品的代理模型：測試集是否在訓練範圍外、只看平均誤差嗎"],s:"代理模型 5 分鐘摘要；閱讀摘要",
-  r:R("paper","Fourier Neural Operator for Parametric Partial Differential Equations","Li et al.",2021,"ICLR","https://arxiv.org/abs/2010.08895"),why:"FNO 原始論文，同樣以 Burgers 方程示範。"},
+ {st:"PINN 與代理模型",t:"PINN 解擴散與對流並讓它失敗；延伸：代理模型何時值得",g:"用 PINN 解第 4、5 週的同一批問題，與 FDM 直接比較，找出 PINN 失敗的條件；再用最小版 FNO 判斷代理模型何時值得取代求解器。",sk:["物理判斷","ML 訓練"],
+  d:["讀 PINN 範例：loss 拆成 PDE、初始條件、邊界條件三項","PINN 解 1D 擴散，與第 4 週 FDM 比較誤差與時間","PINN 解 1D 對流，β 從 1 批次掃到 40，找出失敗臨界點","延伸：用第 5 週求解器產生資料訓練最小版 FNO，看最差案例而不只看平均誤差","審查成品的代理模型：測試集是否在訓練範圍外；判斷成品為什麼沒有用 PINN"],s:"失敗案例報告 #2；閱讀摘要",
+  r:R("paper","Characterizing possible failure modes in physics-informed neural networks","Krishnapriyan et al.",2021,"NeurIPS","https://arxiv.org/abs/2109.01050"),
+  src:[R("paper","Fourier Neural Operator for Parametric Partial Differential Equations","Li et al.",2021,"ICLR","https://arxiv.org/abs/2010.08895")],why:"本週要重現的失敗實驗，論文有公開程式碼可對照；FNO 原始論文同樣以 Burgers 方程示範。"},
  {st:"Hybrid 模型",t:"Hybrid 模型：物理模式加上機器學習修正",g:"在物理模型上用 ML 修正殘差，系統性比較 physics-based、data-driven、hybrid 三種做法，並換掉成品的殘差修正模組。",sk:["物理判斷","ML 訓練"],
   d:["用第 6 週降雨逕流模型的殘差當學習目標","純 data-driven：只用 ML 預測流量","Hybrid：物理模型＋ML 修正殘差","三者比較：精度、外插能力、資料需求、可解釋性","換掉成品的殘差修正模組，確認整套系統仍能跑"],s:"三種方法比較表＋選擇準則；閱讀摘要",
   r:R("paper","Integrating Scientific Knowledge with Machine Learning for Engineering and Environmental Systems","Willard et al.",2022,"ACM Computing Surveys","https://arxiv.org/abs/2003.04919"),why:"整理物理知識與 ML 結合的各種方式，包括殘差修正，正好對照本週三種做法。"},
@@ -411,75 +441,90 @@ const W=[
  {st:"資料品質與統計前提",t:"資料品質、統計前提、因果與實驗設計",g:"把資料品質規則寫成自動檢查；判斷統計方法的前提是否成立，分辨相關與因果、設計能控制變因的實驗，並換掉成品的品質檢查。",sk:["ETL","資料分析"],
   d:["資料品質規則（範圍、缺值率、連續性、重複）寫成自動檢查，失敗時讓 pipeline 停下","統計前提：常態、獨立、定常，用圖與檢定確認；前提不成立時兩組比較改用什麼","因果推論：相關不等於因果，辨認混淆變數與因果方向","實驗設計：控制變因、隨機化、重複；為模型比較設計不會被混淆的實驗","審查成品的品質規則與統計檢定，換成你的版本"],s:"失敗案例報告 #3；閱讀摘要",
   r:R("paper","Data Validation for Machine Learning","Breck et al.",2019,"MLSys","https://research.google/pubs/data-validation-for-machine-learning/"),why:"Google 在正式系統中如何自動驗證資料，可直接借用規則設計。"},
- {st:"系統性否證 AI",t:"系統性指揮與否證 AI",g:"把前面審查成品的經驗整理成方法：prompt 策略、性質測試、錯誤案例庫，再用它掃描整套成品。",sk:["AI 驗證"],
-  d:["整理 audit_log.md 的錯誤，分類：單位、索引、物理假設、統計前提、座標","prompt 策略：拆解問題、要求列出假設、要求先寫測試","為數值程式寫性質測試：守恆、對稱、極限情況、收斂階數","用性質測試掃描整套成品，找出前面漏掉的錯","寫一份 AI 驗證檢查表，之後每週套用"],s:"AI 錯誤案例庫＋驗證檢查表；閱讀摘要",
-  r:R("paper","LLM Hallucinations in Practical Code Generation: Phenomena, Mechanism, and Mitigation","Zhang et al.",2024,"arXiv","https://arxiv.org/abs/2409.20550"),why:"在真實專案中分類 LLM 寫程式的錯誤類型，可直接當案例庫的分類架構。"},
- {st:"Linux 與 Docker",t:"Linux 服務與 Docker 容器化",g:"讓 ETL 在 Linux 上定時、自動、可除錯地執行，再裝進可重現的容器；審查成品的 Dockerfile。",sk:["基礎建設","AI 驗證"],
-  d:["行程、權限、環境變數、日誌；用 cron 排程 ETL","systemd service：開機執行、失敗重啟；用 journalctl 找錯","Docker：把你的 ETL 包成映像，掛載資料、傳入參數","映像檔大小與建置快取：改哪一行會讓重建變慢","審查成品的 Dockerfile：版本未固定、以 root 執行、秘密寫進映像"],s:"可排程、可重現的容器化工作；閱讀摘要",
+ {st:"否證 AI 與計分",t:"系統性否證 AI，揭曉 HydroWatch 答案卷",g:"把前面審查成品的經驗整理成方法：prompt 策略、性質測試、錯誤案例庫。掃描整套 HydroWatch 後揭曉答案卷，算出第一份抓錯率。",sk:["AI 驗證"],
+  d:["整理 audit_log.md 的錯誤並分類：數值、物理、基建、統計、空間","prompt 策略文件：拆解問題、要求列出假設、要求先寫測試，附實際用過的 prompt","為數值程式寫性質測試（守恆、對稱、極限情況、收斂階數），掃描 HydroWatch 與 ChannelWatch","揭曉前段模組的答案卷，在計分板填入各類抓錯數與漏抓數（deploy、api、ops、legacy 留到後段）","寫 AI 驗證檢查表：漏抓的錯誤類型優先列進去，後段每週套用"],s:"第一份抓錯率＋AI 驗證檢查表；閱讀摘要",
+  r:R("paper","LLM Hallucinations in Practical Code Generation: Phenomena, Mechanism, and Mitigation","Zhang et al.",2024,"arXiv","https://arxiv.org/abs/2409.20550"),
+  src:[R("paper","An Analysis and Survey of the Development of Mutation Testing","Jia & Harman",2011,"IEEE Trans. Software Engineering","https://doi.org/10.1109/TSE.2010.62",1)],why:"前者分類 LLM 寫程式的錯誤類型，可當案例庫架構；後者是「植入已知錯誤來衡量測試能力」的經典綜述，正是答案卷的原理。"},
+ {st:"VPPWatch 交付",t:"VPPWatch 交付與台電輔助服務規則",g:"拿到 AI 寫好的虛擬電廠成品 VPPWatch：20 個光電加儲能案場、秒級電表遙測、需量反應結算與日前投標，並植入新一批錯誤。先讀懂台電平台的規則，知道這套系統在賺什麼錢。",sk:["AI 驗證","產業領域"],
+  d:["讀台電電力交易平台的即時備轉與需量反應規則：投標、調度、結算、罰則，寫一頁摘要","clone VPPWatch 照 README 跑起來，畫架構圖並和 HydroWatch 逐格對照","每個模組寫一行：輸入、輸出、你預測它會錯在哪（套用 W14 檢查表）","用已知答案做第一輪檢查：光電容量因數量級、SoC 在 0 到 1 之間、能量守恆、時區","建立 audit_log_vpp.md，寫下你預期 HydroWatch 的哪些錯誤類型會再出現"],s:"架構對照圖＋規則摘要＋錯誤紀錄表初版；閱讀摘要",
+  r:R("doc","台電電力交易平台","台灣電力公司","—","官方網站","https://etp.taipower.com.tw/"),why:"即時備轉、需量反應的市場規則與公開資訊，後段投標與結算模組都以它為準。"},
+ {st:"串流遙測",t:"串流遙測：MQTT 與時序資料庫",g:"親手寫最小版：模擬電表用 MQTT 送資料、訂閱者寫進時序資料庫；再審查 VPPWatch 的遙測管線。這是安瑟樂威日常資料的型態。",sk:["ETL","基礎建設"],
+  d:["預測：秒級遙測會遇到哪些問題（亂序、重複、斷線、時鐘漂移），先寫成檢查清單","最小版：paho-mqtt 模擬 3 支電表，訂閱者寫入 TimescaleDB hypertable","QoS 0、1、2 與重送：故意斷線，觀察資料遺失或重複","審查 VPPWatch 的遙測管線：時間戳來源、重複訊息、W 與 kW 單位","換成你的管線，量測每秒可寫入筆數與延遲"],s:"遙測管線＋寫入量測；閱讀摘要",
+  r:R("doc","MQTT Version 5.0","OASIS","—","OASIS Standard","https://docs.oasis-open.org/mqtt/mqtt/v5.0/mqtt-v5.0.html"),why:"QoS、保留訊息、會話的正式定義，判斷資料會不會遺失或重複的依據。"},
+ {st:"Linux 與 Docker",t:"Linux 服務、Docker 容器化與備份還原",g:"讓遙測訂閱者與 ETL 在 Linux 上自動、可除錯地執行，裝進可重現的容器，並實際演練一次資料庫還原；審查成品的 Dockerfile。",sk:["基礎建設","AI 驗證"],
+  d:["行程、權限、環境變數、日誌；用 systemd 跑遙測訂閱者，失敗自動重啟，用 journalctl 找錯","Docker：把訂閱者與 ETL 包成映像，掛載資料、傳入參數","映像檔大小與建置快取：改哪一行會讓重建變慢","備份：每日備份時序資料庫，實際演練一次還原並計時","審查成品的 Dockerfile：版本未固定、以 root 執行、秘密寫進映像；換成你的版本"],s:"可重現的容器化服務＋還原演練紀錄；閱讀摘要",
   r:R("doc","Get started","Docker 官方文件","—","Docker Docs","https://docs.docker.com/get-started/"),
   src:[R("doc","The Missing Semester of Your CS Education","MIT","—","課程講義","https://missing.csail.mit.edu/")],why:"Docker 官方入門；Missing Semester 補 shell 與除錯工具。"},
- {st:"多服務架構與決策",t:"多服務架構與 PaaS／CaaS／FaaS 決策",g:"用 docker compose 組出 ETL＋資料庫＋排程，練習「該 self-host 還是外包」的架構決策，設計可自動維運、異常時通知人的流程，並檢討成品當初的選擇。",sk:["基礎建設"],
-  d:["docker compose：ETL worker＋資料庫＋排程","服務間的網路、相依、健康檢查；異常時自動恢復到哪裡為止、什麼時候要通知人","PaaS／CaaS／FaaS 的取捨：控制權、成本、維運負擔","self-host 還是外包：列出判斷標準，做三個情境決策","審查成品的 docker-compose 與架構選擇，寫一份 ADR 與一份 runbook（人是最後一道防線）"],s:"架構決策紀錄（ADR）一份；閱讀摘要",
+ {st:"多服務架構與決策",t:"多服務架構與 PaaS／CaaS／FaaS 決策",g:"用 docker compose 組出 broker、訂閱者、時序資料庫與排程，寫下「時序資料庫該自架還是託管」的 ADR，設計異常時通知人的流程。",sk:["基礎建設"],
+  d:["docker compose：MQTT broker＋訂閱者＋時序資料庫＋排程","服務間的網路、相依、健康檢查；異常時自動恢復到哪裡為止、什麼時候要通知人","PaaS／CaaS／FaaS 的取捨：調度事件觸發的批次工作屬於哪一種","ADR：時序資料庫自架或託管，比較成本、延遲、資料主權、維運負擔","審查成品的 docker-compose 與架構選擇，寫一份 runbook（人是最後一道防線）"],s:"自架或託管 ADR＋runbook；閱讀摘要",
   r:R("doc","The Twelve-Factor App","Adam Wiggins 等","—","12factor.net","https://12factor.net/"),why:"可部署服務的 12 條原則，審查架構時的檢查表。"},
- {st:"審查 manifest 與擴展",t:"審查 Kubernetes manifest，評估 10 倍擴展",g:"讀懂 Kubernetes 基本物件，找出成品 manifest 的地雷，估算資料量成長 10 倍時哪裡先垮，換成你的部署設定。",sk:["基礎建設","AI 驗證"],
-  d:["Kubernetes 基本物件：Pod、Deployment、Service、ConfigMap、Secret","審查成品的 manifest：資源限制、健康檢查、秘密明文","資料量成長 10 倍：CPU、記憶體、磁碟、網路哪個先撐不住","估算一天的資料量、處理時間與儲存成本","換成你的部署設定；失敗案例報告 #4"],s:"失敗案例報告 #4；閱讀摘要",
-  r:R("doc","Configuration Best Practices","Kubernetes 官方文件","—","Kubernetes Docs","https://kubernetes.io/docs/concepts/configuration/overview/"),why:"官方整理的 config 撰寫原則，正好拿來審查。"},
- {st:"REST API",t:"REST API：把運算包成服務",g:"用 FastAPI 把你的內插包成格網查詢 API，介面經得起需求改變；審查成品的 API。",sk:["REST API"],
-  d:["REST 基本：資源、方法、狀態碼","FastAPI：把第 12 週的內插包成 /interpolate 端點","輸入驗證與錯誤處理：超出範圍的座標、缺資料","介面設計：版本、分頁，需求改變時如何不破壞舊用戶","審查成品的 API：用邊界情境找出漏洞"],s:"可用的格網查詢 API＋測試清單；閱讀摘要",
-  r:R("doc","Tutorial – User Guide","FastAPI 官方文件","—","FastAPI","https://fastapi.tiangolo.com/tutorial/"),why:"路由、驗證、錯誤處理的官方教學。"},
- {st:"模型服務與 CI/CD",t:"模型服務化與 CI/CD",g:"把代理模型包成推論服務，讓每次 push 自動測試與建置，並換掉成品的 API。",sk:["REST API","MLOps"],
-  d:["把第 9 週的代理模型包成推論端點","量測延遲與吞吐：批次推論 vs 單筆","pytest：把第 15 週的性質測試接進測試套件","GitHub Actions：push 時自動測試與建置映像","審查成品的 CI 設定，換成你的 API 與 CI"],s:"CI 管線綠燈＋推論服務；閱讀摘要",
-  r:R("doc","GitHub Actions documentation","GitHub 官方文件","—","GitHub Docs","https://docs.github.com/en/actions"),why:"workflow、job、觸發條件的官方說明。"},
- {st:"實驗追蹤與版本",t:"實驗追蹤、模型註冊、資料版本與調參",g:"讓每個實驗、模型、資料都能回溯；用 Optuna 調參並記錄，審查成品的實驗追蹤。",sk:["MLOps","資料分析"],
-  d:["MLflow：記錄參數、指標、產出","把第 5 週的批次實驗改用 MLflow 記錄","DVC：資料與模型的版本控制","Optuna：調殘差修正模型的超參數，加入剪枝，結果記進 MLflow","審查成品的實驗追蹤：模型版本對得上資料嗎"],s:"可回溯的實驗紀錄；閱讀摘要",
+ {st:"光電與日射量",t:"光電物理模型、hybrid 與日射量內插：移植前段方法",g:"把 W9 的 hybrid 和 W10–11 的空間方法搬到光電：pvlib 物理模型、ML、殘差修正三法比較，日射量用多種內插與衛星格網比較。這週也在量測方法移植的速度。",sk:["物理判斷","空間資訊"],
+  d:["預測：新案場、極端天氣、資料量少時三法誰會贏，先寫下來","pvlib 物理模型最小版：太陽位置、斜面轉換、模組溫度","ML 與 hybrid：重用 W9 的程式，只換輸入，比較五組情境","日射量內插：重用 W10–11，交叉驗證比較測站內插與衛星格網","審查成品的光電與空間模組：太陽角度定義、時區、單位、座標；換成你的版本"],s:"三法情境比較表＋內插比較；閱讀摘要",
+  r:R("paper","pvlib python: a python package for modeling solar energy systems","Holmgren, Hansen, Mikofski",2018,"Journal of Open Source Software","https://doi.org/10.21105/joss.00884"),why:"本週物理模型的工具，論文說明每個子模型的來源與假設。"},
+ {st:"儲能與熱傳導",t:"儲能 SoC、貨櫃熱傳導與 Fortran 參考實作",g:"儲能模擬是時間積分問題；貨櫃熱傳導是 2D 擴散問題，直接用上 W4 的穩定性與收斂知識。同時審查 HydroWatch 附的 Fortran 求解器 legacy/transport.f90 與 AI 翻譯的 Python 版。",sk:["物理判斷","Legacy/HPC"],
+  d:["SoC 電量平衡：充放電效率與上下限；時間步長 1 秒到 15 分鐘的累積誤差","2D 熱傳導有限差分：貨櫃截面、顯式法穩定條件、三種網格的收斂測試","讀 legacy/transport.f90，用 gfortran 編譯並和 AI 翻譯版、你的 Python 版比對","審查 AI 的 Fortran 翻譯：1 起算索引、column-major、隱式型別","OpenMP 平行化：網格多大時才真的變快"],s:"失敗案例報告 #4；閱讀摘要",
+  r:R("book","Finite Difference Methods for Ordinary and Partial Differential Equations","LeVeque",2007,"SIAM","https://doi.org/10.1137/1.9780898717839",1),
+  src:[R("doc","Learn Fortran","fortran-lang.org","—","官方教學","https://fortran-lang.org/learn/")],why:"有限差分穩定性與收斂的標準教科書；Fortran 官方入門用來對照舊程式語法。"},
+ {st:"需量反應因果",t:"需量反應基準負載：用已知答案檢驗因果估計",g:"聚合商的結算取決於「沒有調度時本來會用多少電」，這是反事實。事件是模擬的，真實效果已知，可以直接量出每種基準方法的偏差與被操弄的風險。",sk:["資料分析","產業領域"],
+  d:["預測：哪種基準方法偏差最大、用戶可能怎麼墊高基準","最小版：模擬 20 個用戶與調度事件，植入已知的減量效果","三種基準：台電規範算法、迴歸、合成控制，比較偏差與變異","操弄情境：用戶在事件前刻意墊高用電，哪種方法最容易被騙","審查成品的基準計算與結算，換成你的版本"],s:"問題解決筆記：需量反應基準負載；閱讀摘要",
+  r:R("paper","Synthetic Control Methods for Comparative Case Studies","Abadie, Diamond, Hainmueller",2010,"Journal of the American Statistical Association","https://doi.org/10.1198/jasa.2009.ap08746",1),why:"合成控制法的原始論文，本週第三種基準方法的理論基礎。"},
+ {st:"NSGA-II 投標",t:"儲能日前投標：NSGA-II 三目標最佳化",g:"把碩論的 NSGA-II 用在虛擬電廠：收益、電池衰退、因預測誤差而未達標的風險，畫出 Pareto 前緣，並判斷 AI 建議的解是否違反物理限制。",sk:["物理判斷","產業領域"],
+  d:["預測：三個目標怎麼互相拉扯，Pareto 前緣大概長什麼樣","建模：決策變數、SoC 與功率限制、衰退成本、W19 預測誤差造成的未達標","pymoo NSGA-II 求解，畫三維 Pareto 前緣","從前緣挑一個解，寫下為什麼選它、條件改變時會改選哪個","審查成品的投標模組：限制是否真的被滿足、衰退有沒有被忽略；換成你的版本"],s:"Pareto 前緣圖＋選解說明；閱讀摘要",
+  r:R("paper","Factoring the Cycle Aging Cost of Batteries Participating in Electricity Markets","Xu et al.",2018,"IEEE Trans. Power Systems","https://doi.org/10.1109/TPWRS.2017.2733339"),
+  src:[R("paper","A fast and elitist multiobjective genetic algorithm: NSGA-II","Deb et al.",2002,"IEEE Trans. Evol. Comput.","https://doi.org/10.1109/4235.996017",1)],why:"說明為什麼投標必須納入電池衰退成本；NSGA-II 原文對照你的碩論。"},
+ {st:"manifest、壓測與故障",t:"審查 Kubernetes manifest、10 倍壓力測試與故障演練",g:"讀懂 Kubernetes 基本物件並找出成品 manifest 的地雷；把案場數放大 10 倍找出先垮的地方；刻意製造兩次故障，寫事後檢討。",sk:["基礎建設","AI 驗證"],
+  d:["Kubernetes 基本物件；審查成品 manifest：資源限制、健康檢查、秘密明文","Locust 壓力測試：案場從 20 到 200、遙測頻率加倍，記錄先撐不住的地方","故障演練 1：關掉資料庫，觀察警報、恢復與資料遺失","故障演練 2：塞滿硬碟，寫事後檢討","換成你的部署設定，估算資料量成長 10 倍的儲存成本"],s:"壓測報告＋兩份事後檢討；閱讀摘要",
+  r:R("doc","Configuration Best Practices","Kubernetes 官方文件","—","Kubernetes Docs","https://kubernetes.io/docs/concepts/configuration/overview/"),
+  src:[R("doc","Postmortem Culture: Learning from Failure","Google SRE Book","—","sre.google","https://sre.google/sre-book/postmortem-culture/")],why:"官方的 config 撰寫原則拿來審查 manifest；SRE 書說明事後檢討該怎麼寫。"},
+ {st:"API、服務與 CI",t:"REST API、模型服務化與 CI/CD",g:"把預測、投標與查詢包成下游能穩定使用的服務，中途改一次需求練版本遷移，並讓每次 push 自動測試與建置。",sk:["REST API","ML 訓練","MLOps"],
+  d:["FastAPI 四類端點：發電預測、投標計畫、案場與格網查詢、事件回放","邊界情境：座標超出範圍、資料缺漏、請求過大、時區錯誤","中途新增時間解析度參數，完成 v1 到 v2 遷移並保留相容期","模型匯出 ONNX 量測延遲，加一個 SHAP 解釋端點","GitHub Actions 測試與建置；審查成品的 API 與 CI，換成你的版本"],s:"API＋CI 綠燈；閱讀摘要",
+  r:R("doc","Tutorial – User Guide","FastAPI 官方文件","—","FastAPI","https://fastapi.tiangolo.com/tutorial/"),
+  src:[R("doc","GitHub Actions documentation","GitHub 官方文件","—","GitHub Docs","https://docs.github.com/en/actions")],why:"路由、驗證、錯誤處理的官方教學；workflow 與觸發條件的官方說明。"},
+ {st:"MLOps 與漂移",t:"實驗追蹤、編排與漂移偵測",g:"讓每個實驗、模型、資料都能回溯；把 ETL、訓練、評估串成排程流程，在季節改變時發出警報。",sk:["MLOps","資料分析"],
+  d:["MLflow 追蹤光電模型實驗，DVC 管理資料與模型版本","Prefect 編排 ETL → 訓練 → 評估，設定失敗重試","漂移偵測：梅雨季與秋季的日射量分布，KS 檢定與 PSI","Optuna 調參並記進 MLflow","審查成品的維運模組，換成你的版本"],s:"可回溯的實驗紀錄＋漂移報告；閱讀摘要",
   r:R("doc","MLflow documentation","MLflow 官方文件","—","MLflow Docs","https://mlflow.org/docs/latest/"),
-  src:[R("paper","Optuna: A Next-generation Hyperparameter Optimization Framework","Akiba et al.",2019,"KDD","https://arxiv.org/abs/1907.10902",1)],why:"MLflow 追蹤與模型註冊的官方說明；Optuna 論文說明剪枝與 define-by-run。"},
- {st:"編排、監控與漂移",t:"流程編排、監控與漂移偵測",g:"把 ETL → 訓練 → 評估串成排程流程，在輸入分佈改變時發出警報，並換掉成品的維運模組。",sk:["MLOps","資料分析"],
-  d:["流程編排：用 Prefect 串起 ETL → 訓練 → 評估","排程與重試：失敗時怎麼處理","監控：輸入分佈、預測分佈、延遲","漂移偵測：KS 檢定、PSI，用模擬的季節變化測試","審查成品的排程與監控門檻，換成你的版本"],s:"監控儀表＋漂移報告；閱讀摘要",
-  r:R("paper","Failing Loudly: An Empirical Study of Methods for Detecting Dataset Shift","Rabanser, Günnemann, Lipton",2019,"NeurIPS","https://arxiv.org/abs/1810.11953"),why:"比較各種漂移偵測方法，說明哪些檢定真的抓得到。"},
- {st:"Fortran 與平行化",t:"Legacy 科學程式碼：讀懂 Fortran 與平行化取捨",g:"讀懂成品附的 Fortran 參考求解器，找出 AI 翻成 Python 時改錯的地方，判斷平行化的取捨。",sk:["Legacy/HPC","AI 驗證"],
-  d:["讀成品的 Fortran 求解器，對照第 4 週的 Python 版","用 gfortran 編譯執行，比較兩者結果","常見陷阱：1 起算的索引、column-major、隱式型別","審查成品的 AI 翻譯版本，用第 15 週的性質測試否證","OpenMP 平行化：何時變快、何時反而變慢"],s:"legacy 程式碼審查筆記；閱讀摘要",
-  r:R("doc","Learn Fortran","fortran-lang.org","—","官方教學","https://fortran-lang.org/learn/"),why:"現代 Fortran 的官方入門，讀舊程式時對照語法。"},
- {st:"拓樸最佳化資料集",t:"選修：拓樸最佳化資料集與多目標權衡",g:"用 SIMP 方法批次產生最佳結構，並用 NSGA-II 做體積比與柔度的多目標權衡，接回碩論。",sk:["ML 訓練","資料分析"],
-  d:["讀懂 SIMP 拓樸最佳化範例程式","改變負載位置與體積比，觀察結構變化","批次產生 500 組最佳結構（沿用批次框架）","用 pymoo NSGA-II 找體積比 vs 柔度的 Pareto front","寫 dataset card"],s:"資料集＋dataset card＋Pareto 圖；閱讀摘要",
-  r:R("paper","Diffusion Models Beat GANs on Topology Optimization","Mazé & Ahmed",2023,"AAAI","https://ojs.aaai.org/index.php/AAAI/article/view/26093"),
-  src:[R("paper","A fast and elitist multiobjective genetic algorithm: NSGA-II","Deb et al.",2002,"IEEE Trans. Evol. Comput.","https://doi.org/10.1109/4235.996017",1)],why:"用擴散模型生成拓樸結構；NSGA-II 原文對照你的碩論。"},
- {st:"生成模型與檢驗",t:"選修：生成模型與物理檢驗",g:"訓練小型生成模型，再用求解器檢驗生成結果是否真的可用。",sk:["ML 訓練","物理判斷"],
-  d:["訓練小型條件 VAE 或 U-Net（輸入負載條件）","生成結構並計算 compliance","與 SIMP 最佳解比較性能差距","統計失敗：結構不連通、違反體積限制","失敗案例報告 #5"],s:"失敗案例報告 #5；閱讀摘要",
-  r:R("paper","Diffusing the Optimal Topology: A Generative Optimization Approach","Giannone et al.",2023,"arXiv","https://arxiv.org/abs/2303.09760"),why:"把生成模型與最佳化結合，減少後處理步驟。"},
- {st:"作品集與面試",t:"作品集與面試準備",g:"把 AI 原版 HydroWatch、ChannelWatch 與你的最終版並排，附上完整錯誤紀錄與抓錯率，整理成 5 分鐘講得完的作品集。",sk:["AI 驗證"],
-  d:["整理 GitHub：README 結構、每個模組一張圖","AI 原版 vs 你的最終版：逐模組比較，算出抓錯率","把 5 份失敗報告與 audit_log 整理成「方法極限」索引","對照職缺逐項準備實例：每項技能一個做過的例子","模擬面試：自問自答 10 題"],s:"完成作品集",
+  src:[R("paper","Failing Loudly: An Empirical Study of Methods for Detecting Dataset Shift","Rabanser, Günnemann, Lipton",2019,"NeurIPS","https://arxiv.org/abs/1810.11953")],why:"MLflow 追蹤與模型註冊的官方說明；漂移偵測方法的實證比較。"},
+ {st:"作品集與面試",t:"作品集：兩套系統的抓錯率對照",g:"揭曉 VPPWatch 答案卷，把 HydroWatch 與 VPPWatch 的抓錯率並排：換到新領域後，哪類錯誤抓得更好、哪類仍然漏掉。整理成 5 分鐘講得完的作品集。",sk:["AI 驗證","產業領域"],
+  d:["揭曉 VPPWatch 與 HydroWatch 後段模組的答案卷，填入計分板","比較兩套系統的三類抓錯率，寫下進步與仍然漏掉的類型","把失敗報告、ADR、問題解決筆記整理成索引","對照職缺逐項準備實例：每項條件一個做過的例子","模擬面試：面試題庫逐題自問自答"],s:"完成作品集並投遞",
   r:R("doc","Rules of Machine Learning","Martin Zinkevich（Google）","—","Google for Developers","https://developers.google.com/machine-learning/guides/rules-of-ml"),why:"把半年學到的工程判斷，對照業界整理的 43 條規則。"}
 ];
-// 每週大問題：理論、例題、變化題都為了回答它
-const Q=["這支程式算出來的洪峰流量，可信嗎？","怎麼讓「改一個參數、看結果」變得便宜又不出錯？","這套系統由哪些部分組成，每一塊可能在哪裡出錯？","數值解什麼時候會爆掉，什麼時候會悄悄不準？","數值方法本身會造成哪些失真，怎麼系統性地找出它的邊界？","模型跟真實世界差多少，差距來自哪裡？","神經網路是怎麼學的，訓練程式最容易在哪裡出錯？","什麼問題適合 PINN，它在什麼條件下會失敗？","什麼時候值得訓練代理模型來取代求解器？","物理、資料、hybrid 三種做法，該怎麼選？","空間程式的座標與分割，怎麼確認它是對的？","測站之間的值該怎麼補，選哪種方法、為什麼？","格式、時區、單位都不同的資料，怎麼整合得可靠？","資料什麼時候不能信，統計與因果的說法什麼時候不能信？","怎麼系統性地證明 AI 寫的程式是錯的？","怎麼讓一個工作在伺服器上自動、定時、可重現地跑？","多個服務怎麼組在一起，該自己架還是外包？","資料量變成 10 倍時，系統哪裡先垮？","怎麼把運算包成別人能穩定使用的服務？","怎麼讓每次修改都自動被測試、安全地上線？","三個月後，怎麼知道某個結果是怎麼來的？","系統在線上悄悄變差時，怎麼第一時間知道？","舊的科學程式被 AI 改過之後，怎麼確定沒被改壞？","怎麼產生大量最佳設計當訓練資料，並看清目標之間的取捨？","生成模型做出來的設計，物理上真的能用嗎？","半年做了什麼，怎麼證明你能抓出 AI 的錯？"];
-// 大圖：HydroWatch 的資料流，以及每一格在哪幾週學
+// 每週大問題
+const Q=["這支程式算出來的洪峰流量，可信嗎？","怎麼讓「改一個參數、看結果」變得便宜又不出錯？","這套系統由哪些部分組成，每一塊可能在哪裡出錯？","數值解什麼時候會爆掉，什麼時候會悄悄不準？","數值方法本身會造成哪些失真，怎麼系統性地找出它的邊界？","模型跟真實世界差多少，差距來自哪裡？","神經網路是怎麼學的，訓練程式最容易在哪裡出錯？","什麼問題適合 PINN，什麼時候值得用代理模型取代求解器？","物理、資料、hybrid 三種做法，該怎麼選？","空間程式的座標與分割，怎麼確認它是對的？","測站之間的值該怎麼補，選哪種方法、為什麼？","格式、時區、單位都不同的資料，怎麼整合得可靠？","資料什麼時候不能信，統計與因果的說法什麼時候不能信？","你到底抓得到 AI 的哪些錯，又漏掉哪些？","換到新領域，前段學到的方法還有效嗎？","秒級資料不斷湧進來時，怎麼確保一筆都不錯、不漏、不重複？","怎麼讓一個服務在伺服器上自動、可重現地跑，壞了能還原？","多個服務怎麼組在一起，該自己架還是外包？","光電預測該用物理、ML 還是 hybrid，情境改變時答案會變嗎？","時間步長與網格怎麼選，舊的科學程式被 AI 改過後還對嗎？","沒有調度時本來會用多少電，這個數字怎麼估才不會被騙？","收益、電池壽命與違約風險之間，怎麼取捨？","資料量變成 10 倍時，系統哪裡先垮？壞掉時怎麼救？","怎麼把運算包成別人能穩定使用、需求改了也不會壞的服務？","三個月後，怎麼知道某個結果是怎麼來的，模型何時開始變差？","半年做了什麼，怎麼證明你能抓出 AI 的錯？"];
+// 大圖：兩套成品共用的資料流
 const BIG=[
- {id:"obs",name:"觀測資料",sub:"雨量站與流量站",weeks:[1,6,13]},
- {id:"etl",name:"ETL",sub:"擷取、清理、整合",weeks:[2,13]},
- {id:"qc",name:"品質檢查",sub:"規則、統計前提",weeks:[14]},
- {id:"phys",name:"物理模型",sub:"調和分析、求解器",weeks:[1,4,5,6,8,23]},
- {id:"ml",name:"ML 修正",sub:"訓練、代理、hybrid",weeks:[7,8,9,10,24,25]},
- {id:"sp",name:"空間內插",sub:"座標、分割、克利金",weeks:[11,12]},
- {id:"api",name:"API",sub:"查詢與推論服務",weeks:[19,20]},
- {id:"dep",name:"部署與排程",sub:"Linux、容器、K8s",weeks:[2,16,17,18]},
- {id:"mon",name:"監控與追蹤",sub:"實驗、漂移、CI",weeks:[20,21,22]}];
-const BIG_ALL=[3,15,26];
+ {id:"obs",name:"觀測資料",sub:"測站、電表、市場",weeks:[1,6,12,15,16]},
+ {id:"etl",name:"ETL 與串流",sub:"擷取、清理、整合",weeks:[2,12,16]},
+ {id:"qc",name:"品質檢查",sub:"規則、統計前提",weeks:[13]},
+ {id:"phys",name:"物理模型",sub:"求解器、光電、儲能",weeks:[1,4,5,6,8,19,20]},
+ {id:"ml",name:"ML 修正",sub:"訓練、代理、hybrid",weeks:[7,8,9,19]},
+ {id:"sp",name:"空間內插",sub:"座標、分割、克利金",weeks:[10,11,19]},
+ {id:"mkt",name:"市場與調度",sub:"基準、結算、投標",weeks:[15,21,22]},
+ {id:"api",name:"API",sub:"查詢與推論服務",weeks:[24]},
+ {id:"dep",name:"部署與排程",sub:"Linux、容器、K8s",weeks:[2,17,18,23]},
+ {id:"mon",name:"監控與追蹤",sub:"實驗、漂移、CI",weeks:[23,24,25]}];
+const BIG_ALL=[3,14,15,26];
 const SKILLS=[
- ["物理判斷","Must：數值模擬與物理判斷"],["基礎建設","Must：自有基礎建設架構"],["AI 驗證","Must：GAI 協作與驗證"],
- ["空間資訊","Should：空間資訊技術／Nice：地理統計"],["資料分析","Should：資料分析"],["ETL","Should：Python ETL"],
- ["REST API","Should：REST API"],["MLOps","Nice：MLOps、CI/CD、模型服務"],["ML 訓練","Nice：ML 訓練"],["Legacy/HPC","Nice：Fortran/C、HPC"]];
+ ["物理判斷","M1","Must：數值模擬與物理判斷"],["基礎建設","M2","Must：自有基礎建設架構"],["AI 驗證","M3","Must：GAI 協作與驗證"],
+ ["空間資訊","S1","Should：空間資訊技術"],["資料分析","S2","Should：資料分析"],["ETL","S3","Should：Python ETL"],
+ ["REST API","S4","Should：REST API"],["ML 訓練","N1","Nice：ML 訓練與服務化"],["Legacy/HPC","N2","Nice：Fortran/C、HPC"],["MLOps","N3","Nice：MLOps 工具鏈"],["產業領域","DOM","產業：虛擬電廠與輔助服務"]];
 const READ=["週一：摘要＋瀏覽圖表與章節標題","週二：引言或概觀，找出要解決的問題","週三：方法或核心概念，畫一張流程圖","週四：結果、限制或注意事項，記下關鍵數字","週五：寫 5 行摘要（papers/output/）"];
 const DAYN=["一","二","三","四","五","六"];
 const NW=W.length;
+// 證據庫表單
+const EVK={
+ ai:{label:"AI 錯誤",fields:[["title","標題","text","例：AI 把太陽天頂角當成高度角"],["cat","類別","select",["數值","物理","基建","統計","空間"]],["claim","AI 說了什麼","textarea","AI 的輸出或建議，盡量具體"],["found","你怎麼發現","textarea","守恆、量綱、極端值、對照基準…"],["test","對應測試","textarea","防止再犯的測試或檢查"]]},
+ adr:{label:"ADR",fields:[["title","標題","text","例：ADR-001 時序資料庫自架"],["context","背景","textarea","要解決什麼、有哪些限制"],["decision","決策","textarea","選了什麼"],["alts","替代方案","textarea","考慮過但沒選的，以及原因"],["revisit","何時改選","textarea","在什麼條件下會推翻這個決定"]]},
+ exp:{label:"實驗",fields:[["title","變數","text","例：日射量內插方法"],["options","比較的選項","text","例：IDW／克利金／衛星格網"],["metric","驗證指標","text","例：交叉驗證 RMSE（W/m²）"],["result","結果","textarea","數字與觀察"],["verdict","決定","select",["保留","深化","砍掉"]]]}};
+const SCAT=[["num","數值"],["phys","物理"],["infra","基建"]];
+const IVQ=[["q1","這個問題你為什麼選物理、ML 或 hybrid？條件變成什麼時你會改選？"],["q2","你的模型對哪個環節的數值誤差最敏感？你怎麼知道？"],["q3","哪個實驗方向被你砍掉了？依據的數據是什麼？"],["q4","資料量成長 10 倍時，你的系統哪裡先撐不住？你會怎麼改？"],["q5","你為什麼自架這個服務，而不是用託管服務？什麼情況下會改？"],["q6","這份 AI 產生的 compose 或 manifest 有哪些問題？"],["q7","你在三類錯誤上的抓錯率各是多少？換到新領域後哪一類進步、哪一類仍然漏掉？"],["q8","你怎麼拆解一個複雜科學問題給 AI？哪一步一定由你自己判斷？"],["q9","需量反應的基準負載有哪些偏差？用戶可能怎麼操弄？"],["q10","AI 寫的座標轉換程式，你怎麼驗算它沒錯？"],["q11","你的 API 遇到需求改變時，怎麼避免下游壞掉？"],["q12","你的 NSGA-II 論文經驗怎麼用在儲能投標？"]];
 
 // ======================= 狀態與同步 =======================
-let state={start:"2026-10-27",done:{},notes:{}};
+let state={start:"2026-10-27",done:{},notes:{},ev:[],score:{}};
 let dbDoc=null,writing=false,pending=false,saveTimer=null,view={kind:"home"};
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const k=(w,d,t)=>`w${w}d${d}${t}`;
-function parse(s){const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)}
+function parse(s){const [y,m,d]=String(s).split("-").map(Number);return new Date(y,m-1,d)}
 function dateOf(w,d){const x=parse(state.start);x.setDate(x.getDate()+(w-1)*7+(d-1));return x}
 function md(x){return (x.getMonth()+1)+"/"+x.getDate()}
 function today0(){const t=new Date();t.setHours(0,0,0,0);return t}
@@ -526,8 +571,6 @@ function renderHome(){const pos=todayPos();let today="";
       today+=`</div><div class="btns"><a class="btn primary" href="#w${pos.w}">打開第 ${pos.w} 週講解</a></div>`}}
   let map="",ph="";for(let n=1;n<=NW;n++){const pct=weekPct(n);map+=`<a href="#w${n}" class="${pos.w===n?"cur":""}" aria-label="第 ${n} 週，完成 ${Math.round(pct*100)}%"><span class="col"><span class="fill" style="height:${pct*100}%"></span></span><span class="n">${n}</span></a>`}
   ph=PHASES.map(p=>`<div style="grid-column:${p.from} / ${p.to+1}" title="${esc(p.name)}">${esc(p.id)}</div>`).join("");
-  const skillRows=SKILLS.map(([s,label])=>{const ws=W.map((w,i)=>w.sk.includes(s)?i+1:0).filter(Boolean);
-    return `<tr><td>${esc(label)}</td><td class="mono">${ws.map(n=>`<a href="#w${n}">W${n}</a>`).join("、")}</td></tr>`}).join("");
   $("#main").innerHTML=`
   <section class="card" aria-labelledby="big-h"><div class="row"><h2 id="big-h">大圖：你要建立的系統</h2><span class="muted" style="font-size:.82rem">職缺描述的工作，就是讓這條鏈可靠地運轉</span></div>
     ${bigMapHTML(pos.w||1,false)}
@@ -545,7 +588,7 @@ function renderHome(){const pos=todayPos();let today="";
       <li>先讀理論與動畫，再打開 repo 裡的範例程式對照。語法可以問 AI，邏輯自己想。</li>
       <li>做練習，答案寫進 <code>weekNN/notes.md</code>，<code>git add</code>／<code>commit</code>／<code>push</code>。</li>
       <li>閱讀 15–20 分鐘，摘要寫進 <code>papers/output/</code>，21 天內開新對話說「grill 這篇」。</li>
-      <li>有「本週審查」的週：用學到的理論審查 HydroWatch 成品的對應模組，錯誤記進 <code>audit_log.md</code>（編號、模組、證據、狀態）。交接時先交出你找到的錯，再公布答案。</li>
+      <li>有「本週審查」的週：照「預測 → 最小版 → 審查 → 替換」審查成品的對應模組，錯誤記進 audit log，也在下方證據庫留一筆。答案卷在 W14 與 W26 才揭曉。</li>
       <li>回到這裡勾選。一週結束時，在新對話說「第 N 週進度」，下一週的完整講解會在交接時加上。</li>
     </ol></section>
   <section class="card" aria-labelledby="ai-h"><h2 id="ai-h">AI 使用規則</h2>
@@ -555,8 +598,10 @@ function renderHome(){const pos=todayPos();let today="";
       <tr><td>改寫成更簡潔的寫法</td><td>判斷輸出在物理上、統計上合不合理</td></tr>
       <tr><td>找錯誤訊息的原因</td><td>寫 commit message 與失敗報告</td></tr></tbody></table></div>
     <p class="muted" style="margin:0;font-size:.86rem">職缺要的是「AI 出錯時能判斷錯在哪」。每週都有一題「讓 AI 寫，再找出它錯在哪」。</p></section>
-  <section class="card" aria-labelledby="job-h"><h2 id="job-h">職缺技能對照</h2>
-    <div class="tbl"><table><thead><tr><th>職缺要求</th><th>在哪幾週練</th></tr></thead><tbody>${skillRows}</tbody></table></div></section>
+  ${coverageHTML()}
+  ${scoreHTML()}
+  ${evidenceHTML()}
+  ${interviewHTML()}
   ${sourcesHTML(W.map((_,i)=>i+1),"全部參考來源")}`;
   $("#start-date").addEventListener("change",e=>{if(e.target.value){state.start=e.target.value;persist();render()}})}
 
@@ -586,6 +631,7 @@ function renderWeek(n){const w=W[n-1],ph=PHASES.find(p=>n>=p.from&&n<=p.to),note
     <div>${w.sk.map(s=>`<span class="tag ok">${esc(s)}</span>`).join("")}</div>
     <div class="btns"><a class="btn" href="#w${Math.max(1,n-1)}" ${n===1?'aria-disabled="true" style="opacity:.45;pointer-events:none"':""}>← 上一週</a><a class="btn" href="#w${Math.min(NW,n+1)}" ${n===NW?'aria-disabled="true" style="opacity:.45;pointer-events:none"':""}>下一週 →</a></div></section>
   ${auditCard(n)}
+  ${infraCard(n)}
   <section class="card" aria-labelledby="heat-h"><div class="row"><h3 id="heat-h">本週管制熱圖</h3>
     <div class="heat-legend"><span><i class="done"></i>已完成</span><span><i class="missed"></i>已過期未做</span><span><i class="today"></i>今天</span><span><i></i>還沒到</span></div></div>
     <div id="heat">${renderHeat(n)}</div></section>
@@ -604,6 +650,8 @@ function renderWeek(n){const w=W[n-1],ph=PHASES.find(p=>n>=p.from&&n<=p.to),note
     </div></section>
   ${sourcesHTML([n],"本週參考來源")}`;
   if(w.content)loadLesson(n)}
+function infraCard(n){if(n>INF.length)return"";const id="w"+n+"inf";
+  return `<section class="card"><div class="row"><h3>本週小基建任務</h3><span class="tag">約 30 分鐘・M2</span></div>${taskHTML(id,"任何一天做完都可以",INF[n-1])}</section>`}
 // 參考來源：一律收在頁面最末節，預設收合
 function cite(r){return `${esc(r.a)}${r.y!=="—"?"（"+r.y+"）":""}．<a href="${r.u}" target="_blank" rel="noopener">${esc(r.t)}</a>．${esc(r.v)}${r.classic?"．經典":""}`}
 function sourcesHTML(ns,title){const groups=PHASES.map(p=>({p,items:ns.filter(n=>n>=p.from&&n<=p.to)})).filter(g=>g.items.length);
@@ -648,6 +696,13 @@ document.addEventListener("click",e=>{const hm=e.target.closest(".hm[data-k]");i
 let noteTimer=null;
 document.addEventListener("input",e=>{const t=e.target;if(!t.dataset||!t.dataset.note||view.kind!=="week")return;
   const key="w"+view.n;state.notes[key]=Object.assign({},state.notes[key],{[t.dataset.note]:t.value});clearTimeout(noteTimer);noteTimer=setTimeout(persist,600)});
+document.addEventListener("click",e=>{const kb=e.target.closest("[data-evk]");if(kb){evKind=kb.dataset.evk;renderHome();document.getElementById("evidence")?.setAttribute("open","");return}
+  const del=e.target.closest("[data-del]");if(del){if(del.dataset.armed!=="1"){del.dataset.armed="1";del.textContent="再按一次確認";setTimeout(()=>{if(del.isConnected){del.dataset.armed="";del.textContent="刪除"}},3000);return}
+    state.ev=(state.ev||[]).filter(x=>x.id!==del.dataset.del);persist();renderHome();document.getElementById("evidence")?.setAttribute("open","")}});
+document.addEventListener("submit",e=>{if(e.target.id!=="ev-form")return;e.preventDefault();const fd=new FormData(e.target),rec={kind:evKind,id:"e"+Date.now().toString(36),week:todayPos().w||0,at:new Date().toISOString()};
+  for(const[k2,v]of fd.entries())rec[k2]=String(v).trim().slice(0,3000);if(!rec.title)return;state.ev=(state.ev||[]).concat([rec]);persist();renderHome();document.getElementById("evidence")?.setAttribute("open","")});
+document.addEventListener("change",e=>{const t=e.target;if(!t.dataset||!t.dataset.sc)return;const[k2,c,i]=t.dataset.sc.split(".");
+  state.score=state.score||{};state.score[k2]=Object.assign({},state.score[k2]);const a=(state.score[k2][c]||["",""]).slice();a[+i]=t.value;state.score[k2][c]=a;persist();renderHome()});
 window.addEventListener("hashchange",render);
 
 // ======================= 動畫引擎 =======================
@@ -826,6 +881,42 @@ const ANIMS={
 };
 
 
+// ======================= 職缺覆蓋度、計分板、證據庫 =======================
+function covLevel(p){if(p<=0)return["p0","未開始"];if(p<.5)return["p1","摸過"];if(p<1)return["p2","做過"];return["p3","期待深度"]}
+function coverageHTML(){const rows=SKILLS.map(([s,code,label])=>{const ws=W.map((w,i)=>w.sk.includes(s)?i+1:0).filter(Boolean);
+    const p=ws.length?ws.reduce((a,n)=>a+weekPct(n),0)/ws.length:0,[c,t]=covLevel(p);
+    return `<tr><td class="mono"><b>${code}</b></td><td>${esc(label)}</td><td style="min-width:110px"><div class="cv-bar"><i style="width:${Math.round(p*100)}%"></i></div><span class="mono muted" style="font-size:.72rem">${Math.round(p*100)}%</span></td><td><span class="cv-pill ${c}">${t}</span></td><td class="mono" style="font-size:.78rem">${ws.map(n=>`<a href="#w${n}">W${n}</a>`).join(" ")}</td></tr>`}).join("");
+  return `<section class="card" aria-labelledby="job-h"><div class="row"><h2 id="job-h">職缺覆蓋度</h2><span class="muted" style="font-size:.82rem">依對應週次的勾選自動計算</span></div>
+    <div class="tbl wide"><table><thead><tr><th>代碼</th><th>職缺條件</th><th>完成度</th><th>深度</th><th>在哪幾週練</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <p class="muted" style="margin:0;font-size:.82rem">未滿一半為「摸過」，過半為「做過」，對應週次全部完成才算達到職缺寫的「期待深度」。</p></section>`}
+function rate(a){const f=+a?.[0]||0,p=+a?.[1]||0;return p?Math.round(f/p*100)+"%":"—"}
+function scoreHTML(){const sys=[["hw","HydroWatch","W14"],["vpp","VPPWatch","W26"]];
+  const cell=(k,c)=>{const a=(state.score[k]||{})[c]||["",""];return `<td><span class="sc-in"><input type="number" min="0" inputmode="numeric" id="sc-${k}-${c}-0" data-sc="${k}.${c}.0" value="${esc(a[0])}" aria-label="抓到">／<input type="number" min="0" inputmode="numeric" id="sc-${k}-${c}-1" data-sc="${k}.${c}.1" value="${esc(a[1])}" aria-label="植入"></span> <b class="mono">${rate(a)}</b></td>`};
+  return `<section class="card" aria-labelledby="sc-h"><div class="row"><h2 id="sc-h">抓錯率計分板</h2><span class="muted" style="font-size:.82rem">抓到／植入，揭曉答案卷後填</span></div>
+    <div class="tbl wide"><table><thead><tr><th>成品</th><th>揭曉</th>${SCAT.map(c=>`<th>${c[1]}</th>`).join("")}</tr></thead><tbody>
+    ${sys.map(([k,n,w])=>`<tr><td><b>${n}</b></td><td class="mono">${w}</td>${SCAT.map(c=>cell(k,c[0])).join("")}</tr>`).join("")}</tbody></table></div>
+    <p class="muted" style="margin:0;font-size:.82rem">面試時要說得出：每一類的抓錯率、換到新領域後哪一類進步、漏掉的錯有什麼共通點。</p></section>`}
+let evKind="ai";
+function evidenceHTML(){const ev=state.ev||[],n=k=>ev.filter(e=>e.kind===k).length,ai=ev.filter(e=>e.kind==="ai");
+  const catN=c=>ai.filter(e=>e.cat===c).length,kills=ev.filter(e=>e.kind==="exp"&&e.verdict==="砍掉").length;
+  const f=EVK[evKind];
+  const form=f.fields.map(([key,lab,type,opt])=>{const id=`ev-${evKind}-${key}`,full=type==="textarea"||key==="title";
+    const ctl=type==="select"?`<select id="${id}" name="${key}">${opt.map(o=>`<option>${o}</option>`).join("")}</select>`:type==="textarea"?`<textarea id="${id}" name="${key}" placeholder="${esc(opt)}" style="min-height:64px"></textarea>`:`<input id="${id}" name="${key}" placeholder="${esc(opt)}" ${key==="title"?"required":""}>`;
+    return `<label class="ev-f ${full?"full":""}" for="${id}"><span>${lab}</span>${ctl}</label>`}).join("");
+  const list=ev.filter(e=>e.kind===evKind).slice().reverse().map(e=>`<article class="ev-item"><div class="row"><b>${esc(e.title)}</b><span class="mono muted" style="font-size:.74rem">${e.cat?esc(e.cat)+"・":""}${e.verdict?esc(e.verdict)+"・":""}${e.sys?esc(e.sys)+"・":""}W${e.week||"?"}　<button type="button" class="btn ev-del" data-del="${esc(e.id)}">刪除</button></span></div>
+    ${f.fields.filter(x=>!["title","cat","verdict"].includes(x[0])&&e[x[0]]).map(x=>`<p class="ev-p"><span class="muted">${x[1]}：</span>${esc(e[x[0]])}</p>`).join("")}</article>`).join("");
+  return `<details class="card dep" id="evidence" ${evKind!=="ai"||ev.length?"open":""}><summary><h2 style="display:inline;font-size:1.15rem">證據庫</h2> <span class="muted mono" style="font-size:.8rem">AI 錯誤 ${n("ai")}/10・ADR ${n("adr")}/3・實驗 ${n("exp")}（砍掉 ${kills}）</span></summary>
+   <div class="dep-body">
+    <div class="ev-targets"><span>數值 <b class="mono">${catN("數值")}/3</b></span><span>物理 <b class="mono">${catN("物理")}/3</b></span><span>基建 <b class="mono">${catN("基建")}/3</b></span><span>自架或託管 ADR <b class="mono">${ev.some(e=>e.kind==="adr"&&/自架|託管|外包/.test(e.title+(e.decision||"")))?"有":"缺"}</b></span><span>砍掉的方向 <b class="mono">${kills}/1</b></span></div>
+    <div class="btns">${Object.entries(EVK).map(([k,v])=>`<button type="button" class="btn ${k===evKind?"primary":""}" data-evk="${k}">${v.label} ${n(k)}</button>`).join("")}</div>
+    <form id="ev-form" class="ev-form" autocomplete="off">${form}
+     <label class="ev-f" for="ev-sys"><span>成品</span><select id="ev-sys" name="sys"><option>HydroWatch</option><option>VPPWatch</option><option>其他</option></select></label>
+     <div class="ev-f full"><button class="btn primary" type="submit">加入${f.label}</button></div></form>
+    ${list||`<p class="muted" style="margin:0">還沒有${f.label}紀錄。用上面的表單記下第一筆，週次會自動填成本週。</p>`}</div></details>`}
+function interviewHTML(){const done=IVQ.filter(q=>state.done["iv-"+q[0]]).length;
+  return `<details class="card dep"><summary><h2 style="display:inline;font-size:1.15rem">面試題庫</h2> <span class="muted mono" style="font-size:.8rem">能用自己的數據回答 ${done}/${IVQ.length}</span></summary>
+   <div class="dep-body" style="gap:10px">${IVQ.map(([id,t])=>taskHTML("iv-"+id,"能用專案數據回答才勾",t)).join("")}
+   <p class="muted" style="margin:0;font-size:.82rem">個人專案補不到、面試時要坦白說明的：設備通訊協定（Modbus、IEC 61850）、毫秒級控制、市場結算細節、真實營運經驗。</p></div></details>`}
 // ======================= 大圖 =======================
 function bigMapHTML(cur,compact){const here=b=>b.weeks.includes(cur);
   const boxes=BIG.map((b,i)=>`${i?'<span class="bm-arrow" aria-hidden="true">→</span>':""}<a class="bm-box ${here(b)?"here":""} ${b.weeks.some(w=>weekPct(w)>=1)?"some":""}" href="#w${(b.weeks.find(w=>w>=cur)||b.weeks[0])}"><b>${esc(b.name)}</b><span>${esc(b.sub)}</span>${compact?"":`<span class="mono bm-w">${b.weeks.map(w=>"W"+w).join(" ")}</span>`}${here(b)?'<span class="bm-here">本週</span>':""}</a>`).join("");
@@ -834,29 +925,30 @@ function bigMapHTML(cur,compact){const here=b=>b.weeks.includes(cur);
     <div class="bm-band ${allHere?"here":""}"><b>AI 驗證</b>貫穿整條鏈：每一格都要能判斷 AI 寫的版本錯在哪${compact?"":`（全系統：${BIG_ALL.map(w=>`<a href="#w${w}">W${w}</a>`).join("、")}）`}${allHere?'<span class="bm-here">本週</span>':""}</div></div>`}
 // ======================= 成品模組與審查 =======================
 function modState(m){if(weekPct(m.swap)>=1)return["swap","已替換"];if(m.weeks.some(w=>weekPct(w)>0))return["audit","審查中"];
-  if(weekPct(3)>=1)return["ai","AI 原版"];return["wait","第 3 週交付"]}
+  const dw=m.dw||(m.sys==="VPP"?15:3);if(weekPct(dw)>=1)return["ai","AI 原版"];return["wait","第 "+dw+" 週交付"]}
 function modsHTML(){const st=MODS.map(modState),cnt=k=>st.filter(x=>x[0]===k).length;
   const cards=MODS.map((m,i)=>`<div class="mod ${st[i][0]}"><div class="row" style="gap:6px"><b>${esc(m.name)}</b><span class="pill">${st[i][1]}</span></div>
-    <span class="mono muted" style="font-size:.72rem">${esc(m.path)}</span><span style="font-size:.84rem">${esc(m.desc)}</span>
+    <span class="mono muted" style="font-size:.72rem">${SYSN[m.sys]}・${esc(m.path)}</span><span style="font-size:.84rem">${esc(m.desc)}</span>
     <span style="font-size:.78rem">審查：${m.weeks.map(w=>`<a href="#w${w}">W${w}</a>`).join("、")}・替換：<a href="#w${m.swap}">W${m.swap}</a></span></div>`).join("");
-  return `<details class="card dep"><summary><h2 style="display:inline;font-size:1.15rem">成品 HydroWatch 與 ChannelWatch：逐塊審查與替換</h2> <span class="muted mono" style="font-size:.8rem">${cnt("wait")?"待交付 "+cnt("wait"):"AI 原版 "+cnt("ai")}・審查中 ${cnt("audit")}・已替換 ${cnt("swap")}</span></summary>
-   <div class="dep-body"><p style="margin:0;max-width:70ch">第 3 週會拿到一套由 AI 寫好、能從頭跑到尾的流域降雨、逕流、洪水演算與水庫發電系統 HydroWatch，第 6 週再交付明渠水力學成品 ChannelWatch。之後每學完一塊理論，就用它審查成品的對應模組、找出錯誤、換成你驗證過的版本。成品裡同時有 AI 自然寫錯的地方與刻意埋的錯，答案不放在 repo，每週交接時你先交出找到的錯，再公布答案並計算抓錯率。</p>
+  return `<details class="card dep"><summary><h2 style="display:inline;font-size:1.15rem">兩套成品 HydroWatch 與 VPPWatch：逐塊審查與替換</h2> <span class="muted mono" style="font-size:.8rem">${cnt("wait")?"待交付 "+cnt("wait"):"AI 原版 "+cnt("ai")}・審查中 ${cnt("audit")}・已替換 ${cnt("swap")}</span></summary>
+   <div class="dep-body"><p style="margin:0;max-width:70ch">第 3 週拿到 AI 寫好的流域系統 HydroWatch，第 15 週拿到虛擬電廠系統 VPPWatch，兩套都走完整循環。每個模組固定四步：<b>先預測</b>它該滿足什麼、<b>親手做最小版</b>、拿兩者當基準<b>審查 AI 版</b>、<b>替換並記錄</b>。交付時另一個 agent 在成品裡植入已知錯誤（HydroWatch 41 個、ChannelWatch 11 個，VPPWatch 於 W15 交付時產生），答案卷不放進 repo，存在學習站資料庫裡、頁面不讀取。HydroWatch 前段模組在 W14 揭曉，deploy、api、ops、legacy 與 VPPWatch 在 W26 揭曉，各類抓錯數填進下方計分板。</p>
    <div class="mods">${cards}</div>
    <p class="muted" style="margin:0;font-size:.8rem">狀態依你在本站的勾選自動更新：審查週有進度即「審查中」，替換週全部完成即「已替換」。</p></div></details>`}
 function auditCard(n){const a=AUD[n];if(!a)return"";const m=MODS.find(x=>x.id===a.m);
-  const title=a.m==="*"?"整套成品":`${m.name}（${m.path}）`;
-  return `<section class="card audit"><div class="row"><h3>本週審查成品</h3><span class="tag classic">HydroWatch</span></div>
+  const sys=a.m==="*"?"兩套成品":a.m==="*HW"?"HydroWatch":a.m==="*VPP"?"VPPWatch":SYSN[m.sys];
+  const title=a.m.startsWith("*")?"整套成品":`${m.name}（${m.path}）`;
+  return `<section class="card audit"><div class="row"><h3>本週審查成品</h3><span class="tag classic">${sys}</span></div>
     <p style="margin:0"><b>${esc(title)}</b>：${esc(a.what)}。</p>
-    <p class="muted" style="margin:0;font-size:.84rem">每找到一個錯，記進 <code>audit_log.md</code>：編號、模組、證據（數字、圖或測試）、狀態。先自己找，不要請 AI 幫你找這個模組的錯。</p></section>`}
+    <p class="muted" style="margin:0;font-size:.84rem">順序：先寫下預測、做最小版，再審查 AI 版。每找到一個錯，記進 <code>${n>=15?"audit_log_vpp.md":"audit_log.md"}</code>：編號、模組、類別、證據（數字、圖或測試）、狀態。先自己找，不要請 AI 幫你找這個模組的錯。</p></section>`}
 
 // ======================= 單元連動圖 =======================
 const LINES={batch:{name:"批次與實驗線",col:"var(--buoy)",up:true},solver:{name:"物理與模型線",col:"var(--sea)",up:true},space:{name:"空間與服務線",col:"var(--kelp)",up:false},ops:{name:"資料與維運線",col:"var(--vio)",up:false},verify:{name:"AI 驗證線",col:"var(--miss)",up:false}};
 const DEPS=[
- [1,2,"batch","降雨逕流模型改成命令列工具"],[2,4,"batch","用批次結構掃描 Δx、Δt"],[2,5,"batch","批次結構變成實驗框架"],[5,9,"batch","用實驗框架產生訓練資料"],[5,21,"batch","批次實驗改用 MLflow 記錄"],[5,24,"batch","批次產生拓樸結構"],[24,25,"batch","用資料集訓練生成模型"],
- [4,5,"solver","FDM 延伸到對流與 Burgers"],[1,6,"solver","降雨逕流模型對照實測流量"],[4,6,"solver","收斂測試即 verification"],[4,8,"solver","PINN 與 FDM 比較"],[5,8,"solver","PINN 解對流方程"],[7,8,"solver","訓練迴圈用於 PINN"],[5,9,"solver","Burgers 求解器產生資料"],[7,9,"solver","訓練迴圈用於 FNO"],[6,10,"solver","降雨逕流模型殘差當學習目標"],[9,10,"solver","神經網路修正物理模型"],[4,23,"solver","與 Fortran 版逐行對照"],
- [11,12,"space","在正確座標系做內插"],[12,19,"space","內插包成 API"],[19,20,"space","API 加上測試與 CI/CD"],[9,20,"space","代理模型包成推論服務"],
- [13,14,"ops","ETL 加上品質檢查"],[13,16,"ops","ETL 排程與容器化"],[16,17,"ops","單一容器擴成多服務"],[17,18,"ops","compose 對照 Kubernetes"],[16,20,"ops","CI 建置容器映像"],[14,22,"ops","品質規則變成監控"],[21,22,"ops","實驗紀錄接上編排"],
- [1,3,"verify","用水文知識檢查成品"],[3,15,"verify","整理成品的錯誤紀錄"],[4,15,"verify","數值格式的錯誤案例"],[11,15,"verify","座標轉換的錯誤案例"],[14,15,"verify","統計前提的錯誤案例"],[15,18,"verify","用檢查表審查 manifest"],[15,20,"verify","性質測試接進 CI"],[15,23,"verify","用測試否證 AI 的 Fortran 翻譯"],[3,26,"verify","AI 原版與最終版比較"]];
+ [1,2,"batch","降雨逕流模型改成命令列工具"],[2,4,"batch","用批次結構掃描 Δx、Δt"],[2,5,"batch","批次結構變成實驗框架"],[5,8,"batch","用實驗框架產生代理模型訓練資料"],[2,22,"batch","批次跑最佳化"],[5,25,"batch","批次實驗改用 MLflow 記錄"],
+ [4,5,"solver","FDM 延伸到對流與 Burgers"],[1,6,"solver","降雨逕流模型對照實測流量"],[4,6,"solver","收斂測試即 verification"],[4,8,"solver","PINN 與 FDM 比較"],[7,8,"solver","訓練迴圈用於 PINN 與 FNO"],[6,9,"solver","降雨逕流模型殘差當學習目標"],[8,9,"solver","神經網路修正物理模型"],[9,19,"solver","hybrid 移植到光電"],[4,20,"solver","擴散方程用在貨櫃熱傳導"],[19,22,"solver","光電預測誤差進入投標風險"],[20,22,"solver","衰退模型進入投標"],
+ [10,11,"space","在正確座標系做內插"],[11,19,"space","內插移植到日射量"],[19,24,"space","預測與查詢包成 API"],[11,24,"space","格網查詢端點"],
+ [12,13,"ops","ETL 加上品質檢查"],[12,16,"ops","批次 ETL 延伸到串流"],[16,17,"ops","遙測服務容器化"],[17,18,"ops","單一容器擴成多服務"],[18,23,"ops","compose 對照 Kubernetes"],[13,21,"ops","統計與因果用在需量反應"],[16,21,"ops","用電遙測資料"],[13,25,"ops","品質規則變成監控"],[24,25,"ops","CI 接上編排與監控"],
+ [1,3,"verify","用水文知識檢查成品"],[3,14,"verify","整理 HydroWatch 錯誤紀錄"],[10,14,"verify","座標轉換的錯誤案例"],[13,14,"verify","統計前提的錯誤案例"],[14,15,"verify","檢查表套用到 VPPWatch"],[14,20,"verify","性質測試否證 Fortran 翻譯"],[14,23,"verify","用檢查表審查 manifest"],[14,26,"verify","兩份抓錯率對照"],[15,26,"verify","VPPWatch 原版與最終版比較"]];
 const CATN={start:"起點單元",linked:"連動單元",solo:"獨立單元",sum:"總整理"};
 function depCat(n){if(n===NW)return"sum";const i=DEPS.some(d=>d[1]===n),o=DEPS.some(d=>d[0]===n);return i?"linked":o?"start":"solo"}
 function depMapHTML(){const gap=36,x0=26,y=175,X=n=>x0+(n-1)*gap,Wd=x0*2+(NW-1)*gap,H=360;
@@ -873,7 +965,7 @@ function depMapHTML(){const gap=36,x0=26,y=175,X=n=>x0+(n-1)*gap,Wd=x0*2+(NW-1)*
    <div class="dep-body"><div class="dep-legend"><span><i></i>起點單元</span><span><i class="linked"></i>連動單元</span>${by("solo").length?'<span><i class="solo"></i>獨立單元</span>':""}<span><i class="sum"></i>總整理</span>
     ${Object.values(LINES).map(L=>`<span><b style="background:${L.col}"></b>${L.name}</span>`).join("")}</div>
    <div class="dep-wrap">${svg}</div>
-   <p class="dep-info" id="dep-info">點一個圓圈，看這週需要哪些前面的成果、之後又會被哪幾週用到。弧線在上方是批次、物理與模型兩條線，在下方是空間服務、資料維運與 AI 驗證三條線。成品的審查對照見上方「成品 HydroWatch」。</p>
+   <p class="dep-info" id="dep-info">點一個圓圈，看這週需要哪些前面的成果、之後又會被哪幾週用到。弧線在上方是批次、物理與模型兩條線，在下方是空間服務、資料維運與 AI 驗證三條線。成品的審查對照見上方「兩套成品」。</p>
    <div class="tbl"><table><thead><tr><th>類型</th><th>意思</th><th>單元</th></tr></thead><tbody>
     ${row("start","不需要前面的成果，但後面會用到它的產出")}
     ${row("linked","需要前面某幾週的程式或資料；沒做完時，交接會提供可用版本")}

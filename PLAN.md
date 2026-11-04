@@ -6,12 +6,16 @@
 ## 目前待辦（下次對話先看這裡）
 - **位置**：從第 1 週重新開始（2026-11-03 決定），專案情境為水力工程（2026-11-04）。第 1–3 週的範例程式、`exercises.md`、`notes.md` 題目與 HydroWatch 成品已產出，`sealed-answer-key` 已重建；學習站講解（`site/content/w01–w03.html`）、動畫與計畫資料已同步為水力工程版。
 - **學習站**：追蹤頁勾選以重新開始後的實際進度為準。
+- **計畫第四版（2026-11-04）**：前段 W1–14 HydroWatch（水文）學會方法，後段 W15–26 VPPWatch（虛擬電廠，對準安瑟樂威）再走一次完整循環。週次編號自 W8 起改變，見下方大綱；學習站與本文件已同步。
 - **講解進度**：已有講解、範例、練習的週次為 1–6。其餘 7–26 週待寫。
 - **明天（2026-11-05）待辦**：
   1. 第 7 週（PyTorch autograd 與訓練迴圈）：範例 `week07/`、講解 `site/content/w07.html`、`exercises.md`、`notes.md`；審查 `hydrowatch/model/ml.py` 的標準化、切分與資料洩漏。
-  2. 第 8 週（PINN 與失敗模式）、第 9 週（神經運算元入門）、第 10 週（hybrid），順序同上；torch 已安裝（CPU 版）。
-  3. 每週寫完後：跑範例確認數字、更新 `site/index.html` 的 `content` 欄位、重新發布學習站、commit 與 push。
-  4. 未完成的先留在下面的「待辦（依序）」。
+  2. 第 8 週（PINN 與失敗模式，延伸最小版 FNO）、第 9 週（hybrid），順序同上；torch 已安裝（CPU 版）。
+  3. 每個模組的講解都照四步寫：先預測該滿足什麼 → 親手做最小版 → 拿前兩步當基準審查 AI 版 → 替換並記錄。
+  4. 第 1–14 週的講解頁要附「本週小基建任務」（資料在 `site/index.html` 的 `INF` 陣列）。
+  5. 每週寫完後：跑範例確認數字、更新 `site/index.html` 的 `content` 欄位、重新發布學習站、commit 與 push。
+  6. 未完成的先留在下面的「待辦（依序）」。
+  7. W15–26 的閱讀連結是依記憶填入、尚未上網確認（特別是台電電力交易平台網址），寫該週講解時先查證。W3、W6 講解內文仍是舊週次編號，寫到時順手修正。
 - **待辦（依序）**：
   1. 套件已核准安裝（torch、scipy、shapely、scikit-learn、fastapi、uvicorn、httpx、mlflow、optuna、pymoo）；裝好後寫第 7–12 週、第 24–25 週。Prefect 與 DVC 另行評估。
   2. 目前環境就能寫的週次：13、14、15、23、26（pandas、pytest、gfortran 都有）。
@@ -50,7 +54,7 @@
   - 原始碼在 repo 的 `site/`：`index.html`（26 週資料、進度、動畫引擎）＋ `content/wNN.html`（每週講解片段）。
   - 發布：Artifact publish，`url` 為上述網址，`file_path` = `site/index.html`，`files` 帶上所有 `content/wNN.html`。
   - 新增一週講解：依「理論與示範 → 例題 → 變化題 → 回答大問題」寫 `site/content/wNN.html`（大問題在 `Q` 陣列），在 `index.html` 的 `W[NN-1]` 加上 `content:"content/wNN.html"`，需要新動畫就加進 `ANIMS`，然後重新發布。
-  - db：collection `data/users/me`，doc `progress`。欄位：`start`、`done`（key `w{週}d{日}c` 練習、`w{週}d{日}p` 閱讀）、`notes`（`w{週}` → `{paper, fail}`）、`track`（舊欄位，保留不用）。
+  - db：collection `data/users/me`，doc `progress`。欄位：`start`、`done`（key `w{週}d{日}c` 練習、`w{週}d{日}p` 閱讀、`w{週}inf` 小基建任務、`iv-q{n}` 面試題）、`notes`（`w{週}` → `{paper, fail}`）、`ev`（證據庫陣列：`kind` 為 ai／adr／exp，另有 `title`、`cat`、`sys`、`week` 等欄位）、`score`（計分板：`hw`／`vpp` → `num`／`phys`／`infra` → `[抓到, 植入]`）、`track`（舊欄位，保留不用）。
   - 讀取：ArtifactData `get`，url 如上，collection `data/users/me`，doc_id `progress`。
 - **GitHub repo（正本）**：https://github.com/archi9882/SciML
   - `weekNN/`：範例程式與 `exercises.md`（Claude 放）＋學習者的 `notes.md` 與練習
@@ -61,40 +65,42 @@
   - `backups/progress.md`：學習站進度備份
 - 開始日 2026-10-27。每週 6 天練習＋閱讀（第 6 天為本週產出），第 7 天休息。
 
-## 26 週大綱（2026-11-03 第三版：AI 先交成品，再逐塊拆解）
+## 26 週大綱（2026-11-04 第四版：HydroWatch 學方法，VPPWatch 再走一次）
 
-**方法**：第 1–2 週打底；第 3 週由 Claude 交付一套完整、能從頭跑到尾的流域降雨、逕流、洪水演算與水庫發電系統 **HydroWatch**（AI 原版）。
-之後每個單元固定四步：學理論 → 審查成品的對應模組、找錯並寫證據 → 換成學習者自己驗證過的版本 → 確認整套系統仍能跑。
-第 26 週把 AI 原版與最終版並排，附錯誤紀錄與抓錯率，作為作品集主軸。原第 23 週「最佳化回顧」拿掉以維持 26 週：Optuna 併入第 21 週，NSGA-II 併入第 24 週（拓樸最佳化的多目標權衡）。
+**方法**：第 1–2 週打底；第 3 週交付 AI 寫好的 **HydroWatch**（W6 另交付 **ChannelWatch**），第 15 週交付虛擬電廠成品 **VPPWatch**。
+每個模組固定四步：**先預測**它該滿足什麼 → **親手做最小版** → 拿前兩步當基準**審查 AI 版**、找錯並寫證據 → **替換並記錄**，確認整套系統仍能跑。
+W14 揭曉 HydroWatch 前段模組的答案卷，W26 揭曉 VPPWatch 與 HydroWatch 後段模組（deploy、api、ops、legacy），兩份抓錯率並排比較，作為作品集主軸。
+第三版到第四版拿掉的：ChannelWatch 的獨立審查週（併入 W6、W14）、W24–25 生成式設計選修、FNO 獨立週（併入 W8）。
+前段 W1–14 每週另有一項約 30 分鐘的小基建任務（`INF` 陣列）。
 
 | 階段 | 週 | 主題 | 審查成品的模組 | 閱讀 |
 |---|---|---|---|---|
 | A 打底 | 1 | 讀懂資料處理程式：降雨逕流時間序列 | — | Kratzert 2019 HESS（經典） |
 | | 2 | 命令列參數與第一個批次工作 | — | Shen 2023 Nat Rev Earth Env |
-| S AI 成品交付 | 3 | 跑起來、畫架構圖、建立 `audit_log.md` | 全系統（只看輸入輸出） | Sculley 2015 NeurIPS（經典） |
-| B 數值方法與物理判斷 | 4 | FDM 1D 擴散：穩定性、收斂、顯式與隱式格式的選擇、批次掃描 | transport（穩定條件） | Karniadakis 2021 Nat Rev Phys |
-| | 5 | 對流與 Burgers＋可重現實驗框架；失敗報告 #1 | transport（數值擴散、邊界）→ **替換** | Raissi 2019 PINN（經典） |
-| | 6 | 模式驗證 V&V：實測流量的率定與驗證、誤差預算 | runoff、reservoir → **替換** | Oberkampf & Trucano 2002（經典） |
-| | 7 | PyTorch autograd 與神經網路訓練 | ml（訓練迴圈、資料洩漏） | Cuomo 2022 PINN 綜述 |
-| | 8 | PINN 解擴散與對流，β 掃描；失敗報告 #2 | 判斷題：成品為何不用 PINN | Krishnapriyan 2021 NeurIPS |
-| B2 神經網路與 hybrid | 9 | 神經運算元入門：最小版 FNO 代理模型 | ml（代理模型評估） | Li 2021 FNO |
-| | 10 | Hybrid：物理模型＋ML 殘差修正 | ml → **替換** | Willard 2022 ACM CSUR |
-| C 空間資訊與地理統計 | 11 | 計算幾何、拓撲、座標系統、mesh | spatial（座標、分割） | SciPy spatial、Shapely 官方文件 |
-| | 12 | 空間內插（IDW、克利金、spline）與假設 | spatial → **替換** | Li & Heap 2014 EMS |
-| D ETL 與資料工程 | 13 | 異質多源資料 ETL | ingest → **替換** | pandas time series 官方文件 |
-| | 14 | 資料品質、統計前提、因果與實驗設計；失敗報告 #3 | quality → **替換** | Breck 2019 MLSys |
-| V AI 協作與驗證 | 15 | 系統性否證 AI：錯誤分類、性質測試、檢查表 | 全系統掃描 | Zhang 2024 LLM 程式幻覺 |
-| E 自有基礎建設 | 16 | Linux 服務＋Docker 容器化 | deploy（Dockerfile） | Docker 官方文件、MIT Missing Semester |
-| | 17 | docker compose 多服務；PaaS/CaaS/FaaS 決策；自動維運與 runbook | deploy（compose、架構選擇） | The Twelve-Factor App |
-| | 18 | Kubernetes manifest、10 倍擴展；失敗報告 #4 | deploy → **替換** | Kubernetes config best practices |
-| F REST API 與模型服務 | 19 | FastAPI 格網查詢 API | api（介面、錯誤處理） | FastAPI 官方教學 |
-| | 20 | 模型服務化、pytest、GitHub Actions CI/CD | api、ops（CI）→ api **替換** | GitHub Actions 官方文件 |
-| G MLOps 工具鏈 | 21 | MLflow、DVC、Optuna 調參 | ops（實驗追蹤） | MLflow 官方文件、Akiba 2019 Optuna |
-| | 22 | Prefect 編排、監控、漂移偵測 | ops → **替換** | Rabanser 2019 NeurIPS |
-| H Legacy 科學程式碼 | 23 | 讀 Fortran 求解器、OpenMP | legacy（AI 翻譯）→ **替換** | fortran-lang 官方教學 |
-| J 選修：生成式設計 | 24 | SIMP 拓樸最佳化資料集＋NSGA-II 多目標權衡 | — | Mazé & Ahmed 2023 AAAI、Deb 2002 |
-| | 25 | 生成模型與物理檢驗；失敗報告 #5 | — | Giannone 2023 |
-| K 作品集與面試 | 26 | AI 原版 vs 最終版、抓錯率、模擬面試 | 全系統比較 | Rules of ML（Google） |
+| S HydroWatch 交付 | 3 | 跑起來、畫架構圖、建立 `audit_log.md` | 全系統（只看輸入輸出） | Sculley 2015 NeurIPS（經典） |
+| B 數值方法與物理判斷 | 4 | FDM 1D 擴散：穩定性、收斂、顯式與隱式 | routing（穩定條件） | Karniadakis 2021 Nat Rev Phys |
+| | 5 | 對流與 Burgers＋可重現實驗框架；失敗報告 #1 | routing → **替換** | Raissi 2019 PINN（經典） |
+| | 6 | 模式驗證 V&V；交付 ChannelWatch | runoff、reservoir、channel → **替換** | Oberkampf & Trucano 2002（經典） |
+| B2 神經網路與 hybrid | 7 | PyTorch autograd 與訓練迴圈 | ml（訓練迴圈、資料洩漏） | Cuomo 2022 PINN 綜述 |
+| | 8 | PINN 失敗模式；延伸：最小版 FNO 代理模型；失敗報告 #2 | ml（代理模型評估） | Krishnapriyan 2021、Li 2021 FNO |
+| | 9 | Hybrid：物理模型＋ML 殘差修正 | ml → **替換** | Willard 2022 ACM CSUR |
+| C 空間資訊與地理統計 | 10 | 計算幾何、拓撲、座標系統 | spatial（座標、分割） | SciPy spatial、Shapely 官方文件 |
+| | 11 | 空間內插（IDW、克利金、spline）與假設 | spatial → **替換** | Li & Heap 2014 EMS |
+| D 資料工程與統計 | 12 | 異質多源資料 ETL | ingest → **替換** | pandas time series 官方文件 |
+| | 13 | 資料品質、統計前提、因果與實驗設計；失敗報告 #3 | quality → **替換** | Breck 2019 MLSys |
+| V 否證 AI 與計分 | 14 | 錯誤分類、prompt 策略、性質測試、檢查表；**揭曉前段答案卷** | HydroWatch＋ChannelWatch 全系統 | Zhang 2024、Jia & Harman 2011（經典） |
+| P VPPWatch 交付與串流 | 15 | VPPWatch 交付與植錯；讀台電即時備轉與需量反應規則 | 全系統（第一輪掃描） | 台電電力交易平台 |
+| | 16 | 串流遙測：MQTT、TimescaleDB | telemetry → **替換** | MQTT 5.0 規格 |
+| E 自有基礎建設 | 17 | Linux 服務、Docker、備份與還原演練 | VPP deploy＋HW deploy（Dockerfile） | Docker 官方文件、MIT Missing Semester |
+| | 18 | compose 多服務；自架或託管 ADR；runbook | VPP deploy＋HW deploy（compose） | The Twelve-Factor App |
+| M 能源模型與市場 | 19 | 光電物理、hybrid、日射量內插（移植前段方法） | pv → **替換** | Holmgren 2018 pvlib JOSS |
+| | 20 | 儲能 SoC、貨櫃 2D 熱傳導；Fortran 參考實作；失敗報告 #4 | storage、HW legacy → **替換** | LeVeque 2007、fortran-lang |
+| | 21 | 需量反應基準負載的因果實驗 | dr → **替換** | Abadie 2010 JASA（經典） |
+| | 22 | 儲能日前投標：NSGA-II 三目標 | bid → **替換** | Xu 2018 TPWRS、Deb 2002 |
+| O 平台、服務與維運 | 23 | K8s manifest、10 倍壓力測試、故障演練 | VPP deploy＋HW deploy（k8s）→ **替換** | Kubernetes config、Google SRE postmortem |
+| | 24 | REST API、模型服務化、CI/CD | VPP api＋HW api、CI → **替換** | FastAPI、GitHub Actions 官方文件 |
+| | 25 | MLflow、DVC、Prefect、漂移偵測 | VPP ops＋HW ops → **替換** | MLflow 官方文件、Rabanser 2019 |
+| K 作品集與面試 | 26 | **揭曉後段答案卷**，兩份抓錯率並排；模擬面試 | 全系統比較 | Rules of ML（Google） |
 
 成品模組、審查週與替換週的對照寫在 `site/index.html` 的 `MODS` 與 `AUD`。
 單元之間的依賴（哪些週要用到前面的成果）畫在學習站首頁的「單元連動圖」，資料在 `site/index.html` 的 `DEPS`。
@@ -104,6 +110,8 @@
 - **交付時機**：第 2 週交接時由 Claude 產生，放在 repo 的 `hydrowatch/`、`deploy/`、`legacy/`、`.github/`（成品的 CI），附 README 與 `audit_log.md` 模板。
 - **錯誤來源**：AI 自然寫錯的地方＋刻意埋的錯（單位、時區、投影、穩定條件、資料洩漏、統計前提、Dockerfile／manifest 地雷、Fortran 翻譯錯等），難度由淺到深，對應各審查週。
 - **答案保管**：埋錯清單**不得**寫進 repo、PLAN.md、專案文件或任何學習者會打開的檔案。存在學習站 db：collection `data/users/me`，doc `sealed-answer-key`（頁面不讀取、不顯示）。用 ArtifactData `get` 讀取。
+- **VPPWatch**：第 15 週交接時由 Claude 產生，放在 repo 的 `vppwatch/`，另由獨立 agent 植入數值、物理、基建三類錯誤；埋錯清單存入學習站 db 的 `sealed-answer-key-vpp`，規則同上。學習者的錯誤紀錄寫在 `audit_log_vpp.md`。
+- **計分**：揭曉後把各類「抓到／植入」填進學習站首頁的抓錯率計分板（db `progress.score`）。
 - **批改**：交接時學習者先交出 `audit_log.md` 裡找到的錯，Claude 再讀答案、只公布該週模組的部分，記錄抓錯率（已找到／該模組埋錯數，另計 AI 自然錯誤）。
 
 ## 每週交接流程
@@ -114,6 +122,7 @@
 5. 更新 `backups/progress.md`、本文件「目前待辦」與「進度紀錄」，同步到專案文件。
 
 ## 進度紀錄
+- 2026-11-04：計畫第四版。前段 W1–14 HydroWatch、後段 W15–26 VPPWatch（虛擬電廠，對準安瑟樂威），兩套都走「預測 → 最小版 → 審查 → 替換」。W8 併入 FNO、拿掉 W24–25 生成式設計選修；新增 W15 VPPWatch 交付、W16 串流遙測、W19 光電、W20 儲能與熱傳導、W21 需量反應因果、W22 NSGA-II 投標、W23 壓測與故障演練。學習站首頁新增職缺覆蓋度矩陣、抓錯率計分板、證據庫（AI 錯誤、ADR、實驗）、面試題庫；W1–14 每週加小基建任務。HydroWatch 的 deploy、api、ops、legacy 改在後段與 VPPWatch 同週審查，答案於 W26 揭曉。
 - 2026-10-27：計畫建立。
 - 2026-10-27：建立 GitHub repo archi9882/SciML 作為正本；開始日提前至當天。
 - 2026-10-28：追蹤頁加入「本週管制熱圖」；`papers/*.pdf` 加入 .gitignore。
