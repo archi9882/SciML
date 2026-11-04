@@ -36,10 +36,10 @@ pytest                      # 跑測試</code></pre></div>
   <h3 data-day="4"><span class="day-mark">Day 4</span>4. 用已知答案做第一次檢查</h3>
   <p>不需要看懂程式，只要有一個「答案已知」的東西，就能對一次。這套系統裡你已經知道的有：</p>
   <div class="tbl"><table><thead><tr><th>已知答案</th><th>來源</th><th>怎麼檢查</th></tr></thead><tbody>
-    <tr><td>水量平衡：流出水量 ≈ C × 降雨水量</td><td>第 1 週</td><td>用降雨總量、流域面積與逕流係數算一次，對照 report.json</td></tr>
+    <tr><td>水量平衡：\(V_\text{out} \approx C \times V_\text{rain}\)</td><td>第 1 週</td><td>用降雨總量、流域面積與逕流係數算一次，對照 report.json</td></tr>
     <tr><td>雨量與流量的合理範圍；單位是 mm 與 m³/s</td><td>你的專業</td><td>看每個測站的數值範圍與單位</td></tr>
     <tr><td>鄰近雨量站的降雨，時間上應該大致同步</td><td>你的專業</td><td>把各雨量站畫在同一張圖上比較</td></tr>
-    <tr><td>發電功率 P = ρgQHη 的量級（小水力電廠常見為數 MW）</td><td>水力學</td><td>用流量與水頭手算，對照 report.json</td></tr>
+    <tr><td>發電功率 \(P = \rho g Q H \eta\) 的量級（小水力電廠常見為數 MW）</td><td>水力學</td><td>用流量與水頭手算，對照 report.json</td></tr>
     <tr><td>資料的格式與單位</td><td><code>hydrowatch/sample_data/README.md</code></td><td>對照資料說明與程式怎麼讀它</td></tr>
   </tbody></table></div>
 

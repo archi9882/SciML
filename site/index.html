@@ -351,6 +351,11 @@ details.hint p{margin:0}
 @keyframes bugflip{from{transform:rotateY(90deg)}to{transform:none}}
 .bug-list{margin:8px 0 0;padding-left:1.1em;display:grid;gap:4px;font-size:.86rem}
 @media (prefers-reduced-motion:reduce){.sx .mg *,.bug{animation:none!important}}
+/* 數學式 */
+.lesson .eq-m{background:var(--code-bg);color:var(--code-ink);border-radius:6px;padding:10px 14px;display:grid;gap:6px;overflow-x:auto;max-width:100%}
+.lesson .eq-m p{margin:0}
+mjx-container[display="true"]{margin:.25em 0!important;max-width:100%;overflow-x:auto;overflow-y:hidden}
+mjx-container{color:inherit}
 </style>
 
 <div class="app">
@@ -373,6 +378,8 @@ details.hint p{margin:0}
   </div>
 </div>
 
+<script>window.MathJax={tex:{inlineMath:[["\\(","\\)"]],displayMath:[["\\[","\\]"]]},svg:{fontCache:"global"},options:{enableMenu:false,skipHtmlTags:["script","noscript","style","textarea","pre","code"]}};</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.js" async></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <script>
 // ======================= 課程資料 =======================
@@ -442,7 +449,7 @@ const AUD={
 const INF=["在 Linux 或 WSL 建立專案資料夾，用 Git 管理並推上 GitHub","用 cron 每天定時跑一次 batch.py，用 tail 看 log","用 docker compose 把 HydroWatch 起起來，用 docker ps、docker logs 看狀態","把求解器包成容器，用命令列參數執行","批次掃描改成在容器裡跑，結果掛載回主機","寫一支每日備份 runs/ 的腳本，實際演練一次還原","用 docker stats 觀察訓練時的 CPU 與記憶體","限制容器記憶體，讓訓練故意被 OOM 中止，讀懂錯誤訊息","用 systemd timer 取代 cron，比較兩者的除錯方式","在容器裡安裝 pyproj 與 GDAL，比較不同基底映像的大小","內插程式加上健康檢查端點，用 curl 測試","ETL 改用 docker compose 加上 PostgreSQL","品質檢查失敗時寫入日誌並發出通知","請 AI 產生一份 docker-compose，找出至少 3 個地雷並記進證據庫"];
 const W=[
  {st:"降雨逕流時間序列",t:"用 AI 協作讀懂一支資料處理程式：降雨逕流時間序列",g:"讀懂一支 100 行的資料處理程式：每個數字的單位、每段在做什麼、改哪裡會影響什麼。開始用 Git 記錄進度。",sk:["AI 驗證","資料分析"],
-  d:["理論 1：跑程式，拿輸出對退水與水量平衡的理論值","理論 2–3：時間單位與 seed（寫 seed_check.py 驗證）","理論 4＋例題：resample 與退水檢查，拆解 4.6% 差距的來源","變化 1、2：k 與步長越來越近；讓 AI 改取樣再用理論抓錯","變化 3：自己寫 find_storms()，再用雜訊讓它失敗"],s:"回答大問題：這支程式算出來的洪峰流量可信嗎（notes＋README 一張圖）；閱讀摘要",
+  d:["理論 1：跑程式，拿輸出對退水與水量平衡的理論值","理論 2–3：時間單位與 seed（寫 seed_check.py 驗證）","理論 4＋例題：resample 與退水檢查，拆解 4.6% 差距的來源","變化 1、2：\\(k\\) 與步長越來越近；讓 AI 改取樣再用理論抓錯","變化 3：自己寫 find_storms()，再用雜訊讓它失敗"],s:"回答大問題：這支程式算出來的洪峰流量可信嗎（notes＋README 一張圖）；閱讀摘要",
   r:R("paper","Towards learning universal, regional, and local hydrological behaviors via machine learning applied to large-sample datasets","Kratzert et al.",2019,"HESS","https://doi.org/10.5194/hess-23-5089-2019",1),why:"同樣是水文時間序列，看 LSTM 如何在 531 個集水區超越傳統模式。",content:"content/w01.html"},
  {st:"命令列與批次",t:"命令列參數與第一個批次工作",g:"把「改常數再手動跑」變成「用參數呼叫程式、批次執行、自動彙整」。這是排程、容器、API、MLOps 的共同起點。",sk:["基礎建設","AI 驗證"],
   d:["理論 1：讀 runoff_cli.py，參數與結束碼，先預測再執行","理論 2：驗證單位陷阱已修正（10min vs 30min）","理論 3–4：批次四步驟、冪等跳過、管線檢查","例題：加入 noise 維度，預測組數與列數，找出新舊結果混在一起的原因","變化 1–3：分離偏差來源、失敗也要跑完、抓 AI 檢查腳本的錯"],s:"回答大問題：批次流程圖與說明；閱讀摘要",
@@ -451,19 +458,19 @@ const W=[
   d:["clone 成品，照 README 在本機跑起來；遇到錯誤先自己讀錯誤訊息","畫架構圖：資料從哪來、經過哪些模組、輸出到哪裡","為每個模組寫一行：輸入、輸出、你猜它可能出錯的地方","用已知答案做第一次檢查：水量平衡、退水常數、雨量單位與時區、發電功率量級","建立錯誤紀錄表 audit_log.md：編號、模組、證據、狀態"],s:"架構圖＋錯誤紀錄表初版；閱讀摘要",
   r:R("paper","Hidden Technical Debt in Machine Learning Systems","Sculley et al.",2015,"NeurIPS","https://proceedings.neurips.cc/paper/2015/file/86df7dcfd896fcaf2674f757a2463eba-Paper.pdf",1),why:"說明 ML 系統裡模型只佔一小塊，其餘的資料、設定、監控才是出錯的大宗，正好對照你畫的架構圖。",content:"content/w03.html"},
  {st:"FDM 擴散方程",t:"有限差分解 1D 擴散方程",g:"理解網格、時間步長、穩定性與誤差，比較顯式與隱式格式並學會依問題選求解策略，再用這些知識審查成品的求解器。",sk:["物理判斷"],
-  d:["讀範例 FTCS 求解器，逐行對照方程式","與解析解比較，畫誤差隨時間變化","增大 Δt 讓計算爆掉，找出穩定條件 r = αΔt/Δx² ≤ 0.5","用第 2 週的批次結構掃描 Δx、Δt，比較顯式（FTCS）與隱式（backward Euler）：畫收斂與穩定區圖，寫下什麼情況選哪一種","審查成品求解器：對流加擴散的組合穩定條件是否滿足，寫下證據"],s:"一頁「穩定性與誤差」筆記＋收斂圖；閱讀摘要",
+  d:["讀範例 FTCS 求解器，逐行對照方程式","與解析解比較，畫誤差隨時間變化","增大 \\(\\Delta t\\) 讓計算爆掉，找出穩定條件 \\(r = \\alpha\\,\\Delta t/\\Delta x^2 \\le 0.5\\)","用第 2 週的批次結構掃描 \\(\\Delta x\\)、\\(\\Delta t\\)，比較顯式（FTCS）與隱式（backward Euler）：畫收斂與穩定區圖，寫下什麼情況選哪一種","審查成品求解器：對流加擴散的組合穩定條件是否滿足，寫下證據"],s:"一頁「穩定性與誤差」筆記＋收斂圖；閱讀摘要",
   r:R("paper","Physics-informed machine learning","Karniadakis et al.",2021,"Nature Reviews Physics","https://doi.org/10.1038/s42254-021-00314-5"),why:"PIML 最常被引用的綜述，建立「物理 vs 資料」的整體地圖。",content:"content/w04.html"},
  {st:"對流與 Burgers",t:"1D 對流與 Burgers 方程：數值失真與可重現實驗",g:"看到數值擴散與激波；把求解器包成 solve(params) → 結果，系統性掃描參數；用自己的求解器換掉成品的版本。",sk:["物理判斷","資料分析"],
-  d:["upwind 格式解 1D 對流，觀察波形被抹平","Burgers 方程：看激波如何形成，改變黏滯係數 ν","把求解器包成 solve(params) → 結果，設定與結果一起存","批次掃描 CFL 與 ν，自動產生總覽圖","審查成品的數值擴散與邊界條件，換成你的求解器"],s:"失敗案例報告 #1＋成品求解器替換紀錄；閱讀摘要",
+  d:["upwind 格式解 1D 對流，觀察波形被抹平","Burgers 方程：看激波如何形成，改變黏滯係數 \\(\\nu\\)","把求解器包成 solve(params) → 結果，設定與結果一起存","批次掃描 CFL 與 \\(\\nu\\)，自動產生總覽圖","審查成品的數值擴散與邊界條件，換成你的求解器"],s:"失敗案例報告 #1＋成品求解器替換紀錄；閱讀摘要",
   r:R("paper","Physics-informed neural networks: A deep learning framework for solving forward and inverse problems involving nonlinear PDEs","Raissi, Perdikaris, Karniadakis",2019,"J. Comput. Phys.","https://arxiv.org/abs/1711.10561",1),why:"PINN 原始論文，Burgers 方程正是本週主角，第 8 週會用到。",content:"content/w05.html"},
  {st:"模式驗證",t:"模式驗證：用實測資料檢驗模擬",g:"區分 verification（程式算對了嗎）與 validation（模型描述的是真實嗎），用實測流量檢驗降雨逕流模型並建立誤差預算，並審查水庫發電量與第二個成品 ChannelWatch 的水位流量曲線。",sk:["物理判斷","資料分析"],
-  d:["Verification vs Validation：用第 4 週的收斂測試做 verification","用實測流量率定降雨逕流模型的 k 與 C，用 NSE 評分","水位流量曲線：由實測的水位與流量擬合 Q = a h^b，外插的風險","誤差預算：雨量量測、流量曲線、模型結構與數值誤差各佔多少","審查成品：率定是否拿同一份資料評分、水庫發電量的單位與水量守恆、ChannelWatch 的 Manning 與水位流量曲線"],s:"驗證報告：模型的可信範圍（一頁）；閱讀摘要",
+  d:["Verification vs Validation：用第 4 週的收斂測試做 verification","用實測流量率定降雨逕流模型的 \\(k\\) 與 \\(C\\)，用 NSE 評分","水位流量曲線：由實測的水位與流量擬合 \\(Q = a\\,h^b\\)，外插的風險","誤差預算：雨量量測、流量曲線、模型結構與數值誤差各佔多少","審查成品：率定是否拿同一份資料評分、水庫發電量的單位與水量守恆、ChannelWatch 的 Manning 與水位流量曲線"],s:"驗證報告：模型的可信範圍（一頁）；閱讀摘要",
   r:R("paper","Verification and validation in computational fluid dynamics","Oberkampf & Trucano",2002,"Progress in Aerospace Sciences","https://sandia.gov/research/publications/details/verification-and-validation-in-computational-fluid-dynamics-2002-03-01",1),why:"V&V 的經典定義與流程，職缺說的「用即時觀測驗證」就是 validation。",content:"content/w06.html"},
  {st:"PyTorch 基礎",t:"PyTorch 基礎：autograd 與神經網路訓練",g:"親手寫出神經網路的訓練迴圈，理解自動微分，再審查成品的訓練程式。",sk:["ML 訓練"],
   d:["autograd：算 sin(x) 的導數並驗證等於 cos(x)","用小型 MLP 擬合 sin(x)","故意過擬合與欠擬合，觀察訓練／測試誤差","逐行理解訓練迴圈：forward、loss、backward、step","審查成品的訓練迴圈：正規化、時間序列切分、資料洩漏"],s:"訓練迴圈註解版筆記；閱讀摘要",
   r:R("paper","Scientific Machine Learning through Physics-Informed Neural Networks: Where we are and What's next","Cuomo et al.",2022,"J. Sci. Comput.","https://arxiv.org/abs/2201.05624"),why:"PINN 綜述，依方程類型分類，方便對照練習。"},
  {st:"PINN 與代理模型",t:"PINN 解擴散與對流並讓它失敗；延伸：代理模型何時值得",g:"用 PINN 解第 4、5 週的同一批問題，與 FDM 直接比較，找出 PINN 失敗的條件；再用最小版 FNO 判斷代理模型何時值得取代求解器。",sk:["物理判斷","ML 訓練"],
-  d:["讀 PINN 範例：loss 拆成 PDE、初始條件、邊界條件三項","PINN 解 1D 擴散，與第 4 週 FDM 比較誤差與時間","PINN 解 1D 對流，β 從 1 批次掃到 40，找出失敗臨界點","延伸：用第 5 週求解器產生資料訓練最小版 FNO，看最差案例而不只看平均誤差","審查成品的代理模型：測試集是否在訓練範圍外；判斷成品為什麼沒有用 PINN"],s:"失敗案例報告 #2；閱讀摘要",
+  d:["讀 PINN 範例：loss 拆成 PDE、初始條件、邊界條件三項","PINN 解 1D 擴散，與第 4 週 FDM 比較誤差與時間","PINN 解 1D 對流，\\(\\beta\\) 從 1 批次掃到 40，找出失敗臨界點","延伸：用第 5 週求解器產生資料訓練最小版 FNO，看最差案例而不只看平均誤差","審查成品的代理模型：測試集是否在訓練範圍外；判斷成品為什麼沒有用 PINN"],s:"失敗案例報告 #2；閱讀摘要",
   r:R("paper","Characterizing possible failure modes in physics-informed neural networks","Krishnapriyan et al.",2021,"NeurIPS","https://arxiv.org/abs/2109.01050"),
   src:[R("paper","Fourier Neural Operator for Parametric Partial Differential Equations","Li et al.",2021,"ICLR","https://arxiv.org/abs/2010.08895")],why:"本週要重現的失敗實驗，論文有公開程式碼可對照；FNO 原始論文同樣以 Burgers 方程示範。"},
  {st:"Hybrid 模型",t:"Hybrid 模型：物理模式加上機器學習修正",g:"在物理模型上用 ML 修正殘差，系統性比較 physics-based、data-driven、hybrid 三種做法，並換掉成品的殘差修正模組。",sk:["物理判斷","ML 訓練"],
@@ -645,6 +652,7 @@ function renderHome(){const pos=todayPos();let today="";
   ${evidenceHTML()}
   ${interviewHTML()}
   ${sourcesHTML(W.map((_,i)=>i+1),"全部參考來源")}`;
+  tex($("#main"));
   $("#start-date").addEventListener("change",e=>{if(e.target.value){state.start=e.target.value;persist();render()}})}
 
 function renderHeat(w){let h=`<div class="heat-grid"><div></div>`;
@@ -711,7 +719,7 @@ const lessonCache=new Map();let mounted=[];
 async function loadLesson(n){const w=W[n-1],el=$("#lesson");
   try{let html=lessonCache.get(n);if(!html){const res=await fetch(w.content,{cache:"no-cache"});if(!res.ok)throw new Error(res.status);html=await res.text();lessonCache.set(n,html)}
     if(view.kind!=="week"||view.n!==n)return;
-    el.innerHTML=html;decorateCode(el);mountAnims(el)}
+    el.innerHTML=html;decorateCode(el);mountAnims(el);tex(el)}
   catch(e){el.innerHTML=`<div class="callout trap"><b>講解載入失敗</b><p>請用學習站的 claude.ai 連結開啟。若在本機開啟 repo 的 <code>site/index.html</code>，請先在 <code>site/</code> 資料夾執行 <code>python -m http.server</code>，再開 <code>http://localhost:8000</code>。</p></div>`+outline(n)}}
 function decorateCode(root){root.querySelectorAll(".code pre code").forEach(c=>{try{if(window.hljs)hljs.highlightElement(c)}catch(e){}});
   root.querySelectorAll(".code").forEach(box=>{if(box.querySelector(".cp"))return;const b=document.createElement("button");b.className="cp";b.type="button";b.textContent="複製";
@@ -721,13 +729,14 @@ function decorateCode(root){root.querySelectorAll(".code pre code").forEach(c=>{
 function unmountAnims(){mounted.forEach(f=>{try{f()}catch(e){}});mounted=[]}
 function mountAnims(root){root.querySelectorAll("[data-anim]").forEach(el=>{const f=ANIMS[el.dataset.anim];if(f){try{const off=f(el);if(off)mounted.push(off)}catch(e){el.textContent="動畫載入失敗："+e.message}}})}
 
+function tex(el){try{const M=window.MathJax;if(M&&M.typesetPromise)M.typesetPromise(el?[el]:undefined).catch(()=>{})}catch(e){}}
 function refreshProgress(){renderStats();renderSide();
   if(view.kind==="week"){const h=$("#heat");if(h)h.innerHTML=renderHeat(view.n);
     const d=$("#days");if(d)d.innerHTML=renderDays(view.n,!!W[view.n-1].content)}
-  else renderHome()}
+  else renderHome();tex($("#main"))}
 function route(){const m=location.hash.match(/^#w(\d{1,2})$/);const n=m?+m[1]:0;
   if(n>=1&&n<=NW)view={kind:"week",n};else view={kind:"home"}}
-function render(){unmountAnims();route();renderStats();renderSide();if(view.kind==="week")renderWeek(view.n);else renderHome();window.scrollTo(0,0)}
+function render(){unmountAnims();route();renderStats();renderSide();if(view.kind==="week")renderWeek(view.n);else renderHome();tex($("#main"));window.scrollTo(0,0)}
 
 // ---------- 事件 ----------
 document.addEventListener("change",e=>{const t=e.target;
@@ -784,8 +793,8 @@ const ANIMS={
  // 1. 退水：雨停後以 e 的指數衰退
  "recession"(host){host.innerHTML="";
   host.append(el("div",{class:"a-title"},"線性水庫：雨停後，流量以 e 的指數衰退"));
-  const ctl=el("div",{class:"ctl"},`<label>退水常數 k <input type="range" id="rc-k" min="0.3" max="6" step="0.1" value="1.2"> <span class="mono" id="rc-kv">1.2</span> 小時</label>`);
-  const box=el("div"),read=el("div",{class:"read"}),cap=el("p",{class:"cap"},"1 小時的降雨之後，流量先升後降。雨停後每經過 k 小時，（流量 − 基流）剩原來的 1/e ≈ 36.8%。k 越大，洪峰越低、退水越慢，總水量不變。");
+  const ctl=el("div",{class:"ctl"},`<label>退水常數 \\(k\\) <input type="range" id="rc-k" min="0.3" max="6" step="0.1" value="1.2"> <span class="mono" id="rc-kv">1.2</span> 小時</label>`);
+  const box=el("div"),read=el("div",{class:"read"}),cap=el("p",{class:"cap"},"1 小時的降雨之後，流量先升後降。雨停後每經過 \\(k\\) 小時，\\(Q - Q_\\text{base}\\) 剩原來的 \\(1/e \\approx 36.8\\%\\)。\\(k\\) 越大，洪峰越低、退水越慢，總水量不變。");
   host.append(ctl,box,read,cap);const cv=canvas(box,230);let k=1.2;
   function draw(){const cl=C(),b=cv.size(),ctx=cv.ctx;const f=frame(ctx,b,{x0:0,x1:12,y0:0,y1:45,xt:[0,2,4,6,8,10,12],yt:[0,10,20,30,40],yl:"流量 [m³/s]",xl:"小時"});
     const dt=.02,data=simQ(pulse(40),k,dt,12,true);
@@ -805,7 +814,7 @@ const ANIMS={
   host.append(el("div",{class:"a-title"},"取樣頻率改變時，每一步前進的時間也要跟著改"));
   const ctl=el("div",{class:"ctl"},`<span>FREQ</span><span class="seg"><button type="button" data-f="0.16667" aria-pressed="true">"10min"</button><button type="button" data-f="1" aria-pressed="false">"h"</button></span>
    <label><input type="checkbox" id="es-fix"> 步長用實際取樣間隔 dt（第 2 週的修正）</label>`);
-  const box=el("div"),read=el("div",{class:"read"}),cap=el("p",{class:"cap"},"灰線是精確解。點是程式算出來的值，畫在它們真正的時間位置上。程式裡寫死的是「每步前進 600 秒」，取樣改成每小時卻沒有改它，流量就退水得慢 6 倍。k = 1.2 小時，降雨 1 小時。");
+  const box=el("div"),read=el("div",{class:"read"}),cap=el("p",{class:"cap"},"灰線是精確解。點是程式算出來的值，畫在它們真正的時間位置上。程式裡寫死的是「每步前進 600 秒」，取樣改成每小時卻沒有改它，流量就退水得慢 6 倍。\\(k = 1.2\\) 小時，降雨 1 小時。");
   host.append(ctl,box,read,cap);const cv=canvas(box,230);let dt=1/6,fix=false;
   function draw(){const cl=C(),b=cv.size(),ctx=cv.ctx;const f=frame(ctx,b,{x0:0,x1:8,y0:0,y1:45,xt:[0,1,2,3,4,5,6,7,8],yt:[0,10,20,30,40],yl:"流量 [m³/s]",xl:"實際經過的時間 [小時]"});
     const K=1.2,ref=simQ(pulse(40),K,.02,8,true);line(ctx,ref.map(p=>[f.X(p[0]),f.Y(p[1])]),cl.muted,1.4);

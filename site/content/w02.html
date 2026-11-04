@@ -26,7 +26,7 @@ if errors:
     <tr><td>結束碼</td><td>呼叫它的程式</td><td>0 成功、2 參數錯誤</td></tr>
     <tr><td>輸出資料夾</td><td>三個月後的你</td><td>config.json、metrics.json、flow.csv</td></tr>
   </tbody></table></div>
-  <div class="callout demo"><b>示範</b><p><code>python runoff_cli.py --k-hours 0.2 --out runs/bad</code> 會印出「參數錯誤：k = 0.2 hr 小於 2 倍步長（0.333 hr），顯式計算會發散」，接著 <code>echo $?</code>（PowerShell：<code>$LASTEXITCODE</code>）得到 2，而且不會建立 <code>runs/bad</code>。</p></div>
+  <div class="callout demo"><b>示範</b><p><code>python runoff_cli.py --k-hours 0.2 --out runs/bad</code> 會印出「參數錯誤：\(k = 0.2\) hr 小於 2 倍步長（0.333 hr），顯式計算會發散」，接著 <code>echo $?</code>（PowerShell：<code>$LASTEXITCODE</code>）得到 2，而且不會建立 <code>runs/bad</code>。</p></div>
 
   <h3 data-day="2"><span class="day-mark">Day 2</span>2. 第 1 週的單位陷阱在這裡修好</h3>
   <p><code>runoff_cli.py</code> 從時間軸算出每一步的實際小時數，並用結束時間決定筆數，不再寫死每步 600 秒與 <code>days * 144</code>。打開下方的「步長用實際取樣間隔」，兩種頻率的退水都會落在合理的位置。</p>
@@ -61,7 +61,7 @@ def already_done(folder: Path, params: dict) -> bool:
 <section data-day="4">
   <h2><span class="stage-no">二</span>例題（完整示範）</h2>
   <div class="callout predict"><b>例題</b><p>已經跑過一次 <code>batch.py</code>（10 組）。現在在 <code>GRID</code> 加入 <code>"noise": [0.08, 0.2]</code> 再跑。預測：應該有幾組、第二次執行會跳過幾組、<code>summary.csv</code> 會有幾列？然後實際跑，比對預測。</p></div>
-  <p><b>步驟 1：先算。</b>5 個 k × 2 個 seed × 2 個雜訊 = 20 組。直覺上，原本沒有 noise 維度的 10 組用的是預設值 0.08，等於 noise = 0.08 的 10 組已經跑過，應該跳過 10 組、<code>summary.csv</code> 有 20 列。</p>
+  <p><b>步驟 1：先算。</b>5 個 \(k\) × 2 個 seed × 2 個雜訊 = 20 組。直覺上，原本沒有 noise 維度的 10 組用的是預設值 0.08，等於 noise = 0.08 的 10 組已經跑過，應該跳過 10 組、<code>summary.csv</code> 有 20 列。</p>
   <p><b>步驟 2：實際跑。</b></p>
   <div class="tbl"><table><thead><tr><th>項目</th><th>預測</th><th>實際</th></tr></thead><tbody>
     <tr><td>執行的組數</td><td class="mono">10</td><td class="mono">20（一組都沒跳過）</td></tr>
