@@ -17,7 +17,7 @@
 | `PLAN.md` | 26 週計畫與交接摘要 |
 | `site/` | 學習站原始碼：`index.html` 與每週講解 `content/wNN.html` |
 | `jobs/` | 職缺技能盤點 |
-| `pyflow/` | 獨立作品：Python 傳遞關係視覺化工具（見 `pyflow/README.zh-TW.md`） |
+| `pyflow/` | 獨立作品：改了某個 Python 變數，哪裡會跟著變？（網頁、命令列、VS Code 擴充功能；見 `pyflow/README.zh-TW.md`） |
 
 ## 進度
 
