@@ -1011,6 +1011,7 @@ const ANIMS={
    {const b=cvA.size(),ctx=cvA.ctx;const f=frame(ctx,b,{x0:0,x1:1.4,y0:0,y1:1.12,xt:[0,.2,.4,.6,.8,1,1.2,1.4],yt:[0,.2,.4,.6,.8,1],yl:"(Q − 基流) / 雨停時",xl:"雨停後的時間 [小時]",padL:40});
     const exact=[];for(let t=0;t<=1.4001;t+=.01)exact.push([f.X(t),f.Y(Math.exp(-t/K))]);
     line(ctx,exact,cl.muted,1.6);
+    ctx.fillStyle=cl.muted;ctx.font="11px "+(cl.mono||"monospace");ctx.textAlign="left";ctx.textBaseline="bottom";ctx.fillText("精確解 e^(−t/k)",f.X(.42)+6,f.Y(Math.exp(-.42/K))-6);
     line(ctx,[[f.X(K),f.T],[f.X(K),f.B]],cl.muted,1,[3,3]);
     ctx.fillStyle=cl.muted;ctx.font="11px sans-serif";ctx.textAlign="left";ctx.textBaseline="top";ctx.fillText("t = k",f.X(K)+4,f.T+2);
     dotAt(ctx,f.X(K),f.Y(TH),5,cl.ink);

@@ -19,6 +19,15 @@
   <div class="eq-m">\[\frac{dS}{dt} = C\,A\,P(t) - \frac{S}{k}, \qquad Q(t) = \frac{S}{k} + Q_\text{base}\]<p>\(P\)：雨量 [mm/hr]　\(A\)：流域面積 [km²]　\(Q\)：流量 [m³/s]　\(S\)：蓄水量</p></div>
   <p>這個模型有兩個理論值，之後所有檢查都拿它們當標準答案：</p>
   <div class="eq-m"><p>退水：雨停後經過 \(k\) 小時，\(Q - Q_\text{base}\) 降為原來的 \(e^{-1} \approx 0.368\)</p><p>水量：\(V_\text{out} = C \times V_\text{rain}\)（流出總水量等於逕流係數乘上降雨總水量，扣掉期末還留在流域裡的水）</p></div>
+  <div class="callout term"><b>推導：退水為什麼是 \(e^{-t/k}\)</b>
+    <p>雨停後 \(P = 0\)，蓄水方程只剩流出項：</p>
+    \[\frac{dS}{dt} = -\frac{S}{k}\]
+    <p>分離變數後兩邊積分，從雨停時的蓄水量 \(S_0\) 積到 \(S\)、從 0 積到 \(t\)：</p>
+    \[\int_{S_0}^{S}\frac{dS'}{S'} = -\frac{1}{k}\int_0^{t}dt' \;\Rightarrow\; \ln\frac{S}{S_0} = -\frac{t}{k} \;\Rightarrow\; S(t) = S_0\,e^{-t/k}\]
+    <p>扣掉基流後的流量與蓄水量成正比（\(Q - Q_\text{base} = S/k\)），所以流量也以同樣的比例衰減：</p>
+    \[\frac{Q(t) - Q_\text{base}}{Q(0) - Q_\text{base}} = e^{-t/k}\]
+    <p>代入 \(t = k\) 得到 \(e^{-1} \approx 0.368\)，這就是「每過 \(k\) 小時剩約 37%」的來源，\(k\) 因此叫退水常數，也就是這個系統的時間常數。</p>
+    <p>程式並不是直接用這個解，而是用顯式歐拉一步一步推：\(S_{n+1} = S_n - \Delta t\,S_n/k = S_n\,(1 - \Delta t/k)\)，所以 \(N\) 步後剩 \((1 - \Delta t/k)^N\)。只有在 \(\Delta t \to 0\) 時，\(\left(1 - \frac{t}{kN}\right)^N \to e^{-t/k}\)，兩者才完全一致；例題裡 0.351 與 0.368 的落差，就是從這裡來的。</p></div>
   <div data-anim="recession"></div>
   <div class="callout demo"><b>示範：拿程式輸出對理論</b><p>執行 <code>python week01/runoff_example.py</code>，程式最後印出：</p>
     <div class="eq">退水檢查：k 小時後剩 0.351（理論 e^-1 = 0.368）
