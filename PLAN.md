@@ -1,7 +1,7 @@
 # SciML 半年（26 週）訓練計畫：交接摘要
 
 給新對話的 Claude 讀的背景。每週開一個新對話，從這裡接續。
-本文件同時存在 claude.ai 專案「All About LLM」（`claude/sciml-plan.md`）與 GitHub repo（`PLAN.md`），兩邊內容保持一致。
+本文件以 GitHub repo（`PLAN.md`）為唯一正本。claude.ai 專案「All About LLM」的 `claude/sciml-plan.md` 只是舊副本，Claude Code 無法更新，不再同步，內容以 repo 為準。
 
 ## 目前待辦（下次對話先看這裡）
 - **位置**：從第 1 週重新開始（2026-11-03 決定），專案情境為水力工程（2026-11-04）。第 1–3 週的範例程式、`exercises.md`、`notes.md` 題目與 HydroWatch 成品已產出，`sealed-answer-key` 已重建；學習站講解（`site/content/w01–w03.html`）、動畫與計畫資料已同步為水力工程版。
@@ -119,7 +119,7 @@ W14 揭曉 HydroWatch 前段模組的答案卷，W26 揭曉 VPPWatch 與 HydroWa
 2. 讀學習站 db 的勾選與筆記；pull repo，看 `weekNN/notes.md`、`papers/output/`、`reports/`；給回饋。
 3. 若本週有審查模組：先收學習者的 `audit_log.md`，再讀 `sealed-answer-key` 只公布該模組答案並記錄抓錯率。
 4. 產出第 N+1 週（若尚未產出）：`weekNN/` 範例程式＋`exercises.md`（每日任務、先預測再執行、讓 AI 出錯的題目、週六產出），以及 `site/content/wNN.html` 講解（理論、程式導讀、必要時新增動畫），重新發布學習站。
-5. 更新 `backups/progress.md`、本文件「目前待辦」與「進度紀錄」，同步到專案文件。
+5. 更新 `backups/progress.md`、本文件「目前待辦」與「進度紀錄」。
 
 ## 進度紀錄
 - 2026-11-04：計畫第四版。前段 W1–14 HydroWatch、後段 W15–26 VPPWatch（虛擬電廠，對準安瑟樂威），兩套都走「預測 → 最小版 → 審查 → 替換」。W8 併入 FNO、拿掉 W24–25 生成式設計選修；新增 W15 VPPWatch 交付、W16 串流遙測、W19 光電、W20 儲能與熱傳導、W21 需量反應因果、W22 NSGA-II 投標、W23 壓測與故障演練。學習站首頁新增職缺覆蓋度矩陣、抓錯率計分板、證據庫（AI 錯誤、ADR、實驗）、面試題庫；W1–14 每週加小基建任務。HydroWatch 的 deploy、api、ops、legacy 改在後段與 VPPWatch 同週審查，答案於 W26 揭曉。
