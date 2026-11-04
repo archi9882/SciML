@@ -351,6 +351,8 @@ details.hint p{margin:0}
 @keyframes bugflip{from{transform:rotateY(90deg)}to{transform:none}}
 .bug-list{margin:8px 0 0;padding-left:1.1em;display:grid;gap:4px;font-size:.86rem}
 @media (prefers-reduced-motion:reduce){.sx .mg *,.bug{animation:none!important}}
+/* 第 1 週例題動畫 */
+.anim .plots > .rs2-bar{flex:0 1 260px}
 /* 第 2 週例題動畫 */
 .gd-lanes{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:12px}
 @media (max-width:760px){.gd-lanes{grid-template-columns:minmax(0,1fr)}}
@@ -989,6 +991,57 @@ const ANIMS={
   ctl.querySelector("#gd-next").addEventListener("click",()=>{clearInterval(timer);go(stp+1)});
   ctl.querySelector("#gd-play").addEventListener("click",()=>{clearInterval(timer);go(0);timer=setInterval(()=>{if(stp>=ST.length-1){clearInterval(timer);return}go(stp+1)},RM.matches?2500:3600)});
   draw();return()=>{clearInterval(timer);anim.forEach(clearTimeout)}},
+
+ // 9. 第 1 週例題：退水檢查 0.351 對理論 0.368，拆成取整與歐拉近似
+ "recession-split"(host){host.innerHTML="";
+  host.append(el("div",{class:"a-title"},"4.6% 的落差從哪來：一次只改一個條件"));
+  const ctl=el("div",{class:"ctl"},`<button class="btn" type="button" id="rs2-prev">上一步</button><button class="btn primary" type="button" id="rs2-next">下一步</button><button class="btn" type="button" id="rs2-play">自動播放</button><span class="mono" id="rs2-step"></span>`);
+  const plots=el("div",{class:"plots"}),pa=el("div"),pb=el("div",{class:"rs2-bar"});plots.append(pa,pb);
+  const cap=el("p",{class:"cap"});host.append(ctl,plots,cap);
+  const cvA=canvas(pa,250),cvB=canvas(pb,250);
+  const K=1.2,DT=1/6,NS=7,TH=Math.exp(-1),RND=Math.exp(-NS*DT/K),EU=Math.pow(1-DT/K,NS);
+  const CAP=[
+   "灰線是連續時間的精確解：雨停後流量（扣掉基流）按 \\(e^{-t/k}\\) 衰減，\\(k = 1.2\\) 小時。剛好經過 \\(k\\) 小時時剩 \\(e^{-1} \\approx 0.368\\)，這是理論值。",
+   "差異一：取整。每 10 分鐘一筆，\\(k = 1.2\\) 小時是 7.2 步，程式只能量 7 步，也就是 1.167 小時。在精確解上量，退水還沒降夠，值是 \\(e^{-7/7.2} \\approx 0.378\\)，比理論高 0.010。",
+   "差異二：顯式歐拉。程式每一步用「現在的流量」推下一步，每步乘上 \\(1 - \\Delta t/k\\)，比連續衰減降得快。7 步後是 \\((1 - 1/7.2)^7 \\approx 0.351\\)，比上一步再低 0.027。",
+   "合起來：理論 0.368，取整 +0.010，歐拉 −0.027，得到程式印出的 0.351。兩個來源方向相反、部分抵銷，所以總差距只有 −0.017（4.6%）。程式沒有錯，落差來自時間離散。"];
+  let stp=0,timer=0;
+  function draw(){const cl=C();
+   // 左：衰減曲線
+   {const b=cvA.size(),ctx=cvA.ctx;const f=frame(ctx,b,{x0:0,x1:1.4,y0:0,y1:1.12,xt:[0,.2,.4,.6,.8,1,1.2,1.4],yt:[0,.2,.4,.6,.8,1],yl:"(Q − 基流) / 雨停時",xl:"雨停後的時間 [小時]",padL:40});
+    const exact=[];for(let t=0;t<=1.4001;t+=.01)exact.push([f.X(t),f.Y(Math.exp(-t/K))]);
+    line(ctx,exact,cl.muted,1.6);
+    line(ctx,[[f.X(K),f.T],[f.X(K),f.B]],cl.muted,1,[3,3]);
+    ctx.fillStyle=cl.muted;ctx.font="11px sans-serif";ctx.textAlign="left";ctx.textBaseline="top";ctx.fillText("t = k",f.X(K)+4,f.T+2);
+    dotAt(ctx,f.X(K),f.Y(TH),5,cl.ink);
+    if(stp>=1){const t7=NS*DT;line(ctx,[[f.X(t7),f.T+16],[f.X(t7),f.B]],cl.buoy,1.4,[5,3]);
+      ctx.fillStyle=cl.buoy;ctx.fillText("7 步",f.X(t7)-30,f.T+18);dotAt(ctx,f.X(t7),f.Y(RND),5,cl.buoy)}
+    if(stp>=2){const pts=[];let v=1;for(let i=0;i<=NS;i++){pts.push([f.X(i*DT),f.Y(v)]);v*=1-DT/K}
+      line(ctx,pts,cl.miss,1.4);pts.forEach(p=>dotAt(ctx,p[0],p[1],3.2,cl.miss));dotAt(ctx,f.X(NS*DT),f.Y(EU),5.5,cl.miss)}
+    ctx.font="11px "+(cl.mono||"monospace");ctx.textAlign="left";ctx.textBaseline="middle";
+    ctx.fillStyle=cl.ink;{const lab="理論 0.368",fit=f.X(K)+8+ctx.measureText(lab).width<=f.R;ctx.textAlign=fit?"left":"right";ctx.fillText(lab,fit?f.X(K)+8:f.R,fit?f.Y(TH)+2:f.Y(TH)-34)}
+    if(stp>=1){ctx.fillStyle=cl.buoy;ctx.textAlign="right";ctx.fillText("取整 0.378",f.X(NS*DT)-10,f.Y(RND)-14)}
+    if(stp>=2){ctx.fillStyle=cl.miss;ctx.textAlign="right";ctx.fillText("歐拉 0.351",f.X(NS*DT)-10,f.Y(EU)+16)}}
+   // 右：瀑布圖
+   {const b=cvB.size(),ctx=cvB.ctx;const f=frame(ctx,b,{x0:0,x1:4,y0:.33,y1:.39,yt:[.34,.35,.36,.37,.38],yl:"退水檢查值",padL:42,padB:30});
+    const bars=[["理論",TH,TH,cl.ink,0],["取整",TH,RND,cl.buoy,1],["歐拉",RND,EU,cl.miss,2],["程式",EU,EU,cl.ink,3]];
+    const w=(f.X(1)-f.X(0))*.56;
+    bars.forEach(([lab,a,z,col,need],i)=>{const cx=f.X(i+.5);
+      ctx.fillStyle=cl.muted;ctx.font="11px sans-serif";ctx.textAlign="center";ctx.textBaseline="top";ctx.fillText(lab,cx,f.B+8);
+      const on=need===0||stp>=need||(i===3&&stp>=3);if(!on)return;
+      if(i===0||i===3){const y=f.Y(z);ctx.fillStyle=col;ctx.globalAlpha=i===3&&stp<3?0:1;ctx.fillRect(cx-w/2,y,w,f.B-y);ctx.globalAlpha=1}
+      else{const y1=f.Y(Math.max(a,z)),y2=f.Y(Math.min(a,z));ctx.fillStyle=col;ctx.fillRect(cx-w/2,y1,w,Math.max(2,y2-y1));
+        line(ctx,[[cx-w/2-(f.X(1)-f.X(0))*.44,f.Y(a)],[cx-w/2,f.Y(a)]],cl.muted,1,[2,2])}
+      const d=i===1?"+0.010":i===2?"−0.027":z.toFixed(3);
+      ctx.fillStyle=col;ctx.font="11px "+(cl.mono||"monospace");ctx.textAlign="center";ctx.textBaseline="bottom";ctx.fillText(d,cx,f.Y(Math.max(a,z))-4)})}
+   cap.innerHTML=CAP[stp];if(typeof tex==="function")tex(cap);
+   ctl.querySelector("#rs2-step").textContent=`${stp+1} / ${CAP.length}`;
+   ctl.querySelector("#rs2-prev").disabled=stp===0;ctl.querySelector("#rs2-next").disabled=stp===CAP.length-1}
+  const go=n=>{stp=Math.max(0,Math.min(CAP.length-1,n));draw()};
+  ctl.querySelector("#rs2-prev").addEventListener("click",()=>{clearInterval(timer);go(stp-1)});
+  ctl.querySelector("#rs2-next").addEventListener("click",()=>{clearInterval(timer);go(stp+1)});
+  ctl.querySelector("#rs2-play").addEventListener("click",()=>{clearInterval(timer);go(0);timer=setInterval(()=>{if(stp>=CAP.length-1){clearInterval(timer);return}go(stp+1)},RM.matches?2500:3600)});
+  const off=observe(host,()=>draw());draw();return()=>{clearInterval(timer);off()}},
 };
 
 

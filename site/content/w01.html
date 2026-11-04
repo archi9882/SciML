@@ -59,6 +59,7 @@ s += dt_sec * (inflow[i] - s / (K_HOURS * 3600))</code></pre></div>
     <tr><td>連續時間，但量 7 步（1.167 小時，\(e^{-7/7.2}\)）</td><td class="mono">0.378</td><td class="mono">+0.010</td></tr>
     <tr><td>顯式歐拉，7 步（\((1 - 1/7.2)^7\)）= 程式印出的值</td><td class="mono">0.351</td><td class="mono">−0.017</td></tr>
   </tbody></table></div>
+  <div data-anim="recession-split"></div>
   <p><b>步驟 3：解釋每個來源。</b></p>
   <ul>
     <li><b>取整</b>：少量了 0.033 小時，退水還沒降夠，值偏高 +0.010。</li>
