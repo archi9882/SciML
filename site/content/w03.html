@@ -14,6 +14,7 @@
 pytest                      # 跑測試</code></pre></div>
   <div class="callout demo"><b>示範：跑完之後先看什麼</b><p>先看 <code>outputs/report.json</code> 的結構（有哪些區塊），不要急著判斷數字對不對。每個區塊名稱對應一個模組，這就是畫架構圖的第一份線索。</p></div>
 
+  <div class="callout ask"><b>寫進筆記</b><span class="qref">筆記 Day 1・Q1</span><p>跑 <code>python -m hydrowatch run</code>，<code>report.json</code> 有哪些區塊？每個區塊你猜對應哪個模組？</p></div>
   <h3 data-day="2"><span class="day-mark">Day 2</span>2. 架構圖就是資料流：誰的輸出是誰的輸入</h3>
   <p>畫架構圖不需要讀懂演算法，只要回答三個問題：資料從哪裡進來、經過哪些模組、輸出到哪裡。用搜尋就能找出模組之間的呼叫關係：</p>
   <div class="code"><pre><code class="language-bash">grep -rn "^from hydrowatch\|^import hydrowatch" hydrowatch --include=*.py</code></pre></div>
@@ -23,6 +24,7 @@ pytest                      # 跑測試</code></pre></div>
     <tr><td>batch.py</td><td>參數網格 GRID</td><td>runs/summary.csv</td><td>呼叫 runoff_cli.py</td></tr>
   </tbody></table></div>
 
+  <div class="callout ask"><b>寫進筆記</b><span class="qref">筆記 Day 2・Q1</span><p>貼上你的架構圖（文字或圖），標出資料從哪來、經過哪些模組、輸出到哪。</p></div>
   <h3 data-day="3"><span class="day-mark">Day 3</span>3. 每個模組寫一行：輸入、輸出、可能出錯的地方</h3>
   <p>「可能出錯的地方」不是要你找到錯，是先列出這一類程式常見的出錯點，之後有方向地查。常見的幾類：</p>
   <ul>
@@ -33,6 +35,7 @@ pytest                      # 跑測試</code></pre></div>
     <li><b>預設值</b>：沒有寫出來的假設，例如補值方式、門檻。</li>
   </ul>
 
+  <div class="callout ask"><b>寫進筆記</b><span class="qref">筆記 Day 3・Q1</span><p>模組表：每個模組一行，寫輸入、輸出、可能出錯的地方。</p></div>
   <h3 data-day="4"><span class="day-mark">Day 4</span>4. 用已知答案做第一次檢查</h3>
   <p>不需要看懂程式，只要有一個「答案已知」的東西，就能對一次。這套系統裡你已經知道的有：</p>
   <div class="tbl"><table><thead><tr><th>已知答案</th><th>來源</th><th>怎麼檢查</th></tr></thead><tbody>
@@ -49,7 +52,7 @@ pytest                      # 跑測試</code></pre></div>
 
 <section data-day="5">
   <h2><span class="stage-no">二</span>例題（完整示範）</h2>
-  <div class="callout predict"><b>例題</b><p>把前兩週遇過的兩個現象，各寫成一筆 audit 紀錄。看看「排除」和「已確認」的差別。</p></div>
+  <div class="callout predict"><b>例題</b><span class="qref">筆記 Day 5・Q1</span><p>把前兩週遇過的兩個現象，各寫成一筆 audit 紀錄。看看「排除」和「已確認」的差別。</p></div>
   <div class="tbl"><table><thead><tr><th>編號</th><th>模組</th><th>現象</th><th>證據</th><th>影響多大</th><th>狀態</th></tr></thead><tbody>
     <tr><td>E1</td><td>runoff_example.py：退水檢查</td><td>退水檢查 0.351，理論 0.368</td><td>用公式算：量 7 步的精確解 0.378，歐拉 0.351</td><td>−4.6%，來自取整（+0.010）與歐拉近似（−0.027）</td><td>排除：程式沒錯，是時間離散的誤差</td></tr>
     <tr><td>E2</td><td>batch.py：collect()</td><td>GRID 加入 noise 後 summary 有 30 列，預期 20 列</td><td>舊資料夾也被收進來；noise = 0.08 的組合出現兩次</td><td>筆數與標準差錯；平均值可能被舊預設值拉偏</td><td>已確認</td></tr>
@@ -61,20 +64,20 @@ pytest                      # 跑測試</code></pre></div>
   <h2><span class="stage-no">三</span>變化題</h2>
   <p class="lead">先自己做，卡住再看提示；答案寫進 <code>week03/notes.md</code>。</p>
 
-  <h3><span class="day-mark">Day 4</span>變化 1：先預測，再比對</h3>
+  <h3><span class="day-mark">Day 4</span>變化 1：先預測，再比對<span class="qref">筆記 Day 4・Q1</span></h3>
   <p>跑 <code>python -m hydrowatch run</code> 之前，先寫下預測：5 個測站、30 天、每小時一筆，<code>report.json</code> 的 <code>n_hours</code> 應該是多少？<code>quality</code> 區塊每個測站的哪些欄位你預期是 0？跑完逐項比對，對不上的，就是線索。</p>
   <details class="hint"><summary>提示</summary><p>用第 2 週例題的習慣：先用簡單的數字算，再看實際。對不上的數字，記進 audit_log.md，狀態先寫「待查」。</p></details>
 
-  <h3 data-day="5">變化 2：測試全過，代表系統正確嗎？</h3>
+  <h3 data-day="5">變化 2：測試全過，代表系統正確嗎？<span class="qref">筆記 Day 4・Q2</span></h3>
   <p>執行 <code>pytest</code>，7 個測試全過。讀測試的名稱與內容（不用讀實作），列出三件「測試沒有檢查、但出錯會影響結果」的事。</p>
   <details class="hint"><summary>提示</summary><p>想想 Day 3 的五類出錯點：測試有沒有覆蓋單位、時區、邊界、切分、預設值？</p></details>
 
-  <h3>變化 3：讓 AI 列風險，再對照你的清單</h3>
+  <h3>變化 3：讓 AI 列風險，再對照你的清單<span class="qref">筆記 Day 4・Q3</span></h3>
   <p>把 <code>hydrowatch/</code> 的目錄結構（不貼程式碼）給 AI，問它「這套系統最可能出錯的五個地方」。把它的清單和你 Day 3 寫的並排，標出：它說到你沒想到的、你想到它漏掉的。</p>
 </section>
 
 <section data-day="6">
-  <h2><span class="stage-no">四</span>回答本週大問題</h2>
+  <h2><span class="stage-no">四</span>回答本週大問題<span class="qref">筆記 Day 6・Q1</span></h2>
   <p>回答「這套系統由哪些部分組成，每一塊可能在哪裡出錯？」，寫進 <code>week03/notes.md</code>，並放進 repo 的 <code>README.md</code>。至少包含：</p>
   <ol>
     <li><b>架構圖</b>：文字或圖都可以，標出資料從哪裡進來、經過哪些模組、輸出到哪裡。</li>

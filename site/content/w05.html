@@ -15,6 +15,7 @@
     <p><b>CFL 數</b> \(C = a\,\Delta t/\Delta x\)：一個時間步長，波走了幾個網格。顯式 upwind 要求 \(C \le 1\)。</p></div>
   <p>範例用洪水波速 \(a = 14.7\) km/hr（推導見 <code>docs/parameters.md</code>），初始是寬度 1 km 的高斯波，上游端固定為 0、下游端零梯度（波自由流出）。</p>
 
+  <div class="callout ask"><b>寫進筆記</b><span class="qref">筆記 Day 1・Q1</span><p>CFL 數的定義是什麼？範例的上游端與下游端邊界各是什麼？</p></div>
   <h3 data-day="2"><span class="day-mark">Day 2</span>2. 一階 upwind 的數值擴散</h3>
   <p>把 upwind 展開（修正方程分析），它實際解的方程多了一個擴散項：</p>
   <div class="eq-m">\[u_t + a\,u_x = D_\text{num}\,u_{xx}, \qquad D_\text{num} = \frac{a\,\Delta x\,(1 - C)}{2}\]<p>高斯波的變異數 \(\sigma^2(t) = \sigma_0^2 + 2D_\text{num}\,t\)</p></div>
@@ -25,6 +26,7 @@
 0.1      3.308         0.361    3.806    3.808</div>
     <p>程式裡一個物理擴散項都沒有，波形卻被抹平：CFL 越小（步長越小），數值擴散反而越大。CFL = 0.5 時 \(D_\text{num}\) 是河道物理擴散係數 0.60 的 3 倍。<b>模型輸出的「擴散」，大部分是格式造成的。</b></p></div>
 
+  <div class="callout ask"><b>寫進筆記</b><span class="qref">筆記 Day 2・Q1</span><p>先預測：CFL = 0.5、\(\Delta x = 0.5\) km 時，高斯波的變異數會是多少？用 \(D_\text{num} = a\,\Delta x\,(1 - C)/2\) 與 \(\sigma^2 = \sigma_0^2 + 2D_\text{num}\,t\) 算，再比對輸出。</p></div>
   <h3 data-day="3"><span class="day-mark">Day 3</span>3. Burgers 方程：對流讓波形變陡，擴散把它撐住</h3>
   <p>\(u_t + u\,u_x = \nu\,u_{xx}\)。對流項讓高的地方跑得快，波前越來越陡；擴散項（黏滯係數 \(\nu\)）限制它不要變成垂直的斷崖（激波）。激波厚度大約和 \(\nu\) 同量級，網格必須比它細，才算解出來。</p>
   <div class="callout demo"><b>示範：第二段輸出（\(t = 0.3\)，週期邊界，\(u_0 = \sin 2\pi x\)）最大梯度 \(\max|u_x|\)</b>
@@ -35,6 +37,7 @@
  800       5.7     37.0     170.2</div>
     <p>\(\nu = 0.05\) 時網格加密到 200 以上，結果只變動 4%，算是收斂；\(\nu = 0.002\) 時每加密一倍梯度就大幅增加，還沒收斂。數值格式自帶的黏滯會把激波抹得比物理的更厚，網格不夠細時，看到的是格式，不是 \(\nu\)。</p></div>
 
+  <div class="callout ask"><b>寫進筆記</b><span class="qref">筆記 Day 3・Q1</span><p>\(\nu = 0.01\) 時，網格從 400 加密到 800，最大梯度變動多少？這算收斂嗎？</p></div>
   <h3 data-day="4"><span class="day-mark">Day 4</span>4. 把求解器包成 solve(params) → 結果</h3>
   <p>第 2 週的批次工具只會「用參數執行一支程式」。要讓數值實驗可重現，求解器本身也要能被這樣呼叫：輸入是一個參數字典，輸出是同一個字典加上指標。這樣掃描 CFL 與網格、存檔、事後回溯，都是同一個介面。</p>
   <div class="eq">solve({"nx": 81, "cfl": 0.5})
@@ -43,7 +46,7 @@
 
 <section data-day="4">
   <h2><span class="stage-no">二</span>例題（完整示範）</h2>
-  <div class="callout predict"><b>例題</b><p>CFL = 0.5、\(\Delta x = 0.5\) km 時，峰值從 1 降到 0.454。這是格式的問題，還是物理？預測再比對。</p></div>
+  <div class="callout predict"><b>例題</b><span class="qref">筆記 Day 4・Q1</span><p>CFL = 0.5、\(\Delta x = 0.5\) km 時，峰值從 1 降到 0.454。這是格式的問題，還是物理？預測再比對。</p></div>
   <p><b>步驟 1：列出可能的來源。</b>程式沒有物理擴散項，所以來源只有格式本身：數值擴散（一階項），以及更高階的項（色散）與邊界、取整。</p>
   <p><b>步驟 2：用公式預測，再與實測比對。</b>變異數預測用 \(D_\text{num} = a\,\Delta x\,(1 - C)/2\)，峰值用高斯展寬 \(1/\sqrt{1 + 4Dt/w^2}\)（\(w = 1\) km）：</p>
   <div class="tbl"><table><thead><tr><th>CFL</th><th>\(D_\text{num}\)</th><th>變異數：預測／實測</th><th>差</th></tr></thead><tbody>
@@ -61,23 +64,23 @@
   <h2><span class="stage-no">三</span>變化題</h2>
   <p class="lead">先自己做，卡住再看提示；答案寫進 <code>week05/notes.md</code>。</p>
 
-  <h3><span class="day-mark">Day 4</span>變化 1：找出沒收斂的條件</h3>
+  <h3><span class="day-mark">Day 4</span>變化 1：找出沒收斂的條件<span class="qref">筆記 Day 4・Q2</span></h3>
   <p>用第二段輸出（Burgers 最大梯度），判斷 \(\nu = 0.05\)、0.01、0.002 各自要多細的網格才算收斂？用「相鄰兩次加密，變動小於 5%」當標準，並估計 \(\nu = 0.002\) 大約要多少格。</p>
   <details class="hint"><summary>提示</summary><p>激波厚度約與 \(\nu\) 同量級，網格間距要比它小得多。\(\nu = 0.002\) 時 nx = 800 的 \(\Delta x\) 是 0.00125。</p></details>
   <details class="hint"><summary>參考答案</summary><p>\(\nu = 0.05\)：200 格之後的變動 2% 與 2%，已收斂；\(\nu = 0.01\)：400 到 800 格仍變動 6.6%，還沒收斂；\(\nu = 0.002\)：400 到 800 格變動 28%，離收斂很遠，需要上千格以上。結論：\(\nu\) 越小，需要的網格越細，一個沒有收斂測試的 Burgers 結果不能信。</p></details>
 
-  <h3>變化 2：讓 AI 把求解器包成 solve(params) 並批次掃描</h3>
+  <h3>變化 2：讓 AI 把求解器包成 solve(params) 並批次掃描<span class="qref">筆記 Day 4・Q3</span></h3>
   <p>請 AI 寫一支批次程式，掃描 <code>nx ∈ {21, 41, 81}</code> 與 <code>cfl ∈ {0.2, 0.5, 0.9}</code>，輸出一張表。先寫兩個檢查再執行：每組結果的變異數要接近公式預測（CFL ≤ 0.5 時差在 3% 以內）；同樣的參數執行兩次，結果要完全一樣。</p>
   <details class="hint"><summary>提示</summary><p>第 2 週例題的老問題也會出現：新舊結果混在一起、參數組合重複。</p></details>
 
-  <h3 data-day="5"><span class="day-mark">Day 5</span>變化 3：審查成品，並換成你自己的求解器</h3>
+  <h3 data-day="5"><span class="day-mark">Day 5</span>變化 3：審查成品，並換成你自己的求解器<span class="qref">筆記 Day 5・Q1</span></h3>
   <p>審查 HydroWatch 的 <code>routing.py</code>：算出它的 \(D_\text{num}\)，與 \(D = 0.60\) 比較；檢查邊界條件（上游端、下游端各是什麼）。然後用 <code>legacy/transport.f90</code> 的輸出（<code>legacy/reference_output.txt</code>）當對照基準。記進 <code>audit_log.md</code>。</p>
   <p>接著寫你自己的 <code>solve(params)</code>，邊界條件用開放邊界（下游端零梯度、上游端固定），結果要和 Fortran 參考一致，再換進 <code>routing.py</code>，確認 <code>python -m hydrowatch run</code> 與 <code>pytest</code> 仍能跑。</p>
   <details class="hint"><summary>提示</summary><p>把邊界條件、格點數、步數都和 Fortran 版對齊，只比較 peak 與 sum 兩個數字就夠判斷。</p></details>
 </section>
 
 <section data-day="6">
-  <h2><span class="stage-no">四</span>回答本週大問題</h2>
+  <h2><span class="stage-no">四</span>回答本週大問題<span class="qref">筆記 Day 6・Q1</span></h2>
   <p>用一段話回答「數值方法本身會造成哪些失真，怎麼系統性地找出它的邊界？」，寫進 <code>week05/notes.md</code>，並完成<b>失敗案例報告 #1</b>放進 <code>reports/</code>（格式見 <code>reports/TEMPLATE.md</code>）：現行方法在哪裡預測不準、原因與佐證。至少包含：</p>
   <ol>
     <li><b>失真的種類與大小</b>：數值擴散、激波厚度、邊界條件各自的影響。</li>

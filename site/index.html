@@ -351,6 +351,10 @@ details.hint p{margin:0}
 @keyframes bugflip{from{transform:rotateY(90deg)}to{transform:none}}
 .bug-list{margin:8px 0 0;padding-left:1.1em;display:grid;gap:4px;font-size:.86rem}
 @media (prefers-reduced-motion:reduce){.sx .mg *,.bug{animation:none!important}}
+/* 寫進筆記的題目與題號 */
+.callout.ask{border-left:4px solid var(--vio)}
+.callout.ask > b:first-child{color:var(--vio)}
+.qref{display:inline-block;margin-left:8px;font-family:var(--font-mono);font-size:.68rem;font-weight:500;letter-spacing:0;padding:0 7px;border-radius:999px;background:var(--bg);color:var(--muted);border:1px solid var(--line);vertical-align:2px;white-space:nowrap}
 /* 數學式 */
 .lesson .eq-m{background:var(--code-bg);color:var(--code-ink);border-radius:6px;padding:10px 14px;display:grid;gap:6px;overflow-x:auto;max-width:100%}
 .lesson .eq-m p{margin:0}

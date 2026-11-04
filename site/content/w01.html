@@ -27,6 +27,7 @@
     <p class="muted" style="font-size:.84rem">以上是 SEED = 42 的輸出；換 SEED 數字會差一點，結論相同。</p>
     <p>水量檢查剛好吻合，退水檢查卻差了 0.017（4.6%）。這個差距從哪來，就是下面例題要回答的。</p></div>
 
+  <div class="callout ask"><b>寫進筆記</b><span class="qref">筆記 Day 1・Q1</span><p>執行 <code>python week01/runoff_example.py</code>，把程式印出的三項檢查結果跟理論值對照。差多少？</p></div>
   <h3 data-day="2"><span class="day-mark">Day 2</span>2. 步長由取樣頻率決定</h3>
   <p>範例程式每 10 分鐘一筆（台灣雨量站的原始資料就是 10 分鐘），所以每一步往前推 600 秒，一天有 144 筆。這兩個數字都寫死在程式裡：<code>s += 600 * (...)</code> 與 <code>n = days * 144</code>。把取樣改成每小時，每一步實際過了 3600 秒，程式卻還是只前進 600 秒，流量就退水得慢 6 倍；而 <code>n = days * 144</code> 寫死，每步變成 1 小時，60 天會變成模擬 360 天。</p>
   <div data-anim="euler-step"></div>
@@ -39,6 +40,8 @@ s += dt_sec * (inflow[i] - s / (K_HOURS * 3600))</code></pre></div>
   <p>雨量由 seed 產生，模型流量由公式與雨量算出；流量計的量測誤差是一個相對誤差（標準差 8%），由亂數產生器產生。換 seed 會改變雨量與誤差，但公式本身不變。你可以寫一支 <code>seed_check.py</code> 驗證：換不同 seed 跑，比較哪些輸出變、哪些不變。固定 seed，才能確定前後結果的差異來自你改的參數，而不是亂數剛好不同。</p>
   <div data-anim="seed-noise"></div>
 
+  <div class="callout ask"><b>寫進筆記</b><span class="qref">筆記 Day 2・Q1</span><p>程式裡每個 <code>3600</code>、<code>600</code> 代表什麼？如果把 <code>FREQ</code> 改成 <code>"h"</code>，哪些地方要跟著改？</p></div>
+  <div class="callout ask"><b>寫進筆記</b><span class="qref">筆記 Day 2・Q2</span><p>把 <code>SEED</code> 改掉再跑兩次，哪些數字變了、哪些沒變？為什麼研究上要固定 seed？</p></div>
   <h3 data-day="3"><span class="day-mark">Day 3</span>4. 從每 10 分鐘到每日：resample</h3>
   <p><code>resample("D")</code> 依日期把資料分組，<code>.agg()</code> 對每組算統計量。每日最大流量就是「當天最高那一筆」，這個算法遇到量測誤差會帶來偏差。</p>
   <div data-anim="resample"></div>
@@ -48,7 +51,7 @@ s += dt_sec * (inflow[i] - s / (K_HOURS * 3600))</code></pre></div>
 
 <section data-day="3">
   <h2><span class="stage-no">二</span>例題（完整示範）</h2>
-  <div class="callout predict"><b>例題</b><p>退水檢查印出 0.351，理論是 0.368，差 4.6%。這是程式錯了，還是另有原因？請拆出來源，並各自估計大小。</p></div>
+  <div class="callout predict"><b>例題</b><span class="qref">筆記 Day 3・Q1</span><p>退水檢查印出 0.351，理論是 0.368，差 4.6%。這是程式錯了，還是另有原因？請拆出來源，並各自估計大小。</p></div>
   <p><b>步驟 1：列出可能的來源。</b>理論值是「連續時間、剛好 \(k\) 小時」的結果。程式和理論有兩個不同：\(k = 1.2\) 小時乘上每小時 6 筆是 7.2，不是整數，程式用 7 步（1.167 小時）去量；以及顯式歐拉用每 10 分鐘一步去近似連續的衰減。</p>
   <p><b>步驟 2：一次只改一個條件，看落差怎麼變。</b>依序用公式算出每個條件下的值：</p>
   <div class="tbl"><table><thead><tr><th>條件</th><th>退水值</th><th>跟理論 0.368 的差</th></tr></thead><tbody>
@@ -70,12 +73,12 @@ s += dt_sec * (inflow[i] - s / (K_HOURS * 3600))</code></pre></div>
   <h2><span class="stage-no">三</span>變化題</h2>
   <p class="lead">三題都用例題的四步。先自己做，卡住再看提示；寫完答案進 <code>week01/notes.md</code> 再對照參考答案。</p>
 
-  <h3><span class="day-mark">Day 4</span>變化 1：改條件。\(k\) 和步長越來越近</h3>
+  <h3><span class="day-mark">Day 4</span>變化 1：改條件。\(k\) 和步長越來越近<span class="qref">筆記 Day 4・Q1</span></h3>
   <p>把 <code>K_HOURS</code> 改成 0.6、0.3、0.15，先用 \((1 - \Delta t/k)^{N}\) 預測退水檢查的值，其中 \(\Delta t\) 是步長（1/6 小時），步數 \(N = \lfloor 6k \rfloor\)。再執行。\(k\) 和步長（10 分鐘）越接近，差距怎麼變？哪個 \(k\) 開始檢查本身不可信？</p>
   <details class="hint"><summary>提示</summary><p>0.15 小時只有 0.9 個步長，int(0.9) 是 0。先想想這時候程式量的是什麼。</p></details>
   <details class="hint"><summary>參考答案</summary><p>預測與實際都是：\(k = 0.6\) 時 0.377，\(k = 0.3\) 時 0.444，\(k = 0.15\) 時 1.000。\(k = 0.6\) 還在例題的範圍內；\(k = 0.3\) 時每步就衰減 56%，誤差很大；\(k = 0.15\) 時步數取整成 0，程式量的是同一個點的比值，永遠等於 1，<b>檢查本身失效</b>。這時 \(k\) 已經小於 2 倍步長（0.33 小時），顯式歐拉本來就不可信。結論：步長要遠小於 \(k\)，檢查也要先確認自己還在有效範圍。</p></details>
 
-  <h3>變化 2：讓 AI 改程式，用理論抓錯</h3>
+  <h3>變化 2：讓 AI 改程式，用理論抓錯<span class="qref">筆記 Day 4・Q2</span></h3>
   <p>請 AI「把取樣頻率改成每小時」，不要提示任何陷阱。先寫好兩個檢查，再執行它的版本：</p>
   <ul>
     <li>筆數：60 天、每小時取樣應該是 1440 筆。</li>
@@ -84,7 +87,7 @@ s += dt_sec * (inflow[i] - s / (K_HOURS * 3600))</code></pre></div>
   <p>檢查沒過，就指出錯在哪一行、為什麼錯；全部通過，換一個更難的要求再試，例如「改成每 30 分鐘、模擬 90 天」。</p>
   <details class="hint"><summary>提示</summary><p>回頭看第 2 個觀念：正確的修改要動三處，每步 600 秒、<code>n = days * 144</code>，以及退水檢查裡的 <code>int(K_HOURS * 6)</code>。AI 常常只改 <code>FREQ</code> 一行。</p></details>
 
-  <h3 data-day="5"><span class="day-mark">Day 5</span>變化 3：自己寫一個方法，再讓它失敗</h3>
+  <h3 data-day="5"><span class="day-mark">Day 5</span>變化 3：自己寫一個方法，再讓它失敗<span class="qref">筆記 Day 5・Q1</span></h3>
   <p>不靠 AI，寫 <code>find_storms(q)</code>：找出「比前一筆和後一筆都高，而且流量大於 3 m³/s」的時間點。先用中文寫步驟，再寫程式。寫完後用理論檢查：這份雨量（SEED = 42）共有 15 場暴雨。接著把 <code>NOISE_STD</code> 調到 0.5，看它在什麼條件下失敗。</p>
   <div data-anim="peak-find"></div>
   <details class="hint"><summary>提示</summary><p>誤差是乘性的，流量越大，絕對誤差越大。一場暴雨的洪峰附近會冒出很多假峰值。兩種修正：先平滑（代價是洪峰被削平、位置偏移），或規定兩場暴雨至少相隔幾小時（用這個流域的集流時間約 2 小時的知識約束）。</p></details>
@@ -92,7 +95,7 @@ s += dt_sec * (inflow[i] - s / (K_HOURS * 3600))</code></pre></div>
 </section>
 
 <section data-day="6">
-  <h2><span class="stage-no">四</span>回答本週大問題</h2>
+  <h2><span class="stage-no">四</span>回答本週大問題<span class="qref">筆記 Day 6・Q1</span></h2>
   <p>用一段話回答「這支程式算出來的洪峰流量，可信嗎？」，寫進 <code>week01/notes.md</code>，並放進 repo 的 <code>README.md</code>，附一張你改過的圖。答案至少要有三部分：</p>
   <ol>
     <li><b>可信的部分</b>：哪些數字跟理論吻合、吻合到多少。</li>
